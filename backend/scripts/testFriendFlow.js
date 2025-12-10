@@ -1,6 +1,6 @@
 (async function(){
   const fetch = global.fetch || (await import('node-fetch')).default;
-  const base = 'http://localhost:3001';
+  const base = process.env.API_ ||  'http://localhost:3001';
   const makeRandom = (prefix)=> prefix + Math.random().toString(36).slice(2,8);
 
   const usernameA = makeRandom('userA_');

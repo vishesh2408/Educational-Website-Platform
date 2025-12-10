@@ -2,7 +2,7 @@
   const fetch = global.fetch || (await import('node-fetch')).default;
   const mongoose = require('mongoose');
   const bcrypt = require('bcryptjs');
-  const base = process.env.BASE_URL || 'http://localhost:3001';
+  const base = process.env.BACKEND_URI || 'http://localhost:3001';
   const dbUri = process.env.MONGO_URI || 'mongodb://localhost:27017/myedu';
 
   // Helper to extract cookie like earlier test

@@ -7,6 +7,8 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const ForumPost = require('../models/ForumPost');
 
+const BASE_URL = process.env.BACKEND_URI || 'http://localhost:3001';
+
 async function main(){
   const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/myedu';
   const JWT_SECRET = process.env.JWT_SECRET || 'changeme';
@@ -58,7 +60,7 @@ async function main(){
   const token = jwt.sign(payload, JWT_SECRET, { expiresIn: '1h' });
 
   // Use fetch to call the API (Node 18+ has global fetch)
-  const url = `http://localhost:3001/api/forum-posts/${post._id}/replies`;
+  const url = `${BASE_URL}/api/forum-posts/${post._id}/replies`;
   console.log('Posting reply to', url);
 
   try {
