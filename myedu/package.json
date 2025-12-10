@@ -54,6 +54,9 @@
     "@testing-library/react": {
       "react": "^19.0.0",
       "react-dom": "^19.0.0"
+    },
+    "ajv-keywords": {
+      "ajv": "^8.17.1"
     }
   }
 }
