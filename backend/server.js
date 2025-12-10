@@ -56,12 +56,8 @@ const app = express();
 
 app.use(helmet()); // NEW: Sets various HTTP headers for security
 // Configure CORS to allow credentials (for cookies) from the frontend
-// Support both React dev servers that might be used locally
 app.use(cors({
-    origin: [
-        'http://localhost:3000', // CRA-style
-        'http://localhost:5173', // Vite default
-    ],
+    origin: process.env.FRONTEND_URL || 'http://localhost:3000',
     credentials: true,
 }));
 
