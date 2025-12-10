@@ -1,0 +1,382 @@
+/*
+  ========================================
+  CSS Custom Properties
+  ========================================
+*/
+:root {
+  --color-primary: #1F9D8D;
+  --color-primary-dark: #167468;
+  --color-secondary: #E2E8F0;
+  --color-text-light: #4B5563;
+  --color-text-dark: #E5E7EB;
+  --color-card-bg-light: #ffffff;
+  --color-card-bg-dark: #1F2937;
+  --color-border-dark: #374151;
+  --color-search-bg-light: #ffffff;
+  --color-search-bg-dark: #374151;
+  --color-search-border: #1F9D8D;
+}
+
+/*
+  ========================================
+  Base Header & Layout
+  ========================================
+*/
+.header {
+  background-color: var(--color-primary);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 50;
+  transition: background-color 0.3s ease;
+}
+
+body.dark-theme .header {
+  background-color: var(--color-card-bg-dark);
+}
+
+.header-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 4rem;
+  max-width: none;
+  margin: 0 auto;
+  padding: 0 0.5rem;
+  gap: 1.5rem; /* Use gap for consistent spacing */
+}
+
+.header-flex-group {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem; /* Use gap for consistent spacing */
+}
+
+.site-logo {
+  color: white;
+  font-size: 1.5rem;
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+/*
+  ========================================
+  Desktop Navigation
+  ========================================
+*/
+.nav-links-desktop {
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .nav-links-desktop {
+    display: block;
+  }
+}
+
+.nav-links-group {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.nav-link {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  font-size: 1rem;
+  font-weight: 500;
+  border-radius: 0.375rem;
+  color: #E5E7EB;
+  text-decoration: none;
+  transition: background-color 0.3s ease;
+}
+
+.nav-link:hover {
+  background-color: var(--color-primary-dark);
+}
+
+body.dark-theme .nav-link:hover {
+  background-color: var(--color-border-dark);
+}
+
+/*
+  ========================================
+  Desktop Actions (Search, Theme, Account)
+  ========================================
+*/
+.header-actions-desktop {
+  display: none;
+  align-items: center;
+  gap: 1rem;
+  margin-left: auto; /* Pushes the actions to the right */
+}
+
+body.dark-theme .header-actions-desktop {
+  color: var(--color-text-white);
+}
+
+@media (min-width: 768px) {
+  .header-actions-desktop {
+    display: flex;
+  }
+}
+
+.search-bar {
+  position: relative;
+}
+
+.search-input {
+  background-color: var(--color-search-bg-light);
+  color: var(--color-text-light);
+  border-radius: 9999px;
+  padding: 0.375rem 2.5rem 0.375rem 1rem;
+  font-size: 0.875rem;
+  outline: none;
+  border: 1px solid transparent;
+  transition: background-color 0.3s ease, color 0.3s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  width: 15rem;
+}
+
+body.dark-theme .search-input {
+  background-color: var(--color-search-bg-dark);
+  color: var(--color-text-dark);
+}
+
+.search-input:focus {
+  border-color: var(--color-search-border);
+  box-shadow: 0 0 0 2px var(--color-search-border);
+}
+
+.search-icon {
+  position: absolute;
+  right: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #6B7280;
+  pointer-events: none;
+}
+
+.theme-toggle-button {
+  padding: 0.5rem;
+  border-radius: 9999px;
+  color: white;
+  transition: background-color 0.3s ease;
+  border: none;
+  cursor: pointer;
+  background-color: transparent;
+}
+
+.theme-toggle-button:hover {
+  background-color: var(--color-primary-dark);
+}
+
+body.dark-theme .theme-toggle-button:hover {
+  background-color: var(--color-border-dark);
+}
+
+/*
+  ========================================
+  Account Dropdown Menu
+  ========================================
+*/
+.account-menu-container {
+  position: relative;
+}
+
+.account-button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  border-radius: 9999px;
+  color: white;
+  transition: background-color 0.3s ease;
+  border: none;
+  cursor: pointer;
+  background-color: transparent;
+}
+
+.account-button:hover {
+  background-color: var(--color-primary-dark);
+}
+
+body.dark-theme .account-button:hover {
+  background-color: var(--color-border-dark);
+}
+
+.account-name {
+  font-size: 0.875rem;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.account-dropdown-menu {
+  position: absolute;
+  right: 0;
+  margin-top: 0.5rem;
+  width: 12rem;
+  background-color: var(--color-card-bg-light);
+  border-radius: 0.375rem;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  padding: 0.25rem 0;
+  z-index: 50;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  transition: background-color 0.3s ease;
+}
+
+body.dark-theme .account-dropdown-menu {
+  background-color: var(--color-card-bg-dark);
+}
+
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  color: #4B5563;
+  text-decoration: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+body.dark-theme .dropdown-item {
+  color: #E5E7EB;
+}
+
+.dropdown-item:hover {
+  background-color: #F3F4F6;
+}
+
+body.dark-theme .dropdown-item:hover {
+  background-color: var(--color-border-dark);
+}
+
+.inline-icon {
+  display: inline;
+  margin-right: 0.5rem;
+}
+
+/*
+  ========================================
+  Mobile Menu
+  ========================================
+*/
+.mobile-menu-toggle {
+  display: flex;
+  align-items: center;
+}
+
+@media (min-width: 768px) {
+  .mobile-menu-toggle {
+    display: none;
+  }
+}
+
+.mobile-menu-button {
+  color: white;
+  padding: 0.5rem;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+}
+
+.mobile-menu-panel {
+  display: block;
+  background-color: var(--color-primary-dark);
+  border-top: 1px solid #115E59;
+  transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+
+body.dark-theme .mobile-menu-panel {
+  background-color: var(--color-card-bg-dark);
+  border-color: var(--color-border-dark);
+}
+
+.mobile-nav-links-group {
+  padding: 0.5rem 0.5rem 0.75rem 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.mobile-nav-link {
+  color: #E5E7EB;
+}
+
+.mobile-account-section {
+  padding-top: 1rem;
+  padding-bottom: 0.75rem;
+  border-top: 1px solid #115E59;
+  transition: border-color 0.3s ease;
+}
+
+body.dark-theme .mobile-account-section {
+  border-color: var(--color-border-dark);
+}
+
+.mobile-account-info {
+  padding-left: 1.25rem;
+  padding-right: 1.25rem;
+}
+
+.mobile-user-name {
+  font-size: 1rem;
+  font-weight: 500;
+  color: white;
+}
+
+.mobile-user-email {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #9CA3AF;
+}
+
+.mobile-account-links {
+  margin-top: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.mobile-login-link {
+  padding-left: 1.25rem;
+  padding-right: 1.25rem;
+}
+
+.mobile-theme-toggle {
+  margin-top: 1.75rem;
+  padding-left: 1.25rem;
+  padding-right: 1.25rem;
+}
+
+.theme-toggle-button-mobile {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  border-radius: 0.375rem;
+  color: #E5E7EB;
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.theme-toggle-button-mobile:hover {
+  background-color: var(--color-primary-dark);
+}
+
+body.dark-theme .theme-toggle-button-mobile:hover {
+  background-color: var(--color-border-dark);
+}

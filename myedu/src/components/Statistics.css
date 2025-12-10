@@ -1,0 +1,136 @@
+/* src/components/Statistics.css */
+
+/* Variables for colors */
+:root {
+  --primary-blue-600: #2563eb;
+  --primary-purple-600: #9333ea;
+  --text-white: #ffffff;
+  --text-blue-100: #dbeafe;
+  --text-blue-200: #bfdbfe;
+  --border-white-20: rgba(255, 255, 255, 0.2);
+  --bg-white-10: rgba(255, 255, 255, 0.1);
+  --bg-white-20: rgba(255, 255, 255, 0.2);
+}
+
+/* Main Section Styles */
+.statistics-section {
+  padding-top: 5rem;
+  padding-bottom: 5rem;
+  background-image: linear-gradient(
+    to right,
+    var(--primary-blue-600),
+    var(--primary-purple-600)
+  );
+}
+
+/* Container */
+.statistics-container {
+  max-width: 1280px; /* Equivalent to max-w-7xl */
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 1rem; /* Equivalent to px-4 */
+  padding-right: 1rem;
+}
+
+@media (min-width: 640px) {
+  .statistics-container {
+    padding-left: 1.5rem; /* Equivalent to sm:px-6 */
+    padding-right: 1.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .statistics-container {
+    padding-left: 2rem; /* Equivalent to lg:px-8 */
+    padding-right: 2rem;
+  }
+}
+
+/* Header */
+.statistics-header {
+  text-align: center;
+  margin-bottom: 4rem;
+}
+
+.statistics-title {
+  font-size: 2.25rem; /* Equivalent to text-4xl */
+  line-height: 2.5rem;
+  font-weight: 700; /* Equivalent to font-bold */
+  color: var(--text-white);
+  margin-bottom: 1rem;
+}
+
+.statistics-subtitle {
+  font-size: 1.25rem; /* Equivalent to text-xl */
+  line-height: 1.75rem;
+  color: var(--text-blue-100);
+  max-width: 48rem; /* Equivalent to max-w-3xl */
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Grid */
+.statistics-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2rem;
+}
+
+@media (min-width: 768px) {
+  .statistics-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .statistics-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+/* Card */
+.statistics-card {
+  background-color: var(--bg-white-10);
+  backdrop-filter: blur(8px); /* Tailwind's backdrop-blur-sm */
+  border-radius: 1rem; /* Equivalent to rounded-2xl */
+  padding: 2rem;
+  text-align: center;
+  border: 1px solid var(--border-white-20);
+  transition-property: all;
+  transition-duration: 300ms;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.statistics-card:hover {
+  background-color: var(--bg-white-20);
+  transform: scale(1.05);
+}
+
+/* Card Content */
+.card-icon {
+  font-size: 2.25rem;
+  line-height: 2.5rem;
+  margin-bottom: 1rem;
+}
+
+.card-number {
+  font-size: 2.25rem;
+  line-height: 2.5rem;
+  font-weight: 700;
+  color: var(--text-white);
+  margin-bottom: 0.5rem;
+}
+
+.card-label {
+  font-size: 1.25rem;
+  line-height: 1.75rem;
+  font-weight: 600;
+  color: var(--text-blue-100);
+  margin-bottom: 0.5rem;
+}
+
+.card-description {
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  color: var(--text-blue-200);
+}

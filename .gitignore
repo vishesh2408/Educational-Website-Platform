@@ -34,4 +34,3 @@ coverage/
 temp/
 tmp/
 *.log
-.env.example

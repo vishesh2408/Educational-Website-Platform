@@ -1,0 +1,135 @@
+.user-carousel-card {
+  position: relative;
+}
+.carousel-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.carousel-track {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  scroll-behavior: smooth;
+  padding: 8px 4px;
+  width: 100%;
+}
+.carousel-item {
+  flex: 0 0 220px; /* card width */
+}
+.carousel-nav {
+  background: none;
+  border: 1px solid rgba(0,0,0,0.06);
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+.carousel-nav.left { margin-left: 4px }
+.carousel-nav.right { margin-right: 4px }
+
+.user-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: center;
+  text-align: center;
+  padding: 16px;
+  border-radius: 12px;
+  border: 1px solid #eee;
+  background: #fff;
+}
+.user-card .profileImage {
+  width: 84px;
+  height: 84px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative; /* for badge */
+}
+.user-card .profile-svg,
+.user-card .profile-img {
+  width: 84px;
+  height: 84px;
+  border-radius: 9999px; /* fully rounded */
+  object-fit: cover;
+  display: block;
+  box-shadow: 0 6px 18px rgba(16,24,40,0.08);
+  border: 2px solid rgba(255,255,255,0.6);
+}
+
+.staff-badge {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  background: #0ea5a1;
+  color: white;
+  width: 26px;
+  height: 26px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  padding: 0;
+  border-radius: 9999px;
+  box-shadow: 0 4px 10px rgba(16,24,40,0.12);
+  font-weight: 700;
+}
+
+.profileImage:hover .profile-img {
+  transform: scale(1.04);
+  transition: transform 180ms ease-in-out;
+}
+.user-card .textContainer { width: 100%; }
+.user-card .name { font-weight: 700; margin: 0; font-size: 0.975rem }
+.user-card .profile { margin: 0; color: #666; font-size: 0.9rem }
+.follow-btn { padding: 8px 12px; border-radius: 9999px; background: #0ea5a1; color: white; border: none; cursor: pointer; min-width: 88px }
+.follow-btn.following { background: #94a3b8; }
+.follow-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border-radius: 9999px;
+  background: transparent;
+  color: #0ea5a1;
+  border: 1.5px solid rgba(14,165,161,0.14);
+  min-width: 88px;
+  cursor: pointer;
+  transition: background 150ms ease, color 150ms ease, transform 120ms ease;
+}
+.follow-btn .icon { display: inline-flex; align-items: center; justify-content: center; color: inherit }
+.follow-btn .text { display: inline-block }
+.follow-btn:hover { transform: translateY(-1px); }
+.follow-btn.following {
+  background: #0ea5a1;
+  color: white;
+  border-color: #0ea5a1;
+}
+.follow-btn:disabled { opacity: 0.75; cursor: not-allowed; transform: none }
+.spinner { animation: spin 1s linear infinite }
+@keyframes spin { to { transform: rotate(360deg) } }
+ 
+/* hide native scrollbar on modern browsers for aesthetics */
+.carousel-track::-webkit-scrollbar { height:8px }
+.carousel-track::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.12); border-radius:8px }
+
+@media (max-width: 640px) {
+  .carousel-item { flex: 0 0 80%; }
+  .user-card .profileImage { width:64px; height:64px }
+  .user-card .profile-svg, .user-card .profile-img { width:64px; height:64px }
+  .carousel-nav { width:44px; height:44px }
+  /* On small screens, show icon-only for follow button to save space */
+  .follow-btn { padding: 8px; min-width: 44px }
+  .follow-btn .text { display: none }
+  .follow-btn .icon svg { width: 18px; height: 18px }
+}
+
+@media (max-width: 1024px) {
+  .carousel-item { flex: 0 0 180px; }
+}

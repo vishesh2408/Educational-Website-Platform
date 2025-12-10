@@ -1,0 +1,140 @@
+/* src/components/Features.css */
+
+/* Variables for colors */
+:root {
+  --color-bg-interactive: #dbeafe;
+  --color-icon-interactive: #3b82f6;
+  --color-bg-mentorship: #dcfce7;
+  --color-icon-mentorship: #22c55e;
+  --color-bg-projects: #fef3c7;
+  --color-icon-projects: #f59e0b;
+  --color-bg-career: #fce7f3;
+  --color-icon-career: #ec4899;
+  --color-bg-community: #e0e7ff;
+  --color-icon-community: #6366f1;
+  --color-bg-lifetime: #f0fdf4;
+  --color-icon-lifetime: #16a34a;
+
+  /* General colors */
+  --color-background: #f8fafc;
+  --color-heading: #1e293b;
+  --color-text: #64748b;
+  --color-card-border: rgba(0, 0, 0, 0.05);
+  --color-card-shadow: rgba(0, 0, 0, 0.05);
+}
+
+/* Section and Container Styles */
+.features-section {
+  padding: 80px 0;
+  background-color: var(--color-background);
+  position: relative;
+}
+
+.features-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+/* Header Styles */
+.features-header {
+  text-align: center;
+  margin-bottom: 64px;
+}
+
+.features-title {
+  font-size: 42px;
+  font-weight: bold;
+  color: var(--color-heading);
+  margin: 0 0 16px 0;
+}
+
+.features-subtitle {
+  font-size: 18px;
+  color: var(--color-text);
+  max-width: 600px;
+  margin: 0 auto;
+  line-height: 1.6;
+}
+
+/* Grid and Card Styles */
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  gap: 32px;
+  margin-top: 48px;
+}
+
+.feature-card {
+  background-color: white;
+  border-radius: 16px;
+  padding: 32px;
+  box-shadow: 0 4px 6px var(--color-card-shadow);
+  transition: all 0.3s ease;
+  border: 1px solid var(--color-card-border);
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+
+.feature-icon-container {
+  width: 64px;
+  height: 64px;
+  border-radius: 12px;
+  margin-bottom: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.3s ease;
+}
+
+.feature-icon {
+  font-size: 32px;
+}
+
+.card-title {
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--color-heading);
+  margin: 0 0 12px 0;
+}
+
+.card-desc {
+  font-size: 16px;
+  color: var(--color-text);
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* Hover Effects */
+.feature-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 20px 25px rgba(0, 0, 0, 0.1) !important;
+}
+
+.feature-icon-container:hover {
+  transform: scale(1.1) rotate(5deg);
+}
+
+.feature-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #3b82f6, #8b5cf6, #ec4899);
+  transform: scaleX(0);
+  transition: transform 0.3s ease;
+}
+
+.feature-card:hover::before {
+  transform: scaleX(1);
+}
+
+/* Media Queries */
+@media (max-width: 768px) {
+  .features-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
