@@ -1,13 +1,14 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import DOMPurify from 'dompurify';
-// import Prism from 'prismjs';
-// import 'prismjs/themes/prism-tomorrow.css';
 import MarkdownIt from 'markdown-it';
+import markdownItHighlight from 'markdown-it-highlightjs';
+import 'highlight.js/styles/atom-one-dark.css';
 
 // Renderer for course content (markdown or HTML). It converts markdown to HTML,
 // sanitizes it, and renders inside `.course-content` wrapper so scoped global
-// styles apply. Prism highlights code blocks.
+// styles apply. Code blocks are highlighted using Highlight.js.
 const md = new MarkdownIt({ html: true, breaks: true, linkify: true });
+md.use(markdownItHighlight);
 
 // Simple slug generator for headings to support sidebar TOC links.
 const slugify = (text) =>
@@ -66,15 +67,7 @@ export default function CourseContent({ html }) {
     }
   }, [html]);
 
-  useEffect(() => {
-    // Highlight after render. Prism looks for <pre><code class="language-..."> blocks.
-    try {
-      // Prism.highlightAll();
-    } catch (e) {
-      // non-fatal
-    }
-  }, [sanitized]);
-
+  // Code highlighting is handled by markdown-it-highlightjs plugin during rendering
   return (
     <div className="course-content" dangerouslySetInnerHTML={{ __html: sanitized }} />
   );
