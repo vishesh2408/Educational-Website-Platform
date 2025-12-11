@@ -139,7 +139,7 @@ export default function App() {
 
 
           {/* Animated Colorful Loader - Large Centered */}
-        <div className="relative pl-12 flex items-center justify-center w-64 h-64">
+        <div className="relative pl-32 flex items-center justify-center w-64 h-64">
           {/* Purple */}
           <div className="absolute w-12 h-12 bg-[rgb(158,136,246)] rounded animate-move shadow-[0px_7px_29px_0px_rgb(158,136,246)]" style={{ animationDelay: '-1s' }} />
           {/* Blue */}
