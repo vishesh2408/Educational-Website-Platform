@@ -119,20 +119,22 @@ export default function App() {
 
   if (isLoadingUser) {
     return (
-      <div className="min-h-[calc(100vh-7rem)] flex items-center justify-center bg-gray-50">
-        <div className="mx-auto w-full max-w-sm rounded-md border border-blue-300 bg-white p-4 shadow-sm">
-          <div className="flex animate-pulse space-x-4">
-            <div className="size-10 rounded-full bg-gray-200" />
-            <div className="flex-1 space-y-6 py-1">
-              <div className="h-2 rounded bg-gray-200" />
-              <div className="space-y-3">
-                <div className="grid grid-cols-3 gap-4">
-                  <div className="col-span-2 h-2 rounded bg-gray-200" />
-                  <div className="col-span-1 h-2 rounded bg-gray-200" />
-                </div>
-                <div className="h-2 rounded bg-gray-200" />
+      <div className="min-h-screen w-full bg-gray-50 flex items-center justify-center">
+        <div className="w-full px-8 animate-pulse space-y-8">
+          <div className="flex items-center space-x-6">
+            <div className="h-16 w-16 rounded-full bg-gray-200" />
+            <div className="flex-1 space-y-4 py-2">
+              <div className="h-3 w-1/3 rounded bg-gray-200" />
+              <div className="grid grid-cols-12 gap-4">
+                <div className="col-span-8 h-3 rounded bg-gray-200" />
+                <div className="col-span-4 h-3 rounded bg-gray-200" />
               </div>
             </div>
+          </div>
+          <div className="space-y-4">
+            <div className="h-4 w-full rounded bg-gray-200" />
+            <div className="h-4 w-11/12 rounded bg-gray-200" />
+            <div className="h-64 w-full rounded bg-gray-200" />
           </div>
         </div>
       </div>
