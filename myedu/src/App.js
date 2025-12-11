@@ -119,8 +119,8 @@ export default function App() {
 
   if (isLoadingUser) {
     return (
-      <div className="min-h-screen w-full bg-gray-50 flex items-center justify-center">
-        <div className="w-full px-8 animate-pulse space-y-8">
+      <div className="min-h-screen w-full bg-gray-50 flex items-center justify-center py-10">
+        <div className="w-full max-w-5xl px-10 animate-pulse space-y-10">
           <div className="flex items-center space-x-6">
             <div className="h-16 w-16 rounded-full bg-gray-200" />
             <div className="flex-1 space-y-4 py-2">
@@ -134,7 +134,7 @@ export default function App() {
           <div className="space-y-4">
             <div className="h-4 w-full rounded bg-gray-200" />
             <div className="h-4 w-11/12 rounded bg-gray-200" />
-            <div className="h-64 w-full rounded bg-gray-200" />
+            <div className="h-[60vh] w-full rounded bg-gray-200" />
           </div>
         </div>
       </div>
