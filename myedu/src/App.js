@@ -119,7 +119,20 @@ export default function App() {
 
   if (isLoadingUser) {
     return (
-      <div className="min-h-screen w-full bg-gray-50 flex items-center justify-center py-10">
+      <div className="min-h-screen w-full bg-gray-50 flex flex-col items-center justify-center py-10 space-y-12">
+        {/* Animated Colorful Loader */}
+        <div className="relative flex items-center justify-center w-32 h-32">
+          {/* Purple */}
+          <div className="absolute w-7 h-7 bg-[rgb(158,136,246)] rounded animate-move shadow-[0px_7px_29px_0px_rgb(158,136,246)]" style={{ animationDelay: '-1s' }} />
+          {/* Blue */}
+          <div className="absolute w-7 h-7 bg-[rgb(97,183,253)] rounded animate-move shadow-[0px_7px_29px_0px_rgb(97,183,253)]" style={{ animationDelay: '-2s' }} />
+          {/* Green */}
+          <div className="absolute w-7 h-7 bg-[rgb(95,249,175)] rounded animate-move shadow-[0px_7px_29px_0px_rgb(95,249,175)]" style={{ animationDelay: '-3s' }} />
+          {/* Orange */}
+          <div className="absolute w-7 h-7 bg-[rgb(243,171,89)] rounded animate-move shadow-[0px_7px_29px_0px_rgb(243,171,89)]" style={{ animationDelay: '-4s' }} />
+        </div>
+
+        {/* Skeleton Content Below */}
         <div className="w-full max-w-5xl px-10 animate-pulse space-y-10">
           <div className="flex items-center space-x-6">
             <div className="h-16 w-16 rounded-full bg-gray-200" />

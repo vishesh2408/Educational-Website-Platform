@@ -5,6 +5,17 @@ module.exports = {
   darkMode: ['class', '.dark-theme'],
   theme: {
     extend: {
+      keyframes: {
+        move: {
+          '0%, 100%': { transform: 'translate(-30px, -30px)' },
+          '25%': { transform: 'translate(30px, -30px)' },
+          '50%': { transform: 'translate(30px, 30px)' },
+          '75%': { transform: 'translate(-30px, 30px)' },
+        },
+      },
+      animation: {
+        move: 'move 4s infinite',
+      },
       colors: {
         'color-primary': '#1F9D8D',
         // Override emerald 50 to match requested color f0fdfa
