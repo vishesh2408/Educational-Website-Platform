@@ -33,8 +33,6 @@ import { ForumProvider, useForumContext } from '../contexts/ForumContext';
 // Import ReactMarkdown and related components via window object (assuming CDN load)
 const ReactMarkdown = window.ReactMarkdown;
 const RemarkGfm = window.remarkGfm;
-const SyntaxHighlighter = window.SyntaxHighlighter ? window.SyntaxHighlighter.Prism : null;
-const dracula = window.SyntaxHighlighter && window.SyntaxHighlighter.styles ? window.SyntaxHighlighter.styles.prism.dracula : null;
 
 // Base URL for your backend API
 // const API_BASE_URL = 'http://localhost:3001/api';
@@ -132,19 +130,8 @@ const CodeBlock = ({ inline, className, children }) => {
     }
 
     return (
-        // Only render SyntaxHighlighter if it's available
-        SyntaxHighlighter && dracula ? (
-            <SyntaxHighlighter
-                style={dracula} // Using the dracula theme
-                language={language}
-                PreTag="div" // Render as a div instead of pre
-                className="rounded-lg p-4 overflow-x-auto my-4"
-            >
-                {String(children).replace(/\n$/, '')}
-            </SyntaxHighlighter>
-        ) : (
-            <pre className="bg-gray-800 text-white rounded-lg p-4 overflow-x-auto my-4"><code>{children}</code></pre> // Fallback
-        )
+        // Fallback code block rendering
+        <pre className="bg-gray-800 text-white rounded-lg p-4 overflow-x-auto my-4"><code>{children}</code></pre>
     );
 };
 
@@ -236,7 +223,7 @@ const Post = ({ post, onToggleReplies, numReplies, isRepliesVisible, isAuthorOfP
                     </div>
                 </div>
                 <div className="markdown-content text-gray-700">
-                    {ReactMarkdown && RemarkGfm && SyntaxHighlighter && dracula ? (
+                    {ReactMarkdown && RemarkGfm ? (
                         <ReactMarkdown
                             remarkPlugins={[RemarkGfm]}
                             components={{
