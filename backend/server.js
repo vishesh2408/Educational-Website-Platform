@@ -153,10 +153,6 @@ if (process.env.NODE_ENV === 'production') {
             }
         }
     }));
-
-    app.get('*', (req, res) => {
-        res.sendFile(path.join(buildPath, 'index.html'));
-    });
 }
 
 // Temporary debug route to expose non-sensitive DB connection info
@@ -612,5 +608,13 @@ app.get('/api/debug/db-info', (req, res) => {
         res.status(500).json({ error: 'Failed to read DB connection info' });
     }
 });
+
+// Catch-all route for SPA - must be AFTER all API routes
+if (process.env.NODE_ENV === 'production') {
+    const buildPath = path.join(__dirname, '..', 'myedu', 'build');
+    app.get(/^\/(?!api).*/, (req, res) => {
+        res.sendFile(path.join(buildPath, 'index.html'));
+    });
+}
 
 app.listen(PORT, () => console.log(`Server started on port ${PORT}`));
