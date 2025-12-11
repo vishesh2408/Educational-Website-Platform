@@ -1,5 +1,4 @@
 import React from 'react';
-import DOMPurify from 'dompurify';
 import MarkdownIt from 'markdown-it';
 import markdownItHighlight from 'markdown-it-highlightjs';
 import 'highlight.js/styles/atom-one-dark.css';
@@ -9,6 +8,18 @@ import 'highlight.js/styles/atom-one-dark.css';
 // styles apply. Code blocks are highlighted using Highlight.js.
 const md = new MarkdownIt({ html: true, breaks: true, linkify: true });
 md.use(markdownItHighlight);
+
+// Simple HTML sanitizer to remove dangerous scripts and attributes
+const sanitizeHTML = (html) => {
+  // Remove script tags and their content
+  let sanitized = html.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
+  // Remove event handlers (on* attributes)
+  sanitized = sanitized.replace(/\s*on\w+\s*=\s*["'][^"']*["']/gi, '');
+  sanitized = sanitized.replace(/\s*on\w+\s*=\s*[^\s>]*/gi, '');
+  // Remove iframe, embed, object tags
+  sanitized = sanitized.replace(/<(iframe|embed|object|form|input|button)\b[^>]*>/gi, '');
+  return sanitized;
+};
 
 // Simple slug generator for headings to support sidebar TOC links.
 const slugify = (text) =>
@@ -25,8 +36,8 @@ export default function CourseContent({ html }) {
     if (!html) return '';
     // Convert markdown to HTML first
     const markdown = md.render(html);
-    // Run DOMPurify to strip scripts and dangerous attributes
-    const base = DOMPurify.sanitize(markdown);
+    // Sanitize to strip scripts and dangerous attributes
+    const base = sanitizeHTML(markdown);
     // Then parse and rewrite any external image src to go through our proxy
     try {
       const parser = new DOMParser();
