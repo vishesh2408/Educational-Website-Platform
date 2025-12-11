@@ -119,7 +119,7 @@ export default function App() {
 
   if (isLoadingUser) {
     return (
-      <div className="min-h-screen w-full bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen w-full bg-gray-50 flex flex-col items-center justify-center py-10 space-y-8">
         {/* Animated Colorful Loader - Large Centered */}
         <div className="relative flex items-center justify-center w-64 h-64">
           {/* Purple */}
@@ -131,6 +131,9 @@ export default function App() {
           {/* Orange */}
           <div className="absolute w-12 h-12 bg-[rgb(243,171,89)] rounded animate-move shadow-[0px_7px_29px_0px_rgb(243,171,89)]" style={{ animationDelay: '-4s' }} />
         </div>
+
+        {/* Skeleton Content Below */}
+        <div className="w-full max-w-5xl px-10 animate-pulse space-y-10">
           <div className="flex items-center space-x-6">
             <div className="h-16 w-16 rounded-full bg-gray-200" />
             <div className="flex-1 space-y-4 py-2">
@@ -144,7 +147,9 @@ export default function App() {
           <div className="space-y-4">
             <div className="h-4 w-full rounded bg-gray-200" />
             <div className="h-4 w-11/12 rounded bg-gray-200" />
+            <div className="h-48 w-full rounded bg-gray-200" />
           </div>
+        </div>
       </div>
     );
   }
