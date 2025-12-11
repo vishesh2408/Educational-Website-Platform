@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import DOMPurify from 'dompurify';
-import Prism from 'prismjs';
-import 'prismjs/themes/prism-tomorrow.css';
+// import Prism from 'prismjs';
+// import 'prismjs/themes/prism-tomorrow.css';
 import MarkdownIt from 'markdown-it';
 
 // Renderer for course content (markdown or HTML). It converts markdown to HTML,
@@ -69,7 +69,7 @@ export default function CourseContent({ html }) {
   useEffect(() => {
     // Highlight after render. Prism looks for <pre><code class="language-..."> blocks.
     try {
-      Prism.highlightAll();
+      // Prism.highlightAll();
     } catch (e) {
       // non-fatal
     }
