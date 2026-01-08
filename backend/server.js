@@ -60,14 +60,25 @@ app.use(helmet()); // NEW: Sets various HTTP headers for security
 const allowedOrigins = [
     'http://localhost:3000',
     'https://educational-website-platform.vercel.app',
-    process.env.FRONTEND_URL
+    'https://educational-website-platform.onrender.com',
+    process.env.FRONTEND_URL,
 ].filter(Boolean);
+
+// Allow common preview domains so Vercel preview links work (and future custom domain)
+const allowedOriginPatterns = [
+    /\.vercel\.app$/,
+    /\.onrender\.com$/,
+];
 
 app.use(cors({
     origin: function (origin, callback) {
         // Allow requests with no origin (like mobile apps or curl)
         if (!origin) return callback(null, true);
-        if (allowedOrigins.indexOf(origin) !== -1) {
+
+        const explicitlyAllowed = allowedOrigins.includes(origin);
+        const patternAllowed = allowedOriginPatterns.some((pattern) => pattern.test(origin));
+
+        if (explicitlyAllowed || patternAllowed) {
             callback(null, true);
         } else {
             callback(new Error('Not allowed by CORS'));
