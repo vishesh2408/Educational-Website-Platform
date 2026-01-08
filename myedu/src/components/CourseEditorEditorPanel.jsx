@@ -5,7 +5,7 @@ import { EditorView } from '@codemirror/view';
 
 // This component is intentionally isolated so bundlers can split
 // CodeMirror and related packages into a separate chunk.
-export default function CourseEditorEditorPanel({ value, onChange, autoFormatOnPaste, setAutoFormatOnPaste, handleFormatClick }) {
+export default function CourseEditorEditorPanel({ value, onChange, onPaste }) {
   // Memoize paste handler to avoid recreating on every render
   const pasteHandler = useMemo(() => EditorView.domEventHandlers({
     paste: (event, view) => {
@@ -64,13 +64,11 @@ export default function CourseEditorEditorPanel({ value, onChange, autoFormatOnP
           view.dispatch({ changes: { from, to, insert: text }, selection: { anchor: from + text.length } });
           try {
             const afterInsert = view.state.doc.toString();
-            if (autoFormatOnPaste) {
-              // Formatting is handled by parent; call onChange with raw text and parent may format
-              if (onChange) onChange(afterInsert);
-            } else {
-              if (onChange) onChange(afterInsert);
-            }
-          } catch (e) { try { if (onChange) onChange(view.state.doc.toString()); } catch (_) {} }
+            if (onPaste) return onPaste(afterInsert);
+            if (onChange) onChange(afterInsert);
+          } catch (e) {
+            try { if (onChange) onChange(view.state.doc.toString()); } catch (_) {}
+          }
           return true;
         }
       } catch (e) {
@@ -79,7 +77,8 @@ export default function CourseEditorEditorPanel({ value, onChange, autoFormatOnP
       }
       return false;
     }
-  }), [autoFormatOnPaste, onChange]);
+  }), [onPaste, onChange]);
+
 
   return (
     <div>

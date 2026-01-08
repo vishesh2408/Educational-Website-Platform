@@ -8,7 +8,9 @@ import { PlusCircle, Edit, Trash2, X, AlertCircle, CheckCircle, Info } from 'luc
 import { useAuth } from '../contexts/AuthContext';
 import './AdminDashboard.css'; // Assuming you have a common CSS file for admin dashboard styles
 import useUsersCache from '../hooks/useUsersCache';
-import CourseEditor from './CourseEditor';
+import QuillNoteEditor from './QuillNoteEditor';
+import MarkdownIt from 'markdown-it';
+import mdHighlight from 'markdown-it-highlightjs';
 
 
 // const API_BASE_URL = 'http://localhost:3001/api';
@@ -16,8 +18,79 @@ import CourseEditor from './CourseEditor';
 const BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:3001';
 const API_BASE_URL = `${BASE_URL}/api`;
 
-// let ReactQuill = window.ReactQuill;
-// Note: Replaced Quill with a simple HTML textarea + preview editor `CourseEditor`.
+const mdRenderer = new MarkdownIt({ html: false, linkify: true, breaks: true }).use(mdHighlight);
+
+// Wrap fenced code blocks in a card with a copy button.
+(() => {
+    const defaultFence = mdRenderer.renderer.rules.fence;
+    mdRenderer.renderer.rules.fence = (tokens, idx, options, env, self) => {
+        const token = tokens[idx];
+        const info = (token.info || '').trim();
+        const lang = info ? info.split(/\s+/)[0] : '';
+        const inner = defaultFence ? defaultFence(tokens, idx, options, env, self) : self.renderToken(tokens, idx, options);
+        return `\n<div class="md-code-card" data-md-code-card="1">\n  <div class="md-code-card__header">\n    <div class="md-code-card__lang">${mdRenderer.utils.escapeHtml(lang || 'code')}</div>\n    <button type="button" class="md-code-card__copy" data-md-copy-btn="1">Copy</button>\n  </div>\n  <div class="md-code-card__body">${inner}</div>\n</div>`;
+    };
+})();
+
+const renderMarkdownHtml = (markdown) => {
+    try {
+        return mdRenderer.render(String(markdown || ''));
+    } catch (e) {
+        return String(markdown || '');
+    }
+};
+
+const markdownToPlainText = (markdown) => {
+    if (!markdown) return '';
+    let text = String(markdown);
+    // Remove fenced code blocks entirely
+    text = text.replace(/```[\s\S]*?```/g, ' ');
+    // Remove inline code backticks
+    text = text.replace(/`([^`]+)`/g, '$1');
+    // Images: ![alt](url) -> alt
+    text = text.replace(/!\[([^\]]*)\]\([^\)]*\)/g, '$1');
+    // Links: [text](url) -> text
+    text = text.replace(/\[([^\]]+)\]\([^\)]*\)/g, '$1');
+    // Headings/blockquote/list markers
+    text = text.replace(/^\s{0,3}#{1,6}\s+/gm, '');
+    text = text.replace(/^\s*>\s?/gm, '');
+    text = text.replace(/^\s*([-*+]\s+)/gm, '');
+    text = text.replace(/^\s*(\d+\.)\s+/gm, '');
+    // Emphasis markers
+    text = text.replace(/\*\*([^*]+)\*\*/g, '$1');
+    text = text.replace(/\*([^*]+)\*/g, '$1');
+    text = text.replace(/__([^_]+)__/g, '$1');
+    text = text.replace(/_([^_]+)_/g, '$1');
+    // Collapse whitespace
+    text = text.replace(/\s+/g, ' ').trim();
+    return text;
+};
+
+const htmlToPlainText = (html) => {
+    if (!html) return '';
+    try {
+        const el = document.createElement('div');
+        el.innerHTML = String(html);
+        return (el.textContent || el.innerText || '').replace(/\s+/g, ' ').trim();
+    } catch (e) {
+        return String(html);
+    }
+};
+
+const escapeHtml = (value) => {
+    const s = String(value ?? '');
+    return s
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+};
+
+const renderLegacyHtmlAsText = (html) => {
+    const escaped = escapeHtml(html || '');
+    return `<pre style="white-space:pre-wrap;word-wrap:break-word;">${escaped}</pre>`;
+};
 
 const MessageBox = ({ type, text, actionLabel, actionNoteId, onAction }) => {
     if (!text) return null;
@@ -121,23 +194,13 @@ const NoteManagement = () => {
     const [noteToDelete, setNoteToDelete] = useState(null);
     const [isLoading, setIsLoading] = useState(false);
     const [content, setContent] = useState('');
-    const [draftId, setDraftId] = useState(null);
-    const [editDraftId, setEditDraftId] = useState(null);
-    const [autosaveEnabled, setAutosaveEnabled] = useState(false);
-    const [isPreviewOpen, setIsPreviewOpen] = useState(false);
     const [versionsModalOpen, setVersionsModalOpen] = useState(false);
     const [versionsList, setVersionsList] = useState([]);
     const [versionsLoading, setVersionsLoading] = useState(false);
     const [versionsNoteId, setVersionsNoteId] = useState(null);
-    const [editIsDraft, setEditIsDraft] = useState(false);
     const { getUser, usersCache } = useUsersCache();
-    const [previewHtml, setPreviewHtml] = useState('');
-    const [templates, setTemplates] = useState([]);
-    const [publishConfirmOpen, setPublishConfirmOpen] = useState(false);
-    const [publishCreateSnapshot, setPublishCreateSnapshot] = useState(true);
     const [snapshotModalOpen, setSnapshotModalOpen] = useState(false);
     const [snapshotNoteId, setSnapshotNoteId] = useState(null);
-    const [snapshotIsForPublish, setSnapshotIsForPublish] = useState(false);
     const [snapshotOnDone, setSnapshotOnDone] = useState(null);
     const [snapshotDefaultLabel, setSnapshotDefaultLabel] = useState('');
     const [snapshotDefaultReason, setSnapshotDefaultReason] = useState('');
@@ -199,141 +262,34 @@ const NoteManagement = () => {
         }
     }, []);
 
-    // Load any persisted draft id/content from localStorage for new note
-    useEffect(() => {
-        try {
-            const stored = localStorage.getItem('admin_note_draft');
-            if (stored) {
-                const obj = JSON.parse(stored);
-                if (obj && obj.content) setContent(obj.content);
-                if (obj && obj.draftId) setDraftId(obj.draftId);
-                if (obj && obj.title) setNewNote(prev => ({ ...prev, title: obj.title }));
-            }
-        } catch (e) { /* ignore */ }
-    }, []);
-
-    // Load autosave preference (persisted)
-    useEffect(() => {
-        try {
-            const v = localStorage.getItem('admin_note_autosave_enabled');
-            if (v !== null) setAutosaveEnabled(v === '1');
-        } catch (e) { /* ignore */ }
-    }, []);
-
-
-    // Debounced autosave for creating new notes (draft)
-    useEffect(() => {
-        if (!autosaveEnabled) return; // autosave disabled by user
-        const timer = setTimeout(async () => {
-            // Only autosave if there's content
-            if (!content || content.trim().length === 0) return;
-            try {
-                const payload = { ...newNote, content: content, isDraft: true, topicId: selectedTopicId || null };
-                let currentDraftId = draftId;
-                if (currentDraftId) {
-                    // Try updating the existing draft. If the server responds 404
-                    // it means the draft was removed or doesn't exist anymore; create a new draft.
-                    try {
-                        const res = await fetch(`${API_BASE_URL}/admin/notes/${currentDraftId}`, { headers: { 'Content-Type': 'application/json' }, credentials: 'include', method: 'PUT', body: JSON.stringify(payload) });
-                        if (res.status === 404) {
-                            // Draft not found on server; create a new one
-                            const createRes = await fetch(`${API_BASE_URL}/admin/notes`, { headers: { 'Content-Type': 'application/json' }, credentials: 'include', method: 'POST', body: JSON.stringify(payload) });
-                            if (createRes.ok) {
-                                const data = await createRes.json();
-                                currentDraftId = data._id;
-                                setDraftId(currentDraftId);
-                            } else {
-                                // If creation also failed, clear draft tracking to avoid loops
-                                setDraftId(null);
-                                localStorage.removeItem('admin_note_draft');
-                                currentDraftId = null;
-                            }
-                        }
-                    } catch (err) {
-                        // network error; keep existing draftId for retry later
-                        console.warn('Autosave update failed', err);
-                    }
-                } else {
-                    const res = await fetch(`${API_BASE_URL}/admin/notes`, { headers: { 'Content-Type': 'application/json' }, credentials: 'include', method: 'POST', body: JSON.stringify(payload) });
-                    if (res.ok) {
-                        const data = await res.json();
-                        currentDraftId = data._id;
-                        setDraftId(currentDraftId);
-                    }
-                }
-
-                // persist local copy (use the resolved currentDraftId)
-                if (currentDraftId) {
-                    localStorage.setItem('admin_note_draft', JSON.stringify({ draftId: currentDraftId, content: content, title: newNote.title }));
-                } else {
-                    try { localStorage.removeItem('admin_note_draft'); } catch(_) { /* ignore */ }
-                }
-            } catch (err) {
-                console.warn('Autosave draft failed', err);
-            }
-        }, 1500);
-        return () => clearTimeout(timer);
-    }, [content, newNote.title, selectedTopicId]);
-
-    // Debounced autosave for editing note (in modal)
-    useEffect(() => {
-        if (!editingNote) return;
-        if (!autosaveEnabled) return; // autosave disabled by user
-        const timer = setTimeout(async () => {
-            try {
-                const payload = { ...editingNote, content: content, isDraft: true, topicId: editSelectedTopicId || editingNote.topicId || null };
-                // update existing note as draft
-                try {
-                    const res = await fetch(`${API_BASE_URL}/admin/notes/${editingNote._id}`, { headers: { 'Content-Type': 'application/json' }, credentials: 'include', method: 'PUT', body: JSON.stringify(payload) });
-                    if (res.status === 404) {
-                        setFormMessage({ type: 'error', text: 'The note you were editing was not found (it may have been deleted).' });
-                        setEditingNote(null);
-                        setIsEditModalOpen(false);
-                    }
-                } catch (err) {
-                    console.warn('Autosave edit failed', err);
-                }
-            } catch (err) { console.warn('Autosave edit failed', err); }
-        }, 1500);
-        return () => clearTimeout(timer);
-    }, [content, editingNote, editSelectedTopicId]);
 
     useEffect(() => { fetchNotes(1, false); }, [fetchNotes]);
     useEffect(() => { fetchAdminCourses(); }, [fetchAdminCourses]);
 
-    // Load saved templates
-    useEffect(() => {
+    const fetchSanitizedPreview = async (html) => {
         try {
-            const t = localStorage.getItem('admin_note_templates');
-            if (t) setTemplates(JSON.parse(t));
-        } catch (e) { /* ignore */ }
-    }, []);
-
-    const saveAsTemplate = (name) => {
-        const tpl = { name: name || `Template ${templates.length + 1}`, content: content || '' };
-        const next = [...(templates || []), tpl];
-        setTemplates(next);
-        localStorage.setItem('admin_note_templates', JSON.stringify(next));
+            const res = await fetch(`${API_BASE_URL}/admin/util/sanitize`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({ html })
+            });
+            if (res.ok) {
+                const d = await res.json();
+                return d.html;
+            }
+        } catch (err) {
+            console.warn('Preview sanitize failed', err);
+        }
+        return html;
     };
-    const insertTemplate = (idx) => {
-        if (!templates || !templates[idx]) return;
-        setContent(prev => (prev || '') + '\n' + templates[idx].content);
-    };
-
-  
 
     const handleAddNote = async (e) => {
         e.preventDefault(); setIsLoading(true);
         //if (!adminToken) { setFormMessage({ type: 'error', text: 'Authentication token missing.' }); setIsLoading(false); return; }
         if (!newNote.title.trim() || !content.trim()) { setFormMessage({ type: 'error', text: 'Title and content are required for a new note.' }); setIsLoading(false); return; }
         try {
-            let response;
-            // If we have an autosaved draft, update it and publish (isDraft: false)
-            if (draftId) {
-                response = await fetch(`${API_BASE_URL}/admin/notes/${draftId}`, { ...authFetchOptions, method: 'PUT',  body: JSON.stringify({ ...newNote, content: content, topicId: selectedTopicId || null, isDraft: false }) });
-            } else {
-                response = await fetch(`${API_BASE_URL}/admin/notes`, { ...authFetchOptions, method: 'POST',  body: JSON.stringify({ ...newNote, content: content, topicId: selectedTopicId || null, isDraft: false }) });
-            }
+            const response = await fetch(`${API_BASE_URL}/admin/notes`, { ...authFetchOptions, method: 'POST',  body: JSON.stringify({ ...newNote, content: content, format: 'html', topicId: selectedTopicId || null }) });
             
             if (response.status === 401 || response.status === 403) {
                 setFormMessage({ type: 'error', text: 'Authentication failed. Please log in again.' });
@@ -345,37 +301,10 @@ const NoteManagement = () => {
             const data = await response.json();
             
             if (response.ok) {
-                // If we updated an existing draft, replace it in notes list; otherwise append
-                if (draftId) {
-                    setNotes(notes.map(n => (n._id === data._id ? data : n)));
-                    // clear draft local state
-                    setDraftId(null);
-                    localStorage.removeItem('admin_note_draft');
-                } else {
-                    setNotes([...notes, data]);
-                }
+                setNotes([...notes, data]);
                 setNewNote({ title: '', subject: '', content: '', imageUrl: '' });
                 setContent('');
                 setFormMessage({ type: 'success', text: 'Note added successfully!' });
-
-                // Backend will attach note to topic when `topicId` is provided on create/update. Keep fallback for safety.
-                if (selectedTopicId && !data.topicId) {
-                    try {
-                        const attachRes = await fetch(`${API_BASE_URL}/admin/topics/${selectedTopicId}`, {
-                            ...authFetchOptions,
-                            method: 'PUT',
-                            body: JSON.stringify({ notes: data.content, updatedAt: new Date() }),
-                        });
-                        if (!attachRes.ok) {
-                            console.warn('Failed to attach note to topic', await attachRes.text());
-                            setFormMessage({ type: 'warn', text: 'Note created but failed to attach to topic.' });
-                        } else {
-                            setFormMessage({ type: 'success', text: 'Note created and attached to topic.' });
-                        }
-                    } catch (err) {
-                        console.error('Error attaching note to topic:', err);
-                    }
-                }
             }
             
             else { setFormMessage({ type: 'error', text: data.msg || 'Failed to add note.' }); 
@@ -384,21 +313,10 @@ const NoteManagement = () => {
         } catch (error) { console.error('Error adding note:', error); setFormMessage({ type: 'error', text: 'Network error or server unavailable. Failed to add note.' }); } finally { setIsLoading(false); }
     };
 
-    const fetchSanitizedPreview = async (html) => {
-        try {
-            const res = await fetch(`${API_BASE_URL}/admin/util/sanitize`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include', body: JSON.stringify({ html }) });
-            if (res.ok) {
-                const d = await res.json();
-                return d.html;
-            }
-        } catch (err) { console.warn('Preview sanitize failed', err); }
-        return html;
-    };
-
-    // Open a full-page sanitized preview in a new tab/window.
+    // Open a full-page preview in a new tab/window.
     const openFullPagePreview = async (html) => {
         try {
-            const sanitized = await fetchSanitizedPreview(html || '');
+            const rendered = await fetchSanitizedPreview(html || '');
             const w = window.open('', '_blank');
             if (!w) {
                 setFormMessage({ type: 'error', text: 'Popup blocked. Allow popups to view full preview.' });
@@ -408,10 +326,28 @@ const NoteManagement = () => {
                 body { font-family: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial; padding: 24px; background: #fff; color: #111827; }
                 img { max-width: 100%; height: auto; }
                 pre { white-space: pre-wrap; word-wrap: break-word; }
+                .md-code-card{border:1px solid rgba(0,0,0,.10);border-radius:10px;overflow:hidden;margin:10px 0}
+                .md-code-card__header{display:flex;justify-content:space-between;align-items:center;padding:8px 10px;border-bottom:1px solid rgba(0,0,0,.10);font-size:12px}
+                .md-code-card__copy{padding:4px 8px;border-radius:8px;border:1px solid rgba(0,0,0,.14);background:transparent;cursor:pointer}
+            `;
+            const copyScript = `
+                document.addEventListener('click', (e) => {
+                  const btn = e.target && e.target.closest ? e.target.closest('[data-md-copy-btn="1"]') : null;
+                  if (!btn) return;
+                  const card = btn.closest('[data-md-code-card="1"]');
+                  const codeEl = card ? card.querySelector('pre code') : null;
+                  const text = codeEl ? codeEl.textContent : '';
+                  if (!text || !navigator.clipboard) return;
+                  navigator.clipboard.writeText(text).then(() => {
+                    const prev = btn.textContent;
+                    btn.textContent = 'Copied';
+                    setTimeout(() => { btn.textContent = prev; }, 900);
+                  }).catch(() => {});
+                });
             `;
             // Write a minimal HTML document into the new window
             w.document.open();
-            w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Note Preview</title><style>${baseStyles}</style></head><body>${sanitized}</body></html>`);
+            w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Note Preview</title><style>${baseStyles}</style></head><body>${rendered}<script>${copyScript}</script></body></html>`);
             w.document.close();
         } catch (err) {
             console.error('Failed to open full preview', err);
@@ -426,23 +362,19 @@ const NoteManagement = () => {
                 const res = await fetch(`${API_BASE_URL}/admin/notes/${note._id}`, { ...authFetchOptions, method: 'GET' });
                 if (res.ok) {
                     const full = await res.json();
-                    setEditingNote({ ...full });
+                    setEditingNote({ ...full, format: full.format || 'html' });
                     setContent(full.content || '');
-                    setEditIsDraft(!!full.isDraft);
                 } else {
                     // fallback to provided note
-                    setEditingNote({ ...note });
+                    setEditingNote({ ...note, format: note.format || 'html' });
                     setContent(note.content || '');
-                    setEditIsDraft(!!note.isDraft);
                 }
             } catch (err) {
                 console.warn('Failed to load full note, opening with provided note', err);
-                setEditingNote({ ...note });
+                setEditingNote({ ...note, format: note.format || 'html' });
                 setContent(note.content || '');
-                setEditIsDraft(!!note.isDraft);
             }
         })();
-        setEditIsDraft(!!note.isDraft);
         // If the note already has a deterministic topicId, use it to pre-select Course/Module/Topic
         if (note.topicId) {
             let found = false;
@@ -499,7 +431,11 @@ const NoteManagement = () => {
             for (const mod of course.modules) {
                 if (!mod.topics) continue;
                 for (const topic of mod.topics) {
-                    const tNotes = (topic.notes || '').replace(/\s+/g, ' ').trim();
+                    const tNotes = (Array.isArray(topic.articles)
+                        ? topic.articles.map(a => (a && a.content) ? String(a.content) : '').join('\n\n')
+                        : '')
+                        .replace(/\s+/g, ' ')
+                        .trim();
                     if (!tNotes) continue;
                     // Exact match or substring match (use short snippet)
                     if (tNotes === normalized) return { courseId: course._id, moduleId: mod._id, topicId: topic._id };
@@ -516,9 +452,9 @@ const NoteManagement = () => {
     const handleUpdateNote = async (e) => {
         e.preventDefault(); setIsLoading(true);
         //if (!adminToken || !editingNote?._id) { setFormMessage({ type: 'error', text: 'Authentication token or note ID missing.' }); setIsLoading(false); return; }
-        if (!editingNote.title.trim() || !content.trim()) { setFormMessage({ type: 'error', text: 'Title and content are required for the note.' }); setIsLoading(false); return; }
+        if (!editingNote.title.trim() || !String(editingNote.content || '').trim()) { setFormMessage({ type: 'error', text: 'Title and content are required for the note.' }); setIsLoading(false); return; }
         try {
-            const response = await fetch(`${API_BASE_URL}/admin/notes/${editingNote._id}`, { ...authFetchOptions, method: 'PUT', body: JSON.stringify({ ...editingNote, content: content, topicId: editSelectedTopicId || editingNote.topicId || null, isDraft: !!editIsDraft }) });
+            const response = await fetch(`${API_BASE_URL}/admin/notes/${editingNote._id}`, { ...authFetchOptions, method: 'PUT', body: JSON.stringify({ ...editingNote, content: editingNote.content, format: 'html', topicId: editSelectedTopicId || editingNote.topicId || null }) });
             
             if (response.status === 401 || response.status === 403) {
                 setFormMessage({ type: 'error', text: 'Authentication failed. Please log in again.' });
@@ -535,25 +471,6 @@ const NoteManagement = () => {
                 setEditingNote(null);
                 setContent('');
                 setFormMessage({ type: 'success', text: 'Note updated successfully!' });
-
-                // If admin selected a topic in edit modal, attach note content to that topic
-                if (editSelectedTopicId) {
-                    try {
-                        const attachRes = await fetch(`${API_BASE_URL}/admin/topics/${editSelectedTopicId}`, {
-                            ...authFetchOptions,
-                            method: 'PUT',
-                            body: JSON.stringify({ notes: data.content, updatedAt: new Date() }),
-                        });
-                        if (!attachRes.ok) {
-                            console.warn('Failed to attach updated note to topic', await attachRes.text());
-                            setFormMessage({ type: 'warn', text: 'Note updated but failed to attach to topic.' });
-                        } else {
-                            setFormMessage({ type: 'success', text: 'Note updated and attached to topic.' });
-                        }
-                    } catch (err) {
-                        console.error('Error attaching updated note to topic:', err);
-                    }
-                }
             }
             else { setFormMessage({ type: 'error', text: data.msg || 'Failed to update note.' }); 
             //if (response.status === 401 || response.status === 403) logout(); 
@@ -773,70 +690,22 @@ const NoteManagement = () => {
         } finally { setIsLoading(false); }
     };
 
-    const handlePublishEdit = async () => {
-        if (!editingNote || !editingNote._id) return;
-        setIsLoading(true);
-        try {
-            const res = await fetch(`${API_BASE_URL}/admin/notes/${editingNote._id}`, { ...authFetchOptions, method: 'PUT', body: JSON.stringify({ ...editingNote, content: editingNote.content, topicId: editSelectedTopicId || editingNote.topicId || null, isDraft: false }) });
-            const data = await res.json();
-            if (res.ok) {
-                setNotes(notes.map(n => (n._id === data._id ? data : n)));
-                setFormMessage({ type: 'success', text: 'Note published.' });
-                setIsEditModalOpen(false);
-                setEditingNote(null);
-                setContent('');
-            } else {
-                setFormMessage({ type: 'error', text: data.msg || 'Failed to publish note.' });
-            }
-        } catch (err) {
-            console.error('Error publishing note:', err);
-            setFormMessage({ type: 'error', text: 'Network error while publishing note.' });
-        } finally { setIsLoading(false); }
-    };
-
-    const openPublishConfirm = () => {
-        setPublishCreateSnapshot(true);
-        setPublishConfirmOpen(true);
-    };
-
-    const confirmPublish = async () => {
-        if (!editingNote || !editingNote._id) return;
-        setIsLoading(true);
-        try {
-            if (publishCreateSnapshot) {
-                // Open snapshot modal and continue publish after snapshot created
-                setSnapshotNoteId(editingNote._id);
-                setSnapshotIsForPublish(true);
-                setSnapshotDefaultLabel('Pre-publish snapshot');
-                setSnapshotDefaultReason('pre-publish');
-                setSnapshotOnDone(async (_snapData) => {
-                    // continue publishing regardless of snapshot result
-                    try { await handlePublishEdit(); } catch (e) { console.error('Error continuing publish after snapshot:', e); }
-                });
-                setSnapshotModalOpen(true);
-            } else {
-                await handlePublishEdit();
-            }
-        } catch (err) {
-            console.error('Error during publish confirm:', err);
-            setFormMessage({ type: 'error', text: 'Network error while publishing.' });
-        } finally {
-            setPublishConfirmOpen(false);
-            setIsLoading(false);
-        }
-    };
 
     // Open snapshot modal to create a snapshot (or to create + continue publish)
     const createSnapshot = (noteId) => {
         if (!noteId) return;
         setSnapshotNoteId(noteId);
-        setSnapshotIsForPublish(false);
         setSnapshotDefaultLabel('Manual snapshot');
         setSnapshotDefaultReason('manual');
         // prepare sanitized preview for this note
         const note = notes.find(n => String(n._id) === String(noteId)) || (editingNote && String(editingNote._id) === String(noteId) ? { ...editingNote, content: editingNote.content } : null);
         if (note) {
-            fetchSanitizedPreview(note.content).then(html => setSnapshotPreviewHtml(html)).catch(() => setSnapshotPreviewHtml(note.content || ''));
+            const fmt = (note.format || 'html');
+            if (fmt === 'markdown') {
+                setSnapshotPreviewHtml(renderMarkdownHtml(note.content || ''));
+            } else {
+                fetchSanitizedPreview(note.content || '').then(html => setSnapshotPreviewHtml(html)).catch(() => setSnapshotPreviewHtml(note.content || ''));
+            }
         } else {
             setSnapshotPreviewHtml('');
         }
@@ -882,66 +751,11 @@ const NoteManagement = () => {
                             </div>
                             <div className="form-group"><label htmlFor="newNoteSubject" className="form-label">Subject</label><input type="text" id="newNoteSubject" name="subject" value={newNote.subject} onChange={(e) => setNewNote({ ...newNote, subject: e.target.value })} className="form-input" /></div>
                             <div className="form-group"><label htmlFor="newNoteContent" className="form-label">Content</label>
-                                <div className="flex items-center gap-2 mb-2">
-                                    <select className="form-input" onChange={(e)=>{ if (e.target.value) insertTemplate(Number(e.target.value)); e.target.selectedIndex = 0; }}>
-                                        <option value="">Insert template...</option>
-                                        {(templates || []).map((t, i) => (<option key={i} value={i}>{t.name}</option>))}
-                                    </select>
-                                    <button type="button" className="admin-button-secondary" onClick={() => {
-                                        const name = prompt('Template name (optional)');
-                                        saveAsTemplate(name);
-                                    }}>Save as template</button>
-                                    <label style={{ marginLeft: 8 }} className="text-sm flex items-center"><input type="checkbox" checked={autosaveEnabled} onChange={(e) => {
-                                        const enable = !!e.target.checked;
-                                        setAutosaveEnabled(enable);
-                                        try { localStorage.setItem('admin_note_autosave_enabled', enable ? '1' : '0'); } catch (_) {}
-                                        if (!enable) {
-                                            try { localStorage.removeItem('admin_note_draft'); } catch (_) {}
-                                            setDraftId(null);
-                                            setFormMessage({ type: 'info', text: 'Autosave disabled and local draft cleared.' });
-                                        } else {
-                                            setFormMessage({ type: 'success', text: 'Autosave enabled.' });
-                                        }
-                                    }} /> <span style={{ marginLeft: 6 }}>Autosave</span></label>
-                                </div>
-                                <CourseEditor initial={content} onChange={setContent} />
+                                <QuillNoteEditor value={content} onChange={setContent} />
                                 <div className="mt-2 flex items-center gap-2">
-                                    <button type="button" className="admin-button-secondary" onClick={async () => {
-                                        setIsPreviewOpen(p => !p);
-                                        if (!isPreviewOpen) {
-                                            const sanitized = await fetchSanitizedPreview(content);
-                                            setPreviewHtml(sanitized);
-                                        }
-                                    }}>{isPreviewOpen ? 'Hide Preview' : 'Preview'}</button>
                                     <button type="button" className="admin-button-secondary" onClick={async () => { await openFullPagePreview(content); }}>Full Page</button>
-                                    {draftId ? (<>
-                                        <span className="text-sm text-gray-500">Draft saved</span>
-                                        <button type="button" className="admin-button-primary" onClick={async () => {
-                                            // Publish the draft explicitly
-                                            if (!draftId) return;
-                                            setIsLoading(true);
-                                            try {
-                                                const res = await fetch(`${API_BASE_URL}/admin/notes/${draftId}`, { headers: { 'Content-Type': 'application/json' }, credentials: 'include', method: 'PUT', body: JSON.stringify({ ...newNote, content: content, isDraft: false, topicId: selectedTopicId || null }) });
-                                                if (res.ok) {
-                                                    const d = await res.json();
-                                                    setNotes(notes.map(n => (n._id === d._id ? d : n)));
-                                                    setDraftId(null); localStorage.removeItem('admin_note_draft');
-                                                    setFormMessage({ type: 'success', text: 'Draft published.' });
-                                                } else {
-                                                    const err = await res.json(); setFormMessage({ type: 'error', text: err.msg || 'Failed to publish draft.' });
-                                                }
-                                            } catch (err) { console.error('Publish draft failed', err); setFormMessage({ type: 'error', text: 'Network error publishing draft.' }); }
-                                            finally { setIsLoading(false); }
-                                        }}>Publish Draft</button>
-                                    </>) : (<span className="text-sm text-gray-400">Autosave inactive until content present</span>)}
+                                    <span className="text-sm text-gray-400">Use Add Note to save</span>
                                 </div>
-                                {isPreviewOpen && (
-                                    <div className="scroll-snap-card preview-panel border rounded">
-                                        <div className="slide">
-                                            <div className="admin-note-preview" dangerouslySetInnerHTML={{ __html: previewHtml || content }}></div>
-                                        </div>
-                                    </div>
-                                )}
                             </div>
                             <div className="form-group"><label htmlFor="newNoteImageUrl" className="form-label">Image URL (Optional)</label><input type="text" id="newNoteImageUrl" name="imageUrl" value={newNote.imageUrl} onChange={(e) => setNewNote({ ...newNote, imageUrl: e.target.value })} className="form-input" placeholder="https://example.com/note-image.jpg" /></div>
                             <button type="submit" disabled={isLoading} className="form-submit-button">{isLoading ? 'Adding...' : <><PlusCircle size={20} className="icon-mr" /> Add Note</>}</button>
@@ -966,11 +780,18 @@ const NoteManagement = () => {
                                 <tr key={note._id} className="admin-table-tr">
                                     <td className="admin-table-td" data-label="Title">{note.title}</td>
                                     <td className="admin-table-td" data-label="Subject">{note.subject || 'N/A'}</td>
-                                                            <td className="admin-table-td admin-table-td-description" data-label="Content">{(note.snippet ? (note.snippet.slice(0, 120) + (note.snippet.length > 120 ? '...' : '')) : (note.content ? (note.content.slice(0, 120) + '...') : ''))}</td>
+                                                            <td className="admin-table-td admin-table-td-description" data-label="Content">{(() => {
+                                                                const raw = note.snippet || note.content || '';
+                                                                const isMd = (note.format === 'markdown');
+                                                                const readable = isMd ? markdownToPlainText(raw) : htmlToPlainText(raw);
+                                                                if (!readable) return '';
+                                                                const short = readable.slice(0, 120);
+                                                                return short + (readable.length > 120 ? '...' : '');
+                                                            })()}</td>
                                     <td className="admin-table-td" data-label="Image">{note.imageUrl ? <img src={(note.imageUrl && (note.imageUrl.startsWith('http://') || note.imageUrl.startsWith('https://'))) ? `${API_BASE_URL}/admin/util/proxy?url=${encodeURIComponent(note.imageUrl)}` : note.imageUrl} alt="Note" className="admin-table-image" /> : 'N/A'}</td>
                                     <td className="admin-table-td" data-label="Last Updated">{new Date(note.updatedAt).toLocaleString()}</td>
                                     <td className="admin-table-td admin-table-actions">
-                                        <button onClick={() => startEditingNote(note)} onMouseEnter={() => { import('./CourseEditorEditorPanel'); }} title="Edit" className="admin-action-button edit-button"><Edit size={18} /></button>
+                                        <button onClick={() => startEditingNote(note)} title="Edit" className="admin-action-button edit-button"><Edit size={18} /></button>
                                         <button onClick={() => openVersionsModal(note)} title="Versions" className="admin-action-button info-button">V</button>
                                         <button onClick={() => confirmDeleteNote(note._id)} title="Delete" className="admin-action-button delete-button"><Trash2 size={18} /></button>
                                     </td>
@@ -988,35 +809,11 @@ const NoteManagement = () => {
                             <div className="form-group"><label htmlFor="editNoteTitle" className="form-label">Title</label><input type="text" id="editNoteTitle" name="title" value={editingNote.title} onChange={handleEditChange} required className="form-input" /></div>
                             <div className="form-group"><label htmlFor="editNoteSubject" className="form-label">Subject</label><input type="text" id="editNoteSubject" name="subject" value={editingNote.subject || ''} onChange={handleEditChange} className="form-input" /></div>
                             <div className="form-group"><label htmlFor="editNoteContent" className="form-label">Content</label>
-                                <div className="flex items-center gap-2 mb-2">
-                                    <select className="form-input" onChange={(e)=>{ if (e.target.value) insertTemplate(Number(e.target.value)); e.target.selectedIndex = 0; }}>
-                                        <option value="">Insert template...</option>
-                                        {(templates || []).map((t, i) => (<option key={i} value={i}>{t.name}</option>))}
-                                    </select>
-                                    <button type="button" className="admin-button-secondary" onClick={() => {
-                                        const name = prompt('Template name (optional)');
-                                        saveAsTemplate(name);
-                                    }}>Save as template</button>
-                                </div>
-                                <CourseEditor initial={editingNote.content || ''} onChange={(val) => setEditingNote(prev => ({ ...prev, content: val }))} />
+                                <QuillNoteEditor value={editingNote.content || ''} onChange={(val) => setEditingNote(prev => ({ ...prev, content: val }))} />
                                 <div className="mt-2 flex items-center gap-2">
-                                    <button type="button" className="admin-button-secondary" onClick={async () => {
-                                        setIsPreviewOpen(p => !p);
-                                        if (!isPreviewOpen) {
-                                            const sanitized = await fetchSanitizedPreview(editingNote.content || '');
-                                            setPreviewHtml(sanitized);
-                                        }
-                                    }}>{isPreviewOpen ? 'Hide Preview' : 'Preview'}</button>
-                                    <button type="button" className="admin-button-secondary" onClick={async () => { await openFullPagePreview(editingNote.content || content || ''); }}>Full Page</button>
-                                    <span className="text-sm text-gray-400">Autosaves while editing</span>
+                                    <button type="button" className="admin-button-secondary" onClick={async () => { await openFullPagePreview(editingNote.content || ''); }}>Full Page</button>
+                                    <span className="text-sm text-gray-400">Use Update Note to save</span>
                                 </div>
-                                {isPreviewOpen && (
-                                    <div className="scroll-snap-card preview-panel border rounded">
-                                        <div className="slide">
-                                            <div className="admin-note-preview" dangerouslySetInnerHTML={{ __html: previewHtml || (editingNote.content || '') }}></div>
-                                        </div>
-                                    </div>
-                                )}
                             </div>
                             <div className="form-group"><label className="form-label">Attach to (optional)</label>
                                 <div className="flex gap-2">
@@ -1039,10 +836,9 @@ const NoteManagement = () => {
                                 </div>
                             </div>
                             <div className="form-group"><label htmlFor="editNoteImageUrl" className="form-label">Image URL (Optional)</label><input type="text" id="editNoteImageUrl" name="imageUrl" value={editingNote.imageUrl || ''} onChange={handleEditChange} className="form-input" /></div>
-                            <div className="form-group flex items-center gap-3"><label className="form-label"><input type="checkbox" checked={editIsDraft} onChange={(e) => setEditIsDraft(e.target.checked)} /> <span className="ml-2">Mark as draft</span></label></div>
+                            
                             <div className="modal-actions-footer">
                                 <button type="button" onClick={() => setIsEditModalOpen(false)} className="modal-button-base modal-button-cancel">Cancel</button>
-                                <button type="button" disabled={isLoading} onClick={openPublishConfirm} className="modal-button-base admin-button-success">Publish</button>
                                 <button type="button" disabled={isLoading} onClick={() => createSnapshot(editingNote._id)} className="modal-button-base admin-button-secondary">Create Snapshot</button>
                                 <button type="submit" disabled={isLoading} className="modal-button-base admin-button-primary">{isLoading ? 'Updating...' : 'Update Note'}</button>
                             </div>
@@ -1055,7 +851,30 @@ const NoteManagement = () => {
                 <div className="modal-overlay modal-overlay-overflow">
                     <div className="modal-content-box modal-content-box-lg">
                         <div className="modal-header"><h3 className="modal-title">Versions</h3><button onClick={closeVersionsModal} className="modal-close-button"><X size={24} /></button></div>
-                        <div className="modal-body">
+                        <div
+                            className="modal-body"
+                            onClick={(e) => {
+                                const btn = e.target && e.target.closest ? e.target.closest('[data-md-copy-btn="1"]') : null;
+                                if (!btn) return;
+                                const card = btn.closest('[data-md-code-card="1"]');
+                                const codeEl = card ? card.querySelector('pre code') : null;
+                                const text = codeEl ? codeEl.textContent : '';
+                                if (!text) return;
+                                if (!navigator.clipboard) return;
+                                navigator.clipboard.writeText(text).then(() => {
+                                    const prev = btn.textContent;
+                                    btn.textContent = 'Copied';
+                                    setTimeout(() => { btn.textContent = prev; }, 900);
+                                }).catch(() => {});
+                            }}
+                        >
+                            <style>{`
+                                .md-code-card{border:1px solid rgba(0,0,0,.10);border-radius:10px;overflow:hidden;margin:10px 0}
+                                .md-code-card__header{display:flex;justify-content:space-between;align-items:center;padding:8px 10px;border-bottom:1px solid rgba(0,0,0,.10);font-size:12px}
+                                .md-code-card__lang{opacity:.8}
+                                .md-code-card__copy{padding:4px 8px;border-radius:8px;border:1px solid rgba(0,0,0,.14);background:transparent;cursor:pointer}
+                                .md-code-card__body pre{margin:0}
+                            `}</style>
                             <div className="mb-3 flex items-center justify-between">
                                 <div className="text-sm text-gray-600">Versions for note</div>
                                 <div>
@@ -1071,7 +890,18 @@ const NoteManagement = () => {
                                                         return (
                                                             <div key={idx} ref={el => versionRefs.current[idx] = el} className={`${itemBase} ${isHighlight ? itemHighlight : ''}`}>
                                                                 <div className="text-sm font-medium mb-1"><strong>Version {idx}</strong> — {new Date(v.createdAt).toLocaleString()} {v.createdByDisplay ? `by ${v.createdByDisplay}` : (v.createdBy ? `by ${v.createdBy}` : '')} {v.label ? ` — ${v.label}` : ''} {v.reason ? ` (${v.reason})` : ''}</div>
-                                                                <div className="text-sm mb-2" dangerouslySetInnerHTML={{ __html: (v.content || '').slice(0, 500) }}></div>
+                                                                <div
+                                                                    className="text-sm mb-2"
+                                                                    dangerouslySetInnerHTML={{
+                                                                        __html: (v && v.format === 'html')
+                                                                            ? renderLegacyHtmlAsText((v.content || '').slice(0, 1500))
+                                                                            : renderMarkdownHtml((() => {
+                                                                                const raw = String(v.content || '');
+                                                                                const short = raw.length > 1500 ? (raw.slice(0, 1500) + '\n\n…') : raw;
+                                                                                return short;
+                                                                            })()),
+                                                                    }}
+                                                                />
                                                                 <div className="flex items-center gap-2">
                                                                     <button className="px-2 py-1 rounded bg-blue-600 text-white" onClick={() => { if (confirm('Revert to this version? This will save the current state to versions.')) handleRevertVersion(idx); }}>Revert</button>
                                                                     <button className="px-2 py-1 rounded bg-red-600 text-white" onClick={() => { if (confirm('Delete this version? This action cannot be undone.')) handleDeleteVersion(idx); }}>Delete</button>
@@ -1086,28 +916,13 @@ const NoteManagement = () => {
                     </div>
                 </div>
             )}
-            {publishConfirmOpen && (
-                <div className="modal-overlay">
-                    <div className="modal-content-box">
-                        <div className="modal-header"><h3 className="modal-title">Confirm Publish</h3><button onClick={() => setPublishConfirmOpen(false)} className="modal-close-button"><X size={24} /></button></div>
-                        <div className="modal-body">
-                            <p>Publishing this note will mark it as published and (server-side) save the previous state into versions. Would you like to continue?</p>
-                            <div className="form-group"><label><input type="checkbox" checked={publishCreateSnapshot} onChange={(e)=>setPublishCreateSnapshot(e.target.checked)} /> <span className="ml-2">Create explicit snapshot before publishing</span></label></div>
-                        </div>
-                        <div className="modal-actions-footer">
-                            <button className="modal-button-base modal-button-cancel" onClick={() => setPublishConfirmOpen(false)}>Cancel</button>
-                            <button className="modal-button-base admin-button-primary" onClick={confirmPublish}>Confirm Publish</button>
-                        </div>
-                    </div>
-                </div>
-            )}
             {/** Snapshot modal for label/reason collection */}
             {snapshotModalOpen && (
                 <SnapshotModal
                     show={snapshotModalOpen}
                     defaultLabel={snapshotDefaultLabel}
                     defaultReason={snapshotDefaultReason}
-                    onCancel={() => { setSnapshotModalOpen(false); setSnapshotNoteId(null); setSnapshotOnDone(null); setSnapshotIsForPublish(false); }}
+                    onCancel={() => { setSnapshotModalOpen(false); setSnapshotNoteId(null); setSnapshotOnDone(null); }}
                     onCreate={async ({ label, reason }) => {
                         setSnapshotModalOpen(false);
                         if (!snapshotNoteId) return;
@@ -1134,7 +949,6 @@ const NoteManagement = () => {
                             // reset snapshot modal context
                             setSnapshotNoteId(null);
                             setSnapshotOnDone(null);
-                            setSnapshotIsForPublish(false);
                         }
                     }}
                 />

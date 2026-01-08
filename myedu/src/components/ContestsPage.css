@@ -42,8 +42,8 @@
                     padding: 0;
                     box-sizing: border-box;
                     line-height: 1.5;
-                    background-color: var(--color-bg-light); /* Default light theme background */
-                    color: var(--color-text-light); /* Default light theme text */
+                    background-color: #020617; /* slate-950 */
+                    color: #FFFFFF;
                     transition: background-color 0.3s ease, color 0.3s ease;
                 }
 
@@ -71,6 +71,8 @@
                     padding-top: 0.5rem; /* Reduced from 1rem */
                     padding-left: 1rem;
                     padding-right: 1rem;
+                    background-color: #020617; /* slate-950 */
+                    color: #FFFFFF;
                 }
 
                 /* ContestsMainContent */
@@ -108,7 +110,7 @@
                 .contests-page-title {
                     font-size: 2.25rem;
                     font-weight: 800;
-                    color: hsl(168, 15%, 6%);
+                    color: #FFFFFF;
                     margin-bottom: 0.75rem;
                     transition: color 0.3s ease;
                 }
@@ -124,7 +126,7 @@
                 /* ContestsPageSubtitle */
                 .contests-page-subtitle {
                     font-size: 1.125rem;
-                    color: var(--color-text-muted-light);
+                    color: #D1D5DB;
                     max-width: 56rem;
                     margin-left: auto;
                     margin-right: auto;
@@ -243,8 +245,8 @@
 
                 /* FeaturedActionButton */
                 .featured-action-button {
-                    background-color: var(--color-primary-teal); /* Changed background to teal */
-                    color: white; /* Changed text color to white */
+                    background: linear-gradient(90deg, #A855F7, #167468);
+                    color: white;
                     font-weight: 700;
                     padding: 0.75rem 2rem;
                     border-radius: 9999px;
@@ -257,12 +259,12 @@
                     white-space: nowrap;
                 }
                 .featured-action-button:hover {
-                    background-color: var(--color-darker-teal); /* Darker teal on hover */
-                    color: white; /* Text color remains white on hover */
+                    opacity: 0.95;
+                    color: white;
                     transform: scale(1.05);
                 }
                 body.dark-theme .featured-action-button:hover {
-                    background-color: var(--color-darker-teal);
+                    opacity: 0.95;
                 }
 
 
@@ -300,9 +302,10 @@
                 .contests-filters-section {
                     margin-bottom: 2rem;
                     padding: 1rem;
-                    background-color: var(--color-card-bg-light);
+                    background-color: rgba(255, 255, 255, 0.05);
                     border-radius: 0.75rem;
-                    border: 182px;
+                    border: 1px solid rgba(255, 255, 255, 0.10);
+                    backdrop-filter: blur(16px);
                     box-shadow: 0 8px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
                     display: flex;
                     flex-direction: column;
@@ -311,7 +314,7 @@
                     transition: background-color 0.3s ease;
                 }
                 body.dark-theme .contests-filters-section {
-                    background-color: var(--color-card-bg-dark);
+                    background-color: rgba(255, 255, 255, 0.05);
                 }
                 @media (min-width: 768px) {
                     .contests-filters-section {
@@ -336,28 +339,28 @@
                     left: 0.75rem;
                     top: 50%;
                     transform: translateY(-50%);
-                    color: #9CA3AF;
+                    color: rgba(255, 255, 255, 0.55);
                 }
 
                 /* ContestsSearchInput */
                 .contests-search-input {
                     width: 90%;
                     padding: 0.5rem 1rem 0.5rem 2.5rem;
-                    border: 1px solid var(--color-border-light);
+                    border: 1px solid rgba(255, 255, 255, 0.10);
                     border-radius: 0.5rem;
-                    background-color: #F9FAFB;
+                    background-color: rgba(255, 255, 255, 0.05);
                     outline: none;
                     transition: all 0.2s ease;
-                    color: var(--color-text-light);
+                    color: #FFFFFF;
                 }
                 body.dark-theme .contests-search-input {
-                    border-color: var(--color-border-dark);
-                    background-color: var(--color-gray-700);
-                    color: var(--color-text-dark);
+                    border-color: rgba(255, 255, 255, 0.10);
+                    background-color: rgba(255, 255, 255, 0.05);
+                    color: #FFFFFF;
                 }
                 .contests-search-input:focus {
-                    box-shadow: 0 0 0 2px var(--color-primary-teal); /* Used primary teal color */
-                    border-color: var(--color-primary-teal); /* Used primary teal color */
+                    box-shadow: 0 0 0 2px rgba(22, 116, 104, 0.6);
+                    border-color: rgba(22, 116, 104, 0.9);
                 }
 
                 /* ContestsFilterDropdowns */
@@ -378,12 +381,12 @@
                 .contests-filter-select {
                     width: 100%;
                     padding: 0.5rem 1rem;
-                    border: 1px solid var(--color-border-light);
+                    border: 1px solid rgba(255, 255, 255, 0.10);
                     border-radius: 0.5rem;
-                    background-color: #F9FAFB;
+                    background-color: rgba(255, 255, 255, 0.05);
                     outline: none;
                     transition: all 0.2s ease;
-                    color: var(--color-text-light);
+                    color: #FFFFFF;
                     -webkit-appearance: none;
                     -moz-appearance: none;
                     appearance: none;
@@ -393,13 +396,13 @@
                     background-size: 1.25em;
                 }
                 body.dark-theme .contests-filter-select {
-                    border-color: var(--color-border-dark);
-                    background-color: var(--color-gray-700);
-                    color: var(--color-text-dark);
+                    border-color: rgba(255, 255, 255, 0.10);
+                    background-color: rgba(255, 255, 255, 0.05);
+                    color: #FFFFFF;
                 }
                 .contests-filter-select:focus {
-                    box-shadow: 0 0 0 2px var(--color-primary-teal); /* Used primary teal color */
-                    border-color: var(--color-primary-teal); /* Used primary teal color */
+                    box-shadow: 0 0 0 2px rgba(22, 116, 104, 0.6);
+                    border-color: rgba(22, 116, 104, 0.9);
                 }
 
                 /* ContestSectionsWrapper */
@@ -413,7 +416,7 @@
                 .contest-section-title {
                     font-size: 1.875rem;
                     font-weight: 700;
-                    color: var(--color-text-light);
+                    color: #FFFFFF;
                     margin-bottom: 1.5rem;
                     display: flex;
                     align-items: center;
@@ -421,7 +424,7 @@
                     transition: color 0.3s ease;
                 }
                 body.dark-theme .contest-section-title {
-                    color: var(--color-text-dark);
+                    color: #FFFFFF;
                 }
 
                 /* LiveIndicator */
@@ -460,7 +463,9 @@
 
                 /* ContestCardContainer */
                 .contest-card-container {
-                    background-color: var(--color-card-bg-light);
+                    background-color: rgba(255, 255, 255, 0.05);
+                    border: 1px solid rgba(255, 255, 255, 0.10);
+                    backdrop-filter: blur(16px);
                     border-radius: 1rem;
                     box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
                     overflow: hidden;
@@ -469,17 +474,8 @@
                     flex-direction: column;
                     height: 100%; /* Ensure consistent card height */
                 }
-                /* Apply teal background for 'Algorithms Challenge' only */
-                .contest-card-container[data-id="c1"] { /* Targeting by data-id for specific styling */
-                    background-color: var(--color-primary-teal);
-                    color: white; /* Ensure text is visible on teal background */
-                }
                 body.dark-theme .contest-card-container {
-                    background-color: var(--color-card-bg-dark);
-                }
-                body.dark-theme .contest-card-container[data-id="c1"] {
-                    background-color: var(--color-primary-teal);
-                    color: white;
+                    background-color: rgba(255, 255, 255, 0.05);
                 }
 
                 .contest-card-container:hover {
@@ -506,20 +502,16 @@
                 .contest-category-pill {
                     font-size: 0.875rem;
                     font-weight: 600;
-                    color: var(--color-indigo-600);
-                    background-color: #E0E7FF;
+                    color: rgba(255, 255, 255, 0.80);
+                    background-color: rgba(255, 255, 255, 0.10);
+                    border: 1px solid rgba(255, 255, 255, 0.10);
                     padding: 0.25rem 0.75rem;
                     border-radius: 9999px;
                     white-space: nowrap;
                 }
-                /* Adjust category pill text color for the teal card */
-                .contest-card-container[data-id="c1"] .contest-category-pill {
-                    color: var(--color-darker-teal); /* Darker teal for contrast */
-                    background-color: rgba(255, 255, 255, 0.8); /* Slightly transparent white */
-                }
                 body.dark-theme .contest-category-pill {
-                    color: #C7D2FE;
-                    background-color: var(--color-gray-700);
+                    color: rgba(255, 255, 255, 0.80);
+                    background-color: rgba(255, 255, 255, 0.10);
                 }
 
                 /* DifficultyPill */
@@ -531,33 +523,31 @@
                     white-space: nowrap;
                 }
                 .difficulty-pill.difficulty-easy {
-                    background-color: var(--color-green-100);
-                    color: var(--color-green-800);
+                    background-color: rgba(255, 255, 255, 0.10);
+                    border: 1px solid rgba(255, 255, 255, 0.10);
+                    color: rgba(255, 255, 255, 0.85);
                 }
                 body.dark-theme .difficulty-pill.difficulty-easy {
-                    background-color: var(--color-green-900);
-                    color: var(--color-green-100);
+                    background-color: rgba(255, 255, 255, 0.10);
+                    color: rgba(255, 255, 255, 0.85);
                 }
                 .difficulty-pill.difficulty-medium {
-                    background-color: var(--color-yellow-100);
-                    color: var(--color-yellow-800);
+                    background-color: rgba(255, 255, 255, 0.10);
+                    border: 1px solid rgba(255, 255, 255, 0.10);
+                    color: rgba(255, 255, 255, 0.85);
                 }
                 body.dark-theme .difficulty-pill.difficulty-medium {
-                    background-color: var(--color-yellow-900);
-                    color: var(--color-yellow-100);
+                    background-color: rgba(255, 255, 255, 0.10);
+                    color: rgba(255, 255, 255, 0.85);
                 }
                 .difficulty-pill.difficulty-hard {
-                    background-color: var(--color-red-100);
-                    color: var(--color-red-800);
+                    background-color: rgba(255, 255, 255, 0.10);
+                    border: 1px solid rgba(255, 255, 255, 0.10);
+                    color: rgba(255, 255, 255, 0.85);
                 }
                 body.dark-theme .difficulty-pill.difficulty-hard {
-                    background-color: var(--color-red-900);
-                    color: var(--color-red-100);
-                }
-                /* Adjust difficulty pill colors for the teal card */
-                .contest-card-container[data-id="c1"] .difficulty-pill.difficulty-hard {
-                    background-color: rgba(255, 255, 255, 0.8); /* Slightly transparent white */
-                    color: var(--color-red-800); /* Keep the red text */
+                    background-color: rgba(255, 255, 255, 0.10);
+                    color: rgba(255, 255, 255, 0.85);
                 }
 
 
@@ -565,21 +555,18 @@
                 .contest-title {
                     font-size: 1.25rem;
                     font-weight: 700;
-                    color: var(--color-text-light);
+                    color: #FFFFFF;
                     margin-bottom: 0.5rem;
                     transition: color 0.3s ease;
                 }
-                .contest-card-container[data-id="c1"] .contest-title {
-                    color: white; /* White title for teal card */
-                }
                 body.dark-theme .contest-title {
-                    color: var(--color-text-dark);
+                    color: #FFFFFF;
                 }
 
 
                 /* ContestDescription */
                 .contest-description {
-                    color: var(--color-text-muted-light);
+                    color: rgba(255, 255, 255, 0.75);
                     font-size: 0.875rem;
                     margin-bottom: 1rem;
                     height: 2.5rem;
@@ -591,11 +578,8 @@
                     -webkit-box-orient: vertical;
                     transition: color 0.3s ease;
                 }
-                .contest-card-container[data-id="c1"] .contest-description {
-                    color: rgba(255, 255, 255, 0.9); /* Lighter description for teal card */
-                }
                 body.dark-theme .contest-description {
-                    color: var(--color-text-muted-dark);
+                    color: rgba(255, 255, 255, 0.75);
                 }
 
                 /* ContestDetailsRow */
@@ -604,15 +588,12 @@
                     align-items: center;
                     justify-content: space-between;
                     font-size: 0.875rem;
-                    color: #6B7280;
+                    color: rgba(255, 255, 255, 0.70);
                     margin-bottom: 1rem;
                     transition: color 0.3s ease;
                 }
-                .contest-card-container[data-id="c1"] .contest-details-row {
-                    color: rgba(255, 255, 255, 0.9); /* Lighter details for teal card */
-                }
                 body.dark-theme .contest-details-row {
-                    color: var(--color-text-muted-dark);
+                    color: rgba(255, 255, 255, 0.70);
                 }
 
                 /* ContestDetailItem */
@@ -641,14 +622,10 @@
                     margin-bottom: 0.5rem;
                 }
                 .contest-timer-label.live-label {
-                    color: var(--color-red-600);
+                    color: rgba(255, 255, 255, 0.85);
                 }
                 .contest-timer-label.upcoming-label {
-                    color: var(--color-blue-500);
-                }
-                /* Adjust timer label color for the teal card */
-                .contest-card-container[data-id="c1"] .contest-timer-label.live-label {
-                    color: rgba(255, 255, 255, 0.9);
+                    color: rgba(255, 255, 255, 0.85);
                 }
 
 
@@ -675,14 +652,11 @@
                 .countdown-value {
                     font-size: 1.25rem;
                     font-weight: 700;
-                    color: var(--color-text-light);
+                    color: #FFFFFF;
                     transition: color 0.3s ease;
                 }
-                .contest-card-container[data-id="c1"] .countdown-value {
-                    color: white; /* White countdown value for teal card */
-                }
                 body.dark-theme .countdown-value {
-                    color: var(--color-text-dark);
+                    color: #FFFFFF;
                 }
                 @media (min-width: 768px) {
                     .countdown-value {
@@ -694,14 +668,11 @@
                 .countdown-label {
                     font-size: 0.75rem;
                     text-transform: uppercase;
-                    color: #6B7280;
+                    color: rgba(255, 255, 255, 0.60);
                     transition: color 0.3s ease;
                 }
-                .contest-card-container[data-id="c1"] .countdown-label {
-                    color: rgba(255, 255, 255, 0.9); /* Lighter countdown label for teal card */
-                }
                 body.dark-theme .countdown-label {
-                    color: #9CA3AF;
+                    color: rgba(255, 255, 255, 0.60);
                 }
 
                 /* CountdownEndedMessage */
@@ -717,38 +688,39 @@
                     margin-bottom: 1rem;
                     text-align: center;
                     padding: 0.75rem;
-                    background-color: #F3F4F6;
-                    border-radius: 0.5rem;
+                    background-color: rgba(255, 255, 255, 0.05);
+                    border: 1px solid rgba(255, 255, 255, 0.10);
+                    border-radius: 0.75rem;
                     transition: background-color 0.3s ease;
                 }
                 body.dark-theme .contest-past-info {
-                    background-color: var(--color-gray-700);
+                    background-color: rgba(255, 255, 255, 0.05);
                 }
 
                 /* ContestPastStatus */
                 .contest-past-status {
                     font-size: 0.875rem;
-                    color: #4B5563;
+                    color: rgba(255, 255, 255, 0.70);
                     transition: color 0.3s ease;
                 }
                 body.dark-theme .contest-past-status {
-                    color: #9CA3AF;
+                    color: rgba(255, 255, 255, 0.70);
                 }
 
                 /* ContestWinner */
                 .contest-winner {
                     font-size: 0.875rem;
                     font-weight: 600;
-                    color: var(--color-text-light);
+                    color: rgba(255, 255, 255, 0.85);
                     transition: color 0.3s ease;
                 }
                 body.dark-theme .contest-winner {
-                    color: var(--color-text-dark);
+                    color: rgba(255, 255, 255, 0.85);
                 }
 
                 /* WinnerName */
                 .winner-name {
-                    color: var(--color-yellow-400);
+                    color: rgba(255, 255, 255, 0.95);
                 }
 
                 /* ContestActionButton */
@@ -776,12 +748,12 @@
                 .contest-action-button.live-button,
                 .contest-action-button.upcoming-button,
                 .contest-action-button.past-button {
-                    background-color: var(--color-primary-teal);
+                    background: linear-gradient(90deg, #A855F7, #167468);
                 }
                 .contest-action-button.live-button:hover,
                 .contest-action-button.upcoming-button:hover,
                 .contest-action-button.past-button:hover {
-                    background-color: var(--color-darker-teal);
+                    opacity: 0.95;
                 }
 
                 /* ContestButtonIcon */
@@ -806,21 +778,21 @@
                 .no-contests-title {
                     font-size: 1.5rem;
                     font-weight: 600;
-                    color: var(--color-text-light);
+                    color: #FFFFFF;
                     margin-bottom: 0.5rem;
                     transition: color 0.3s ease;
                 }
                 body.dark-theme .no-contests-title {
-                    color: var(--color-text-dark);
+                    color: #FFFFFF;
                 }
 
                 /* NoContestsText */
                 .no-contests-text {
-                    color: #6B7280;
+                    color: rgba(255, 255, 255, 0.70);
                     transition: color 0.3s ease;
                 }
                 body.dark-theme .no-contests-text {
-                    color: #9CA3AF;
+                    color: rgba(255, 255, 255, 0.70);
                 }
 
               

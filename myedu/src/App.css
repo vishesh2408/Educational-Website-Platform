@@ -56,22 +56,12 @@ body.dark-theme {
 /* HomePage and in PageSection */
 .container {
   max-width: 1525px;
- 
- 
+  padding-left: 0;
+  padding-right: 0;
 }
-
-@media (min-width: 640px) { /* sm breakpoint */
-  .container {
-    padding-left: 1.5rem;
-    padding-right: 1.5rem;
-  }
-}
-
-@media (min-width: 1024px) { /* lg breakpoint */
-  .container {
-    padding-left: 2rem;
-    padding-right: 2rem;
-  }
-}
+/* Optional padded variant for pages that need gutters */
+.container--padded { padding-left: 1rem; padding-right: 1rem; }
+@media (min-width: 640px) { .container--padded { padding-left: 1.5rem; padding-right: 1.5rem; } }
+@media (min-width: 1024px) { .container--padded { padding-left: 2rem; padding-right: 2rem; } }
 
 

@@ -61,7 +61,7 @@ const RunningWithErrorsIcon = (props) => (
 
 const PageSection = ({ title, children }) => (
   <section className="mb-8">
-    <h2 className="text-3xl font-bold text-gray-800 dark:text-gray-100 mb-4">{title}</h2>
+    <h2 className="text-3xl font-bold text-white mb-4">{title}</h2>
     {children}
   </section>
 );
@@ -77,21 +77,21 @@ const DashboardCard = ({ icon, title, value, color }) => (
 );
 
 const CourseCard = ({ course, type }) => (
-  <div className="bg-white dark:bg-gray-800 p-5 rounded-2xl shadow-md transition-transform duration-200 ease-in-out transform hover:scale-105">
-    <h4 className="font-semibold text-lg text-gray-800 dark:text-gray-100 mb-2">{course.title}</h4>
+  <div className="bg-white/5 border border-white/10 backdrop-blur p-5 rounded-2xl shadow-md transition-transform duration-200 ease-in-out transform hover:scale-105">
+    <h4 className="font-semibold text-lg text-white mb-2">{course.title}</h4>
     {type === 'enrolled' && (
-      <div className="w-full bg-gray-200 rounded-full h-2.5 mt-2">
-        <div className="bg-teal-600 h-2.5 rounded-full" style={{ width: `${course.progress}%` }}></div>
-        <span className="text-sm text-gray-500 mt-1 block">{course.progress}% Complete</span>
+      <div className="w-full bg-white/10 rounded-full h-2.5 mt-2">
+        <div className="bg-gradient-to-r from-purple-500 to-[#167468] h-2.5 rounded-full" style={{ width: `${course.progress}%` }}></div>
+        <span className="text-sm text-gray-300 mt-1 block">{course.progress}% Complete</span>
       </div>
     )}
-    {type === 'completed' && <p className="text-sm text-gray-600 dark:text-gray-300 mt-2">Grade: <span className="font-medium text-green-600">{course.grade}</span></p>}
-    {type === 'saved' && <p className="text-sm text-gray-600 dark:text-gray-300 mt-2"><HeartIcon className="inline mr-1" /> {course.savedBy} saves</p>}
+    {type === 'completed' && <p className="text-sm text-gray-300 mt-2">Grade: <span className="font-medium text-emerald-300">{course.grade}</span></p>}
+    {type === 'saved' && <p className="text-sm text-gray-300 mt-2"><HeartIcon className="inline mr-1" /> {course.savedBy} saves</p>}
   </div>
 );
 
 const NotificationItem = ({ notification }) => (
-  <div className="flex items-start p-4 bg-gray-50 dark:bg-gray-800 rounded-lg mb-2 shadow-sm border border-gray-200 dark:border-gray-700">
+  <div className="flex items-start p-4 bg-white/5 border border-white/10 backdrop-blur rounded-xl mb-2 shadow-sm">
     <div className={`p-2 rounded-full mr-3 text-white ${
       notification.type === 'feedback' ? 'bg-teal-500' :
       notification.type === 'social' ? 'bg-blue-500' : 'bg-green-500'
@@ -100,7 +100,7 @@ const NotificationItem = ({ notification }) => (
       {notification.type === 'achievement' && <TrophyIcon />}
     </div>
     <div>
-      <p className="text-sm text-gray-700 dark:text-gray-200">{notification.text}</p>
+      <p className="text-sm text-gray-200">{notification.text}</p>
       <span className="text-xs text-gray-400 mt-1 block">{notification.date}</span>
     </div>
   </div>
@@ -127,29 +127,29 @@ const ProjectForm = ({ project = {}, isNew, onSubmit, onDelete, onCancel }) => {
     };
 
     return (
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-md mb-4 border border-teal-200 dark:border-teal-900">
-            <h4 className="font-semibold text-lg text-teal-700 mb-3">{isNew ? 'Add New Project' : `Edit Project: ${formData.title}`}</h4>
+        <div className="bg-white/5 border border-white/10 backdrop-blur p-6 rounded-2xl shadow-md mb-4">
+            <h4 className="font-semibold text-lg text-white mb-3">{isNew ? 'Add New Project' : `Edit Project: ${formData.title}`}</h4>
             <form onSubmit={handleSubmit} className="space-y-3">
-              <input type="text" name="title" value={formData.title} onChange={handleChange} placeholder="Title" required className="w-full p-2 border rounded bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100" />
-              <textarea name="description" value={formData.description} onChange={handleChange} placeholder="Description" required className="w-full p-2 border rounded bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100"></textarea>
-              <select name="status" value={formData.status} onChange={handleChange} required className="w-full p-2 border rounded bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100">
+              <input type="text" name="title" value={formData.title} onChange={handleChange} placeholder="Title" required className="w-full p-2 rounded bg-white/5 border border-white/10 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#167468]" />
+              <textarea name="description" value={formData.description} onChange={handleChange} placeholder="Description" required className="w-full p-2 rounded bg-white/5 border border-white/10 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#167468]"></textarea>
+              <select name="status" value={formData.status} onChange={handleChange} required className="w-full p-2 rounded bg-white/5 border border-white/10 text-white focus:outline-none focus:ring-2 focus:ring-[#167468]">
                     <option value="In Progress">In Progress</option>
                     <option value="Completed">Completed</option>
                     <option value="Stuck">Stuck</option>
                 </select>
                 <div className="flex justify-between items-center">
                   <div className="flex items-center">
-                    <button type="submit" disabled={isLoading} className="px-4 py-2 bg-teal-600 text-white rounded hover:bg-teal-700 disabled:bg-gray-400">
+                    <button type="submit" disabled={isLoading} className="px-4 py-2 bg-gradient-to-r from-purple-500 to-[#167468] text-white rounded hover:opacity-95 disabled:opacity-50">
                       {isLoading ? 'Saving...' : (isNew ? 'Add Project' : 'Update Project')}
                     </button>
                     {isNew && onCancel && (
-                      <button type="button" onClick={onCancel} disabled={isLoading} className="ml-3 px-3 py-2 bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded hover:bg-gray-200 dark:hover:bg-gray-600">
+                      <button type="button" onClick={onCancel} disabled={isLoading} className="ml-3 px-3 py-2 bg-white/10 border border-white/10 text-white rounded hover:bg-white/15">
                         Cancel
                       </button>
                     )}
                   </div>
                   {!isNew && (
-                    <button type="button" onClick={() => onDelete(project._id)} disabled={isLoading} className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 disabled:bg-gray-400">
+                    <button type="button" onClick={() => onDelete(project._id)} disabled={isLoading} className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 disabled:opacity-50">
                       Delete
                     </button>
                   )}
@@ -882,13 +882,13 @@ const handleSkillStringChange = (e) => {
   }
 
   if (loading) {
-    return <div className="flex justify-center items-center h-screen bg-teal-50 dark:bg-slate-900 text-teal-700 dark:text-teal-200">
-      <div className="text-xl font-medium">Loading Profile...</div>
+    return <div className="flex justify-center items-center h-screen bg-slate-950 text-white">
+      <div className="text-xl font-medium text-gray-200">Loading Profile...</div>
     </div>;
   }
 
   if (error) {
-    return <div className="flex justify-center items-center h-screen bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300 p-4">Error: {error}. Please try logging in again.</div>;
+    return <div className="flex justify-center items-center h-screen bg-slate-950 text-red-400 p-4">Error: {error}. Please try logging in again.</div>;
   }
 
 
@@ -901,9 +901,9 @@ const currentProfilePicUrl = profileData.profilePicture
 
   // Helper for rendering skill inputs
   const renderSkillSection = (field, title, description) => (
-      <div key={field} className="mt-4 p-4 border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800">
+      <div key={field} className="mt-4 p-4 border border-white/10 rounded-xl bg-white/5">
         <div className="flex justify-between items-center mb-2">
-            <h4 className="font-semibold text-gray-800">{title}</h4>
+            <h4 className="font-semibold text-white">{title}</h4>
             {/* <h3>{title}</h3> */}
     {/* <ul>
       {profileData[field]?.map((item, i) => (
@@ -911,7 +911,7 @@ const currentProfilePicUrl = profileData.profilePicture
       ))}
     </ul> */}
 
-            <button onClick={() => setEditing(prev => ({ ...prev, [field]: !prev[field] }))} className="text-sm text-teal-600 hover:underline">
+            <button onClick={() => setEditing(prev => ({ ...prev, [field]: !prev[field] }))} className="text-sm text-teal-300 hover:underline">
                 {editing[field] ? 'Cancel' : 'Edit'}
             </button>
         </div>
@@ -924,12 +924,12 @@ const currentProfilePicUrl = profileData.profilePicture
   {profileData[field]?.map((item, i) => (
     <div
       key={i}
-      className="flex items-center bg-teal-100 text-teal-800 dark:bg-teal-900 dark:text-teal-200 text-sm font-medium px-2 py-1 rounded-full"
+      className="flex items-center bg-white/10 border border-white/10 text-white/80 text-sm font-medium px-2 py-1 rounded-full"
     >
       <span>{item}</span>
       <button
         onClick={() => handleRemoveSkill(field, item)}
-        className="ml-2 text-teal-800 dark:text-teal-200 hover:text-red-600 focus:outline-none"
+        className="ml-2 text-white/70 hover:text-red-400 focus:outline-none"
         aria-label={`Remove ${item}`}
       >
         &times;
@@ -940,16 +940,16 @@ const currentProfilePicUrl = profileData.profilePicture
     
     <input
       type="text"
-      className="w-full p-2 border rounded mt-2 bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100"
+          className="w-full p-2 rounded mt-2 bg-white/5 border border-white/10 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#167468]"
       value={tempData[field] || ''}
       onChange={e => setTempData(prev => ({ ...prev, [field]: e.target.value }))}
       placeholder={`Add ${title.toLowerCase().slice(0, -1)}`}
     />
 
-    <button className='mt-2 px-3 py-1 bg-teal-600 text-white rounded hover:bg-green-700 disabled:bg-gray-400 text-sm' onClick={() => handleAddSkill(field, tempData[field])}>
+        <button className='mt-2 px-3 py-1 bg-gradient-to-r from-purple-500 to-[#167468] text-white rounded hover:opacity-95 disabled:opacity-50 text-sm' onClick={() => handleAddSkill(field, tempData[field])}>
       {loading ? 'Saving...' : `Add ${title}`}
     </button>
-                <p className="text-xs mt-3 text-gray-500">{description}</p>
+                    <p className="text-xs mt-3 text-gray-400">{description}</p>
              
 
             </>
@@ -957,10 +957,10 @@ const currentProfilePicUrl = profileData.profilePicture
             <div className="flex flex-wrap gap-2">
                 {profileData[field].length > 0 ? (
               profileData[field].map((skill, index) => (
-                <span key={index} className="bg-teal-100 text-teal-800 dark:bg-teal-900 dark:text-teal-200 text-sm font-medium px-3 py-1 rounded-full">{skill}</span>
+                <span key={index} className="bg-white/10 border border-white/10 text-white/80 text-sm font-medium px-3 py-1 rounded-full">{skill}</span>
               ))
             ) : (
-                    <p className="text-sm text-gray-500">Add Your Skills.</p>
+                    <p className="text-sm text-gray-400">Add Your Skills.</p>
                 )}
             </div>
         )}
@@ -968,26 +968,26 @@ const currentProfilePicUrl = profileData.profilePicture
   );
 
   return (
-    <div className="min-h-screen bg-transparent dark:bg-transparent text-gray-900 dark:text-gray-100 font-sans p-4 sm:p-8">
+    <div className="min-h-screen bg-slate-950 text-white font-sans p-4 sm:p-8">
       {/* Toast container (shared) */}
       <Toast toast={toast} onClose={() => setToast(null)} />
       <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
         <header className="mb-10 text-center">
-          <h1 className="text-5xl font-extrabold text-teal-700 dark:text-teal-300">My Dashboard</h1>
-          <p className="mt-2 text-lg text-gray-600 dark:text-gray-300">Welcome back, {profileData.username}!</p>
+          <h1 className="text-5xl font-extrabold text-white">My Dashboard</h1>
+          <p className="mt-2 text-lg text-gray-300">Welcome back, {profileData.username}!</p>
         </header>
 
         <main className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Main Profile Info and Dashboard */}
           <div className="lg:col-span-2 space-y-8">
             <PageSection title="My Profile">
-              <div className="flex flex-col md:flex-row items-center bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-lg">
+              <div className="flex flex-col md:flex-row items-center bg-white/5 border border-white/10 backdrop-blur p-8 rounded-2xl shadow-lg">
                 {/* PROFILE PICTURE SECTION */}
                 <div className="relative mb-4 md:mb-0 md:mr-6">
                   <img 
                     src={currentProfilePicUrl} 
                     alt="Profile" 
-                    className="w-20 h-20 md:w-24 md:h-24 rounded-full border-4 border-teal-200 object-cover" 
+                    className="w-20 h-20 md:w-24 md:h-24 rounded-full border-4 border-white/10 object-cover" 
                   />
                     <input 
                         type="file" 
@@ -998,7 +998,7 @@ const currentProfilePicUrl = profileData.profilePicture
                     />
                     <button 
                         onClick={() => document.getElementById('profile-pic-upload').click()}
-                        className="absolute bottom-0 right-0 bg-blue-500 text-white p-1 rounded-full border-2 border-white hover:bg-blue-600 transition-colors"
+                      className="absolute bottom-0 right-0 bg-white/10 text-white p-1 rounded-full border-2 border-white/10 hover:bg-white/15 transition-colors"
                         title="Change Picture"
                     >
                         <UserPlusIcon className="w-4 h-4"/>
@@ -1014,39 +1014,39 @@ const currentProfilePicUrl = profileData.profilePicture
                           name="username" 
                           value={tempData.username} 
                           onChange={handleTempChange} 
-                          className="text-2xl font-bold text-gray-800 dark:text-gray-100 border dark:border-gray-700 p-1 rounded mr-2 bg-white dark:bg-gray-700"
+                          className="text-2xl font-bold text-white border border-white/10 p-1 rounded mr-2 bg-white/5 focus:outline-none focus:ring-2 focus:ring-[#167468]"
                         />
                     ) : (
-                        <h3 className="text-2xl font-bold text-gray-800 dark:text-gray-100 mr-2">{profileData.username}</h3>
+                        <h3 className="text-2xl font-bold text-white mr-2">{profileData.username}</h3>
                     )}
                     
-                    <span className="inline-block bg-teal-100 dark:bg-teal-900 text-teal-800 dark:text-teal-200 text-xs font-semibold px-2.5 py-0.5 rounded-full">{profileData.role}</span>
+                    <span className="inline-block bg-white/10 border border-white/10 text-white/80 text-xs font-semibold px-2.5 py-0.5 rounded-full">{profileData.role}</span>
                     {profileData.role === 'staff' && (
-                      <span className="inline-flex items-center ml-2 text-xs font-semibold px-2 py-0.5 rounded-full bg-yellow-100 text-yellow-800">
+                      <span className="inline-flex items-center ml-2 text-xs font-semibold px-2 py-0.5 rounded-full bg-white/10 border border-white/10 text-white/80">
                         <svg xmlns="http://www.w3.org/2000/svg" className="w-3 h-3 mr-1" viewBox="0 0 20 20" fill="currentColor"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.286 3.95a1 1 0 0 0 .95.69h4.162c.969 0 1.371 1.24.588 1.81l-3.37 2.448a1 1 0 0 0-.364 1.118l1.286 3.95c.3.921-.755 1.688-1.54 1.118L10 13.347l-3.37 2.448c-.784.57-1.84-.197-1.54-1.118l1.286-3.95a1 1 0 0 0-.364-1.118L2.642 9.377c-.783-.57-.38-1.81.588-1.81h4.162a1 1 0 0 0 .95-.69l1.286-3.95z"/></svg>
                         Staff
                       </span>
                     )}
                   </div>
 
-                  <p className="text-md text-gray-600 dark:text-gray-300 mb-2">{profileData.email}</p>
+                  <p className="text-md text-gray-300 mb-2">{profileData.email}</p>
 
                   {/* BIO EDITING */}
                   <div className="mt-3">
                     <div className="flex items-center justify-center md:justify-start mb-1">
-                        <span className="text-sm font-medium text-gray-700 dark:text-gray-200 mr-2">Bio:</span>
+                      <span className="text-sm font-medium text-gray-200 mr-2">Bio:</span>
                         {!editing.bio ? (
-                            <span className="text-gray-700 dark:text-gray-200 max-w-xl italic">{profileData.bio || 'No bio set.'}</span>
+                        <span className="text-gray-200 max-w-xl italic">{profileData.bio || 'No bio set.'}</span>
                         ) : (
                             <textarea 
                                 name="bio" 
                                 value={tempData.bio} 
                                 onChange={handleTempChange} 
-                                className="w-full md:w-96 border p-1 rounded text-sm"
+                          className="w-full md:w-96 border border-white/10 bg-white/5 text-white p-1 rounded text-sm focus:outline-none focus:ring-2 focus:ring-[#167468]"
                                 rows="3"
                             />
                         )}
-                        <button onClick={() => setEditing(prev => ({...prev, bio: !prev.bio}))} className="ml-2 text-xs text-teal-600 hover:underline">
+                      <button onClick={() => setEditing(prev => ({...prev, bio: !prev.bio}))} className="ml-2 text-xs text-teal-300 hover:underline">
                             {editing.bio ? 'Cancel' : 'Edit'}
                         </button>
                     </div>
@@ -1057,7 +1057,7 @@ const currentProfilePicUrl = profileData.profilePicture
                         <button 
                             onClick={handleProfileUpdate} 
                             disabled={loading}
-                            className="mt-3 px-4 py-2 bg-teal-600 text-white rounded hover:bg-teal-700 disabled:bg-gray-400 transition-colors"
+                        className="mt-3 px-4 py-2 bg-gradient-to-r from-purple-500 to-[#167468] text-white rounded hover:opacity-95 disabled:opacity-50 transition-colors"
                         >
                             {loading ? 'Saving...' : 'Save Edits'}
                         </button>
@@ -1066,7 +1066,7 @@ const currentProfilePicUrl = profileData.profilePicture
                 
                 {/* Picture Removal */}
                 {profileData.profilePicture && (
-                     <button onClick={handleRemovePicture} className="text-teal-500 text-sm hover:underline mt-2 md:ml-4">Remove Picture</button>
+                   <button onClick={handleRemovePicture} className="text-teal-300 text-sm hover:underline mt-2 md:ml-4">Remove Picture</button>
                 )}
               </div>
 
@@ -1075,18 +1075,18 @@ const currentProfilePicUrl = profileData.profilePicture
 
 
               {/* SKILLS SECTION */}
-              <div className="mt-6 p-6 bg-white dark:bg-gray-800 rounded-2xl shadow-lg">
-                <h3 className="text-xl font-semibold text-teal-600 mb-2">Skills</h3>
+              <div className="mt-6 p-6 bg-white/5 border border-white/10 backdrop-blur rounded-2xl shadow-lg">
+                <h3 className="text-xl font-semibold text-white mb-2">Skills</h3>
                 {renderSkillSection('technicalSkills', 'Technical Skills', 'List all your technical proficiencies.')}
                 {renderSkillSection('softSkills', 'Soft Skills', 'List all your soft skills.')}
                 {renderSkillSection('skillsToLearn', 'Skills to Learn', 'List all skills you want to acquire.')}
                 {renderSkillSection('extraCurricular', 'Extra Curricular Activities', 'List all activities.')}
                 
                 {/* OTHER FIELD */}
-                <div className="mt-4 p-4 border rounded-lg bg-gray-50 dark:bg-gray-800">
+                <div className="mt-4 p-4 border border-white/10 rounded-xl bg-white/5">
                     <div className="flex justify-between items-center mb-2">
-                        <h4 className="font-semibold text-gray-800 dark:text-gray-100">Other Information</h4>
-                        <button onClick={() => setEditing(prev => ({ ...prev, other: !prev.other }))} className="text-sm text-teal-600 hover:underline">
+                        <h4 className="font-semibold text-white">Other Information</h4>
+                        <button onClick={() => setEditing(prev => ({ ...prev, other: !prev.other }))} className="text-sm text-teal-300 hover:underline">
                             {editing.other ? 'Cancel' : 'Edit'}
                         </button>
                     </div>
@@ -1096,11 +1096,11 @@ const currentProfilePicUrl = profileData.profilePicture
                             value={tempData.other}
                             onChange={handleTempChange}
                             placeholder="Any other relevant information..."
-                          className="w-full p-2 border rounded mb-2 bg-white dark:bg-gray-700 dark:border-gray-600 text-gray-900 dark:text-gray-100"
+                          className="w-full p-2 border border-white/10 rounded mb-2 bg-white/5 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#167468]"
                             rows="3"
                         />
                     ) : (
-                        <p className="flex items-center bg-teal-100 text-teal-800 text-sm font-medium px-2 py-1 rounded-full">{profileData.other || 'No other information provided.'}</p>
+                        <p className="flex items-center bg-white/10 border border-white/10 text-white/80 text-sm font-medium px-2 py-1 rounded-full">{profileData.other || 'No other information provided.'}</p>
                     )}
            
                 {/* Save button for Skills/Other if any are being edited */}
@@ -1108,7 +1108,7 @@ const currentProfilePicUrl = profileData.profilePicture
                <button
                         onClick={handleProfileUpdate}
                         disabled={loading}
-                        className="mt-4 px-4 py-2 bg-teal-600 text-white rounded hover:bg-teal-700 disabled:bg-gray-400 transition-colors"
+                    className="mt-4 px-4 py-2 bg-gradient-to-r from-purple-500 to-[#167468] text-white rounded hover:opacity-95 disabled:opacity-50 transition-colors"
                     >
                         {loading ? 'Saving...' : 'Save other Information'}
                     </button>
@@ -1134,22 +1134,22 @@ const currentProfilePicUrl = profileData.profilePicture
             <PageSection title="My Courses">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <h3 className="text-xl font-semibold mb-3 text-teal-600">Currently Pursuing</h3>
+                  <h3 className="text-xl font-semibold mb-3 text-white">Currently Pursuing</h3>
                   <div className="space-y-4">
                     {courses.enrolled.length > 0 ? (
                       courses.enrolled.map(course => <CourseCard key={course.id} course={course} type="enrolled" />)
                     ) : (
-                      <p className="text-gray-500">No enrolled courses.</p>
+                      <p className="text-gray-400">No enrolled courses.</p>
                     )}
                   </div>
                 </div>
                 <div>
-                  <h3 className="text-xl font-semibold mb-3 text-green-600">Completed</h3>
+                  <h3 className="text-xl font-semibold mb-3 text-white">Completed</h3>
                   <div className="space-y-4">
                     {courses.completed.length > 0 ? (
                       courses.completed.map(course => <CourseCard key={course.id} course={course} type="completed" />)
                     ) : (
-                      <p className="text-gray-500">No completed courses.</p>
+                      <p className="text-gray-400">No completed courses.</p>
                     )}
                   </div>
                 </div>
@@ -1161,7 +1161,7 @@ const currentProfilePicUrl = profileData.profilePicture
               <div className="mb-4">
                 {!showNewProjectForm ? (
                   <button
-                    className="px-4 py-2 bg-teal-600 text-white rounded hover:bg-teal-700"
+                    className="px-4 py-2 bg-gradient-to-r from-purple-500 to-[#167468] text-white rounded hover:opacity-95"
                     onClick={() => setShowNewProjectForm(true)}
                   >
                     Add New Project
@@ -1170,7 +1170,7 @@ const currentProfilePicUrl = profileData.profilePicture
                   <div>
                     <ProjectForm isNew={true} onSubmit={handleProjectSubmit} onCancel={() => setShowNewProjectForm(false)} />
                     <div className="mt-2">
-                      <button className="px-3 py-1 text-sm text-gray-600 hover:underline" onClick={() => setShowNewProjectForm(false)}>Cancel</button>
+                      <button className="px-3 py-1 text-sm text-gray-300 hover:underline" onClick={() => setShowNewProjectForm(false)}>Cancel</button>
                     </div>
                   </div>
                 )}
@@ -1178,13 +1178,13 @@ const currentProfilePicUrl = profileData.profilePicture
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {projects.length > 0 ? (
                   projects.map(project => (
-                    <div key={project._id} className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-md">
-                      <h4 className="font-semibold text-lg text-gray-800">{project.title}</h4>
-                      <p className="text-sm text-gray-600 mt-2">{project.description}</p>
+                    <div key={project._id} className="bg-white/5 border border-white/10 backdrop-blur p-6 rounded-2xl shadow-md">
+                      <h4 className="font-semibold text-lg text-white">{project.title}</h4>
+                      <p className="text-sm text-gray-300 mt-2">{project.description}</p>
                       <span className={`inline-block mt-3 text-xs font-semibold px-2.5 py-0.5 rounded-full ${project.status === 'Completed' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' : project.status === 'Stuck' ? 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200' : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'}`}>
                         {project.status}
                       </span>
-                      <div className="mt-3 pt-2 border-t border-gray-100">
+                      <div className="mt-3 pt-2 border-t border-white/10">
                         <ProjectForm 
                             project={project} 
                             isNew={false} 
@@ -1195,18 +1195,18 @@ const currentProfilePicUrl = profileData.profilePicture
                     </div>
                   ))
                 ) : (
-                  <p className="text-gray-500">No projects yet. Add one above!</p>
+                  <p className="text-gray-400">No projects yet. Add one above!</p>
                 )}
               </div>
 
               {/* Non-blocking delete confirmation modal */}
               {deleteConfirmId && (
                 <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-30 z-50">
-                  <div className="bg-white rounded-lg p-6 shadow-lg w-full max-w-md">
-                    <h3 className="text-lg font-semibold mb-3">Confirm Delete</h3>
-                    <p className="text-sm text-gray-600 mb-4">Are you sure you want to delete this project? This action cannot be undone.</p>
+                  <div className="bg-slate-950 border border-white/10 rounded-2xl p-6 shadow-lg w-full max-w-md">
+                    <h3 className="text-lg font-semibold mb-3 text-white">Confirm Delete</h3>
+                    <p className="text-sm text-gray-300 mb-4">Are you sure you want to delete this project? This action cannot be undone.</p>
                     <div className="flex justify-end gap-3">
-                      <button onClick={cancelDelete} className="px-4 py-2 bg-gray-100 rounded hover:bg-gray-200">Cancel</button>
+                      <button onClick={cancelDelete} className="px-4 py-2 bg-white/10 border border-white/10 text-white rounded hover:bg-white/15">Cancel</button>
                       <button onClick={() => performConfirmedDelete(deleteConfirmId)} className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600">Delete</button>
                     </div>
                   </div>
@@ -1219,14 +1219,14 @@ const currentProfilePicUrl = profileData.profilePicture
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {certifications.length > 0 ? (
                   certifications.map(cert => (
-                    <div key={cert.id} className="bg-white p-6 rounded-2xl shadow-md">
-                      <h4 className="font-semibold text-lg text-gray-800">{cert.title}</h4>
-                      <p className="text-sm text-gray-600 mt-2">Provider: {cert.provider}</p>
-                      <p className="text-sm text-gray-600 mt-1">Date: {cert.date}</p>
+                    <div key={cert.id} className="bg-white/5 border border-white/10 backdrop-blur p-6 rounded-2xl shadow-md">
+                      <h4 className="font-semibold text-lg text-white">{cert.title}</h4>
+                      <p className="text-sm text-gray-300 mt-2">Provider: {cert.provider}</p>
+                      <p className="text-sm text-gray-300 mt-1">Date: {cert.date}</p>
                     </div>
                   ))
                 ) : (
-                  <p className="text-gray-500">No certifications earned yet.</p>
+                  <p className="text-gray-400">No certifications earned yet.</p>
                 )}
               </div>
             </PageSection>
@@ -1237,7 +1237,7 @@ const currentProfilePicUrl = profileData.profilePicture
                 {courses.saved.length > 0 ? (
                   courses.saved.map(course => <CourseCard key={course.id} course={course} type="saved" />)
                 ) : (
-                  <p className="text-gray-500">No saved courses.</p>
+                  <p className="text-gray-400">No saved courses.</p>
                 )}
               </div>
             </PageSection>
@@ -1247,35 +1247,35 @@ const currentProfilePicUrl = profileData.profilePicture
           <div className="lg:col-span-1 space-y-8">
             {/* User Activity (Mocked) */}
             <PageSection title="My Activity">
-              <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-lg space-y-4">
+              <div className="bg-white/5 border border-white/10 backdrop-blur p-6 rounded-2xl shadow-lg space-y-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center">
                     <BookOpenIcon className="text-xl text-teal-500 mr-3" />
-                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Quizzes Completed</span>
+                    <span className="text-sm font-medium text-gray-300">Quizzes Completed</span>
                   </div>
-                  <span className="font-bold text-gray-800 dark:text-gray-100">{quizzes.completed}</span>
+                  <span className="font-bold text-white">{quizzes.completed}</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center">
                     <RunningWithErrorsIcon className="text-xl text-yellow-500 mr-3" />
-                    <span className="text-sm font-medium text-gray-700">Contests Participated</span>
+                    <span className="text-sm font-medium text-gray-300">Contests Participated</span>
                   </div>
-                  <span className="font-bold text-gray-800">{contests.length}</span>
+                  <span className="font-bold text-white">{contests.length}</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center">
                     <TrophyIcon className="text-xl text-green-500 mr-3" />
-                    <span className="text-sm font-medium text-gray-700">Average Quiz Score</span>
+                    <span className="text-sm font-medium text-gray-300">Average Quiz Score</span>
                   </div>
-                  <span className="font-bold text-gray-800">{quizzes.averageScore}</span>
+                  <span className="font-bold text-white">{quizzes.averageScore}</span>
                 </div>
 
                 <div className="flex items-center justify-between">
                   <div className="flex items-center">
                     <HeartIcon className="text-xl text-red-500 mr-3" />
-                    <span className="text-sm font-medium text-gray-700">Last Active</span>
+                    <span className="text-sm font-medium text-gray-300">Last Active</span>
                   </div>
-                  <span className="font-bold text-gray-800">{profileData.activity?.lastActive || 'N/A'}</span>
+                  <span className="font-bold text-white">{profileData.activity?.lastActive || 'N/A'}</span>
                 </div>
 
               </div>
@@ -1283,40 +1283,40 @@ const currentProfilePicUrl = profileData.profilePicture
 
             {/* Notifications (Mocked) */}
             <PageSection title="Notifications">
-              <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-lg">
+              <div className="bg-white/5 border border-white/10 backdrop-blur p-6 rounded-2xl shadow-lg">
                 {notifications.length > 0 ? (
                   notifications.map(notification => <NotificationItem key={notification.id} notification={notification} />)
                 ) : (
                   <p className="text-gray-500 dark:text-gray-400">No new notifications.</p>
                 )}
                 <div className="text-right mt-4">
-                  <a href="#" className="text-sm font-medium text-teal-600 hover:underline">View All</a>
+                  <a href="#" className="text-sm font-medium text-teal-300 hover:underline">View All</a>
                 </div>
               </div>
             </PageSection>
 
             {/* Social & Community (Mocked) */}
             <PageSection title="Community">
-              <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-lg space-y-4">
+              <div className="bg-white/5 border border-white/10 backdrop-blur p-6 rounded-2xl shadow-lg space-y-4">
                 <div className="flex justify-around text-center">
                   <div>
-                    <h3 className="text-3xl font-bold text-teal-700">{profileData.social?.followers || 0}</h3>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">Followers</p>
+                    <h3 className="text-3xl font-bold text-teal-300">{profileData.social?.followers || 0}</h3>
+                    <p className="text-sm text-gray-400">Followers</p>
                   </div>
                   <div>
-                    <h3 className="text-3xl font-bold text-teal-700">{profileData.social?.following || 0}</h3>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">Following</p>
+                    <h3 className="text-3xl font-bold text-teal-300">{profileData.social?.following || 0}</h3>
+                    <p className="text-sm text-gray-400">Following</p>
                   </div>
                 </div>
-                <hr className="border-gray-200 dark:border-gray-700" />
+                <hr className="border-white/10" />
                 <div>
-                  <h4 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-3">Friends</h4>
+                  <h4 className="text-lg font-semibold text-white mb-3">Friends</h4>
                   <div className="space-y-3">
                       {profileData.social?.friends?.length > 0 ? (
                         profileData.social.friends.map(friend => (
                           <div key={friend._id || friend.id} className="flex items-center">
-                            <img src={normalizeImageSrc(friend.profilePicture || friend.pic || '')} alt={friend.username || friend.name} className="w-8 h-8 rounded-full border-2 border-gray-300 dark:border-gray-600" />
-                            <span className="ml-3 text-sm text-gray-700 dark:text-gray-200">{friend.username || friend.name}</span>
+                            <img src={normalizeImageSrc(friend.profilePicture || friend.pic || '')} alt={friend.username || friend.name} className="w-8 h-8 rounded-full border-2 border-white/10" />
+                            <span className="ml-3 text-sm text-gray-200">{friend.username || friend.name}</span>
                           </div>
                         ))
                       ) : (
@@ -1324,23 +1324,23 @@ const currentProfilePicUrl = profileData.profilePicture
                       )}
                   </div>
                 </div>
-                <hr className="border-gray-200 dark:border-gray-700" />
+                <hr className="border-white/10" />
                   {/* Incoming Friend Requests */}
                   <div className="mb-4">
-                    <h4 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-3">Incoming Requests</h4>
+                    <h4 className="text-lg font-semibold text-white mb-3">Incoming Requests</h4>
                     {friendRequests.received.length > 0 ? (
                       friendRequests.received.map(u => (
-                        <div key={u._id} className="flex items-center justify-between p-2 border border-gray-200 dark:border-gray-700 rounded mb-2 bg-white dark:bg-gray-800">
+                        <div key={u._id} className="flex items-center justify-between p-3 border border-white/10 rounded-xl mb-2 bg-white/5">
                           <div className="flex items-center">
                             <img src={normalizeImageSrc(u.profilePicture || '')} className="w-8 h-8 rounded-full mr-3" alt={u.username} />
                             <div>
-                              <div className="font-medium text-gray-800 dark:text-gray-100">{u.username}</div>
+                              <div className="font-medium text-white">{u.username}</div>
                               <div className="text-xs text-gray-500 dark:text-gray-400">{u.role}</div>
                             </div>
                           </div>
                           <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-2 space-y-2 sm:space-y-0 w-full">
-                            <button onClick={() => handleAcceptRequest(u._id)} className="w-full sm:w-auto px-3 py-1 bg-green-500 text-white rounded">Accept</button>
-                            <button onClick={() => handleDeclineRequest(u._id)} className="w-full sm:w-auto px-3 py-1 bg-gray-200 dark:bg-gray-700 dark:text-gray-200 rounded">Decline</button>
+                            <button onClick={() => handleAcceptRequest(u._id)} className="w-full sm:w-auto px-3 py-1 bg-gradient-to-r from-purple-500 to-[#167468] text-white rounded">Accept</button>
+                            <button onClick={() => handleDeclineRequest(u._id)} className="w-full sm:w-auto px-3 py-1 bg-white/10 border border-white/10 text-white rounded hover:bg-white/15">Decline</button>
                           </div>
                         </div>
                       ))
@@ -1350,14 +1350,14 @@ const currentProfilePicUrl = profileData.profilePicture
                   </div>
                   {/* Outgoing (Sent) Friend Requests */}
                   <div className="mb-4">
-                    <h4 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-3">Sent Requests</h4>
+                    <h4 className="text-lg font-semibold text-white mb-3">Sent Requests</h4>
                     {friendRequests.sent.length > 0 ? (
                       friendRequests.sent.map(u => (
-                        <div key={u._id} className="flex items-center justify-between p-2 border border-gray-200 dark:border-gray-700 rounded mb-2 bg-white dark:bg-gray-800">
+                        <div key={u._id} className="flex items-center justify-between p-3 border border-white/10 rounded-xl mb-2 bg-white/5">
                           <div className="flex items-center">
                             <img src={normalizeImageSrc(u.profilePicture || '')} className="w-8 h-8 rounded-full mr-3" alt={u.username} />
                             <div>
-                              <div className="font-medium text-gray-800 dark:text-gray-100">{u.username}</div>
+                              <div className="font-medium text-white">{u.username}</div>
                               <div className="text-xs text-gray-500 dark:text-gray-400">{u.role}</div>
                             </div>
                           </div>
@@ -1372,7 +1372,7 @@ const currentProfilePicUrl = profileData.profilePicture
                   </div>
                   {/* Friend Connection Section (Kept as is) */}
                 <div>
-                  <h4 className="text-lg font-semibold text-gray-800 mb-3">Find and Connect</h4>
+                  <h4 className="text-lg font-semibold text-white mb-3">Find and Connect</h4>
                   <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-2 space-y-2 sm:space-y-0">
                     <input
                       type="text"
@@ -1398,11 +1398,11 @@ const currentProfilePicUrl = profileData.profilePicture
                         }
                       }}
                       placeholder="Enter username to add"
-                      className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-full bg-white dark:bg-gray-700 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-teal-500 transition-shadow"
+                      className="flex-1 px-4 py-2 border border-white/10 rounded-full bg-white/5 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#167468] transition-shadow"
                     />
                     <button
                       onClick={handleAddFriend}
-                      className="w-full sm:w-auto bg-teal-600 text-white p-2 rounded-full shadow-lg hover:bg-teal-700 transition-colors duration-200"
+                      className="w-full sm:w-auto bg-gradient-to-r from-purple-500 to-[#167468] text-white p-2 rounded-full shadow-lg hover:opacity-95 transition-colors duration-200"
                     >
                       <UserPlusIcon />
                     </button>
@@ -1411,7 +1411,7 @@ const currentProfilePicUrl = profileData.profilePicture
                     <div className="relative mt-2">
                       {searching && <div className="text-sm text-gray-500 dark:text-gray-400">Searching...</div>}
                       {!searching && filteredUsers.length > 0 && (
-                        <div className="absolute z-20 w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg max-h-56 overflow-auto">
+                        <div className="absolute z-20 w-full bg-slate-950 border border-white/10 rounded-xl shadow-lg max-h-56 overflow-auto">
                           {filteredUsers.map((u, idxMap) => {
                             const uname = u.username || '';
                             const q = friendInput.trim();
@@ -1421,14 +1421,14 @@ const currentProfilePicUrl = profileData.profilePicture
                             const isFriend = (profileData.social?.friends || []).some(f => String(f) === String(u._id) || String(f._id) === String(u._id));
                             const isFollowing = (profileData.social?.followingList || []).some(f => String(f) === String(u._id));
                               return (
-                              <div key={u._id} className={`w-full text-left px-3 py-2 flex items-center ${isHighlighted ? 'bg-teal-50 dark:bg-gray-700' : 'hover:bg-teal-50 dark:hover:bg-gray-700'}`}>
+                              <div key={u._id} className={`w-full text-left px-3 py-2 flex items-center ${isHighlighted ? 'bg-white/10' : 'hover:bg-white/10'}`}>
                                 <button
                                   onClick={() => handleSelectSuggestion(u)}
                                   className="flex-1 text-left flex items-center"
                                 >
                                   <img src={normalizeImageSrc(u.profilePicture || 'https://placehold.co/40x40/cccccc/ffffff?text=U')} alt={uname} className="w-8 h-8 rounded-full mr-3" />
                                   <div>
-                                    <div className="text-sm font-medium text-gray-800 dark:text-gray-100">
+                                    <div className="text-sm font-medium text-white">
                                       {idx >= 0 ? (
                                         <>
                                           {uname.substring(0, idx)}
@@ -1442,11 +1442,11 @@ const currentProfilePicUrl = profileData.profilePicture
                                 </button>
                                 <div className="ml-2 w-full sm:w-auto">
                                   {isFollowing ? (
-                                    <button onClick={() => handleUnfollow(u._id)} className="w-full sm:w-auto px-2 py-1 bg-gray-200 rounded text-sm">Unfollow</button>
+                                    <button onClick={() => handleUnfollow(u._id)} className="w-full sm:w-auto px-2 py-1 bg-white/10 border border-white/10 text-white rounded text-sm hover:bg-white/15">Unfollow</button>
                                   ) : isSent ? (
                                     <button onClick={() => handleDeclineRequest(u._id)} className="w-full sm:w-auto px-2 py-1 bg-red-500 text-white rounded text-sm">Cancel</button>
                                   ) : (
-                                    <button onClick={() => { handleSelectSuggestion(u); handleAddFriend(); }} className="w-full sm:w-auto px-2 py-1 bg-teal-600 text-white rounded text-sm">Add</button>
+                                    <button onClick={() => { handleSelectSuggestion(u); handleAddFriend(); }} className="w-full sm:w-auto px-2 py-1 bg-gradient-to-r from-purple-500 to-[#167468] text-white rounded text-sm hover:opacity-95">Add</button>
                                   )}
                                 </div>
                               </div>
@@ -1457,7 +1457,7 @@ const currentProfilePicUrl = profileData.profilePicture
 
                       {/* If an exact user is selected or matched, show exist message */}
                       {selectedUser && (
-                        <div className="mt-2 text-sm text-green-700">User <span className="font-semibold">{selectedUser.username}</span> exists. Click add to send a request.</div>
+                        <div className="mt-2 text-sm text-emerald-300">User <span className="font-semibold">{selectedUser.username}</span> exists. Click add to send a request.</div>
                       )}
                       {/* If no matches and input present */}
                       {!searching && friendInput && filteredUsers.length === 0 && (

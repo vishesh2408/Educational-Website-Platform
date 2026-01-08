@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import Skeleton from './Skeleton';
 import { useParams, Link } from 'react-router-dom';
+import { ChevronDown, ChevronUp } from 'lucide-react';
 
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:3001';
 
@@ -9,6 +10,7 @@ export default function CourseDetail() {
   const [course, setCourse] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [expandedModules, setExpandedModules] = useState({});
 
   useEffect(() => {
     if (!id) return;
@@ -23,7 +25,17 @@ export default function CourseDetail() {
           throw new Error(txt || `Failed to fetch course: ${res.status}`);
         }
         const data = await res.json();
-        if (mounted) setCourse(data);
+        if (mounted) {
+          setCourse(data);
+          // Initialize all modules as collapsed by default
+          if (data.modules && Array.isArray(data.modules)) {
+            const initialExpanded = {};
+            data.modules.forEach(mod => {
+              initialExpanded[mod._id] = false;
+            });
+            setExpandedModules(initialExpanded);
+          }
+        }
       } catch (err) {
         console.error('Course detail fetch error:', err);
         if (mounted) setError(err.message || 'Failed to load course');
@@ -35,73 +47,137 @@ export default function CourseDetail() {
     return () => { mounted = false; };
   }, [id]);
 
-  if (isLoading) return <div className="p-6"><Skeleton variant="card" count={2} /></div>;
-  if (error) return <div className="p-6 text-red-600">Error: {error}</div>;
-  if (!course) return <div className="p-6">Course not found.</div>;
+  const toggleModule = (moduleId) => {
+    setExpandedModules(prev => ({
+      ...prev,
+      [moduleId]: !prev[moduleId]
+    }));
+  };
+
+  if (isLoading) {
+    return (
+      <main className="min-h-screen bg-slate-950 text-white py-6">
+        <div className="max-w-4xl mx-auto">
+          <Skeleton variant="card" count={2} />
+        </div>
+      </main>
+    );
+  }
+
+  if (error) {
+    return (
+      <main className="min-h-screen bg-slate-950 text-white py-6">
+        <div className="max-w-4xl mx-auto">
+          <div className="bg-red-500/10 border border-red-500/20 rounded-2xl p-4 text-red-200">
+            Error: {error}
+          </div>
+        </div>
+      </main>
+    );
+  }
+
+  if (!course) {
+    return (
+      <main className="min-h-screen bg-slate-950 text-white py-6">
+        <div className="max-w-4xl mx-auto text-gray-300">Course not found.</div>
+      </main>
+    );
+  }
 
   return (
-    <main className="max-w-4xl mx-auto p-6">
-      <div className="mb-6">
-        <Link to="/user/dashboard" className="text-sm text-teal-600 dark:text-teal-300 underline">← Back to Home</Link>
-      </div>
-
-      <header className="mb-8">
-        <h1 className="text-3xl font-bold mb-2 text-slate-900 dark:text-white">{course.title}</h1>
-        <p className="text-muted-foreground dark:text-slate-300">{course.description}</p>
-        <div className="mt-4 text-sm">
-          <span className="inline-block px-2 py-1 bg-muted dark:bg-gray-700 rounded-full mr-2 text-muted-foreground dark:text-slate-300">{course.type === 'paid' ? 'Premium' : 'Free'}</span>
-          <span className="inline-block px-2 py-1 bg-muted dark:bg-gray-700 rounded-full text-muted-foreground dark:text-slate-300">{course.price}</span>
-        </div>
-      </header>
-
-      <section>
-        <h2 className="text-2xl font-semibold mb-4 text-slate-900 dark:text-white">Modules</h2>
-        {Array.isArray(course.modules) && course.modules.length > 0 ? (
-          <div className="space-y-6">
-            {course.modules.map(mod => (
-              <div key={mod._id} className="p-4 border border-border dark:border-color-border-dark rounded-lg bg-white dark:bg-color-card-bg-dark">
-                <h3 className="font-semibold text-lg mb-2 text-slate-900 dark:text-white">{mod.title}</h3>
-                {Array.isArray(mod.topics) && mod.topics.length > 0 ? (
-                  <ol className="space-y-2">
-                    {mod.topics.map(topic => (
-                      <li key={topic._id} className="group relative bg-transparent rounded-md">
-                        <div className="flex items-center justify-between py-3 px-2 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-md">
-                          <div className="flex-1">
-                            <div className="font-medium text-slate-900 dark:text-white">{topic.title}</div>
-                            {topic.notes && (
-                              <div className="text-sm text-muted-foreground dark:text-slate-300">Notes available</div>
-                            )}
-                          </div>
-
-                          {/* Start button: hidden by default, becomes visible when the row is hovered */}
-                          <div className="ml-4 flex-shrink-0">
-                                        <Link
-                                          to={`topics/${topic._id}`}
-                                          className="inline-block opacity-0 transform translate-x-3 group-hover:opacity-100 group-hover:translate-x-0 transition duration-150 ease-out px-3 py-1 bg-teal-600 text-white rounded-md text-sm"
-                                          aria-label={`Start ${topic.title}`}
-                                          onMouseEnter={() => {
-                                            // Prefetch heavy route components to improve perceived navigation speed
-                                            import('./TopicView');
-                                            import('./CourseContent');
-                                          }}
-                                        >
-                                          Start
-                                        </Link>
-                          </div>
-                        </div>
-                      </li>
-                    ))}
-                  </ol>
-                ) : (
-                  <p className="text-muted-foreground">No topics available for this module.</p>
-                )}
-              </div>
-            ))}
+    <main className="min-h-screen bg-slate-950 text-white py-4">
+      <div className="max-w-6xl mx-auto px-4">
+        <header className="mb-4 bg-white/5 border border-white/10 backdrop-blur rounded-xl px-4 py-3">
+          <h1 className="text-2xl font-bold mb-1 text-white">{course.title}</h1>
+          <p className="text-sm text-gray-300">{course.description}</p>
+          <div className="mt-2 flex flex-wrap gap-2 text-sm">
+            <span className="inline-flex items-center px-2 py-0.5 text-xs rounded-full bg-white/5 border border-white/10 text-gray-200">
+              {course.type === 'paid' ? 'Premium' : 'Free'}
+            </span>
+            <span className="inline-flex items-center px-2 py-0.5 text-xs rounded-full bg-white/5 border border-white/10 text-gray-200">
+              {course.price && `₹${course.price}`}
+            </span>
           </div>
-        ) : (
-          <p className="text-muted-foreground">No modules available for this course yet.</p>
-        )}
-      </section>
+        </header>
+
+        <section>
+          <h2 className="text-xl font-semibold mb-3 text-white">Modules</h2>
+          {Array.isArray(course.modules) && course.modules.length > 0 ? (
+            <div className="space-y-3">
+              {course.modules.map((mod) => {
+                const isExpanded = expandedModules[mod._id];
+                const topicsCount = Array.isArray(mod.topics) ? mod.topics.length : 0;
+                
+                return (
+                  <div
+                    key={mod._id}
+                    className="bg-white/5 border border-white/10 backdrop-blur rounded-xl overflow-hidden"
+                  >
+                    <div
+                      className="px-4 py-3 flex items-center justify-between cursor-pointer hover:bg-white/5 transition-colors"
+                      onClick={() => toggleModule(mod._id)}
+                    >
+                      <div className="flex-1">
+                        <h3 className="font-semibold text-base text-white">{mod.title}</h3>
+                        <p className="text-xs text-gray-400 mt-0.5">{topicsCount} {topicsCount === 1 ? 'topic' : 'topics'}</p>
+                      </div>
+                      <button
+                        className="ml-3 p-1.5 rounded-lg hover:bg-white/10 transition-colors"
+                        aria-label={isExpanded ? "Collapse module" : "Expand module"}
+                      >
+                        {isExpanded ? (
+                          <ChevronUp size={18} className="text-gray-300" />
+                        ) : (
+                          <ChevronDown size={18} className="text-gray-300" />
+                        )}
+                      </button>
+                    </div>
+
+                    {isExpanded && (
+                      <div className="px-4 pb-3 bg-black/20 border-t border-white/10">
+                        {Array.isArray(mod.topics) && mod.topics.length > 0 ? (
+                          <ol className="space-y-1 pt-2">
+                            {mod.topics.map((topic) => (
+                              <li key={topic._id} className="group relative rounded-lg">
+                                <div className="flex items-center justify-between py-2 px-2.5 rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 hover:border-white/20 transition-colors">
+                                  <div className="flex-1">
+                                    <div className="font-medium text-sm text-white">{topic.title}</div>
+                                    {Array.isArray(topic.articles) && topic.articles.length > 0 && (
+                                      <div className="text-xs text-gray-400">Articles available</div>
+                                    )}
+                                  </div>
+
+                                  <div className="ml-3 flex-shrink-0">
+                                    <Link
+                                      to={`topics/${topic._id}`}
+                                      className="inline-block px-3 py-1.5 rounded-lg text-xs font-semibold text-white bg-gradient-to-r from-purple-500 to-[#167468] hover:opacity-90 transition duration-150 ease-out"
+                                      aria-label={`Start ${topic.title}`}
+                                      onMouseEnter={() => {
+                                        import('./TopicView');
+                                        import('./CourseContent');
+                                      }}
+                                    >
+                                      Start
+                                    </Link>
+                                  </div>
+                                </div>
+                              </li>
+                            ))}
+                          </ol>
+                        ) : (
+                          <p className="text-gray-400">No topics available for this module.</p>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <p className="text-gray-400">No modules available for this course yet.</p>
+          )}
+        </section>
+      </div>
     </main>
   );
 }

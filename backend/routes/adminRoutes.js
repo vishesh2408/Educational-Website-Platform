@@ -10,6 +10,25 @@ try {
     console.warn('sanitize-html not installed; server-side HTML sanitization disabled.');
 }
 
+// Optional markdown->HTML converter for syncing markdown Notes into Topic articles (which are rendered as HTML).
+let marked = null;
+try {
+    marked = require('marked');
+} catch (e) {
+    // optional
+}
+
+function markdownToHtml(inputMarkdown) {
+    if (!inputMarkdown) return '';
+    if (!marked) return String(inputMarkdown);
+    try {
+        return marked.parse(String(inputMarkdown), { mangle: false, headerIds: false });
+    } catch (e) {
+        console.warn('marked.parse failed:', e.message);
+        return String(inputMarkdown);
+    }
+}
+
 // Helper for temporary debug logging. Enable by setting environment
 // variable DEBUG_ADMIN=1 when starting the server.
 function adminDebug(...args) {
@@ -71,6 +90,39 @@ function cleanHtml(inputHtml) {
         console.warn('sanitize-html failed during cleanHtml:', e.message);
         return inputHtml;
     }
+}
+
+function normalizeTopicPayload(body) {
+    if (!body || typeof body !== 'object') return body;
+
+    // Back-compat: if clients still send topic-level notes/videoURL/quizId,
+    // convert them into a single article entry.
+    const hasLegacy = !!(body.notes || body.videoURL || body.quizId);
+    const hasArticles = Array.isArray(body.articles);
+
+    if (hasLegacy && !hasArticles) {
+        const heading = typeof body.title === 'string' ? body.title : '';
+        const content = typeof body.notes === 'string' ? body.notes : '';
+        const videoURL = typeof body.videoURL === 'string' ? body.videoURL : '';
+        const quizId = body.quizId || null;
+
+        body.articles = [
+            {
+                heading,
+                content,
+                videoURL,
+                quizId,
+                order: 0,
+            },
+        ];
+    }
+
+    // Topic schema no longer supports these fields
+    if (Object.prototype.hasOwnProperty.call(body, 'notes')) delete body.notes;
+    if (Object.prototype.hasOwnProperty.call(body, 'videoURL')) delete body.videoURL;
+    if (Object.prototype.hasOwnProperty.call(body, 'quizId')) delete body.quizId;
+
+    return body;
 }
 
 // Factory that creates a CRUD router for a given Mongoose model
@@ -181,16 +233,35 @@ module.exports.createCrudRoutes = function(model, routeName, populatePaths = [])
                 const v = item.versions && item.versions[versionIndex];
                 if (!v) return res.status(400).json({ msg: 'Version not found' });
                 // push current state into versions before revert
-                item.versions.push({ title: item.title, subject: item.subject, content: item.content, imageUrl: item.imageUrl, createdAt: new Date(), createdBy: req.user ? req.user._id : null });
+                item.versions.push({ title: item.title, subject: item.subject, content: item.content, format: item.format || 'html', imageUrl: item.imageUrl, createdAt: new Date(), createdBy: req.user ? req.user._id : null });
                 item.title = v.title;
                 item.subject = v.subject;
                 item.content = v.content;
+                item.format = (v.format === 'markdown' || v.format === 'html') ? v.format : (item.format || 'html');
                 item.imageUrl = v.imageUrl;
                 item.updatedAt = new Date();
                 await item.save();
                 // If attached to a topic, update topic notes
                 if (item.topicId) {
-                    try { const Topic = require('../models/Topic'); await Topic.findByIdAndUpdate(item.topicId, { notes: item.content, updatedAt: new Date() }); } catch (e) { console.warn('Could not attach reverted note to topic:', e.message); }
+                    try {
+                        const Topic = require('../models/Topic');
+                        const topic = await Topic.findById(item.topicId);
+                        if (topic) {
+                            const syncedHtml = (item.format === 'markdown') ? cleanHtml(markdownToHtml(item.content || '')) : (item.content || '');
+                            const nextArticles = Array.isArray(topic.articles) ? [...topic.articles] : [];
+                            if (nextArticles.length === 0) {
+                                nextArticles.push({ heading: item.title || '', content: syncedHtml, order: 0 });
+                            } else {
+                                nextArticles[0] = { ...nextArticles[0].toObject?.() || nextArticles[0], content: syncedHtml };
+                                if (!nextArticles[0].heading) nextArticles[0].heading = item.title || '';
+                            }
+                            topic.articles = nextArticles;
+                            topic.updatedAt = new Date();
+                            await topic.save();
+                        }
+                    } catch (e) {
+                        console.warn('Could not attach reverted note to topic:', e.message);
+                    }
                 }
                 res.json(item);
             } catch (err) {
@@ -206,34 +277,53 @@ module.exports.createCrudRoutes = function(model, routeName, populatePaths = [])
             // Temporary debug: log incoming create requests when DEBUG_ADMIN=1
             const createBodyKeys = (req && req.body && typeof req.body === 'object') ? Object.keys(req.body) : [];
             adminDebug('CREATE', { routeName, user: req.user ? req.user._id : null, bodyKeys: createBodyKeys });
-            // Sanitize HTML content when creating notes or topics if sanitize-html is available
-            if (routeName === 'topics' && req.body.notes) {
-                // Sanitize using shared helper
-                const before = (req.body.notes || '').length;
-                req.body.notes = cleanHtml(req.body.notes);
-                adminDebug('CREATE sanitized notes length', { before, after: (req.body.notes || '').length });
+
+            if (routeName === 'topics') {
+                req.body = normalizeTopicPayload(req.body);
             }
-            if (routeName === 'notes' && req.body.content) {
-                const before = (req.body.content || '').length;
-                req.body.content = cleanHtml(req.body.content);
-                adminDebug('CREATE sanitized content length', { before, after: (req.body.content || '').length });
+
+            if (routeName === 'topics' && Array.isArray(req.body.articles)) {
+                req.body.articles = req.body.articles.map((a, idx) => {
+                    const next = Object.assign({}, a);
+                    // heading should be plain text
+                    if (typeof next.heading === 'string' && next.heading) {
+                        const cleaned = cleanHtml(next.heading);
+                        next.heading = String(cleaned).replace(/<[^>]*>/g, '').trim();
+                    }
+                    if (typeof next.content === 'string' && next.content) {
+                        const before = (next.content || '').length;
+                        next.content = cleanHtml(next.content);
+                        adminDebug('CREATE sanitized article content length', { idx, before, after: (next.content || '').length });
+                    }
+                    return next;
+                });
+            }
+            if (routeName === 'notes') {
+                // Notes can be HTML (Quill) or Markdown.
+                const nextFormat = (req.body && req.body.format) ? String(req.body.format).toLowerCase() : 'html';
+                req.body.format = (nextFormat === 'markdown' || nextFormat === 'html') ? nextFormat : 'html';
+
+                if (req.body.content && req.body.format === 'html') {
+                    const before = (req.body.content || '').length;
+                    req.body.content = cleanHtml(req.body.content);
+                    adminDebug('CREATE sanitized content length', { before, after: (req.body.content || '').length });
+                }
             }
 
             // Validate required fields for notes to provide clearer errors.
-            // Allow saving drafts without a title: only require `title` when
-            // the note is not marked as a draft (isDraft !== true).
+            // Draft saving is not supported: title is required for all saves.
             if (routeName === 'notes') {
-                const isDraft = !!req.body.isDraft;
-                if (!isDraft && (!req.body.title || String(req.body.title).trim().length === 0)) {
+                if (!req.body.title || String(req.body.title).trim().length === 0) {
                     return res.status(400).json({ msg: 'Validation Error', errors: { title: { message: 'Path `title` is required.' } } });
+                }
+                // Ignore any client-provided draft flag
+                if (Object.prototype.hasOwnProperty.call(req.body, 'isDraft')) {
+                    delete req.body.isDraft;
                 }
             }
 
             const newItem = new model(req.body);
-            // If this is a draft, skip Mongoose schema validation so drafts
-            // can be autosaved without required fields like `title`.
-            const isDraftCreate = routeName === 'notes' && !!req.body.isDraft;
-            const item = await newItem.save({ validateBeforeSave: !isDraftCreate });
+            const item = await newItem.save();
 
             // Special handling for modules/topics linking
             if (routeName === 'modules' && item.courseId) {
@@ -256,7 +346,20 @@ module.exports.createCrudRoutes = function(model, routeName, populatePaths = [])
             if (routeName === 'notes' && item.topicId) {
                 try {
                     const Topic = require('../models/Topic');
-                    await Topic.findByIdAndUpdate(item.topicId, { notes: item.content, updatedAt: new Date() });
+                    const topic = await Topic.findById(item.topicId);
+                    if (topic) {
+                        const syncedHtml = (item.format === 'markdown') ? cleanHtml(markdownToHtml(item.content || '')) : (item.content || '');
+                        const nextArticles = Array.isArray(topic.articles) ? [...topic.articles] : [];
+                        if (nextArticles.length === 0) {
+                            nextArticles.push({ heading: item.title || '', content: syncedHtml, order: 0 });
+                        } else {
+                            nextArticles[0] = { ...nextArticles[0].toObject?.() || nextArticles[0], content: syncedHtml };
+                            if (!nextArticles[0].heading) nextArticles[0].heading = item.title || '';
+                        }
+                        topic.articles = nextArticles;
+                        topic.updatedAt = new Date();
+                        await topic.save();
+                    }
                 } catch (e) {
                     console.warn('Could not attach note to topic:', e.message);
                 }
@@ -285,16 +388,34 @@ module.exports.createCrudRoutes = function(model, routeName, populatePaths = [])
             const current = await model.findById(req.params.id).lean();
             if (!current) return res.status(404).json({ msg: 'Item not found' });
 
-            // Sanitize incoming HTML for topics and notes updates when possible
-            if (routeName === 'topics' && req.body.notes) {
-                const before = (req.body.notes || '').length;
-                req.body.notes = cleanHtml(req.body.notes);
-                adminDebug('UPDATE sanitized notes length', { before, after: (req.body.notes || '').length });
+            if (routeName === 'topics') {
+                req.body = normalizeTopicPayload(req.body);
             }
-            if (routeName === 'notes' && req.body.content) {
-                const before = (req.body.content || '').length;
-                req.body.content = cleanHtml(req.body.content);
-                adminDebug('UPDATE sanitized content length', { before, after: (req.body.content || '').length });
+
+            if (routeName === 'topics' && Array.isArray(req.body.articles)) {
+                req.body.articles = req.body.articles.map((a, idx) => {
+                    const next = Object.assign({}, a);
+                    if (typeof next.heading === 'string' && next.heading) {
+                        const cleaned = cleanHtml(next.heading);
+                        next.heading = String(cleaned).replace(/<[^>]*>/g, '').trim();
+                    }
+                    if (typeof next.content === 'string' && next.content) {
+                        const before = (next.content || '').length;
+                        next.content = cleanHtml(next.content);
+                        adminDebug('UPDATE sanitized article content length', { idx, before, after: (next.content || '').length });
+                    }
+                    return next;
+                });
+            }
+            if (routeName === 'notes') {
+                const nextFormat = (req.body && req.body.format) ? String(req.body.format).toLowerCase() : (current.format || 'html');
+                req.body.format = (nextFormat === 'markdown' || nextFormat === 'html') ? nextFormat : 'html';
+
+                if (req.body.content && req.body.format === 'html') {
+                    const before = (req.body.content || '').length;
+                    req.body.content = cleanHtml(req.body.content);
+                    adminDebug('UPDATE sanitized content length', { before, after: (req.body.content || '').length });
+                }
             }
 
             // Prepare atomic update payload
@@ -305,33 +426,29 @@ module.exports.createCrudRoutes = function(model, routeName, populatePaths = [])
                 delete updates.versions;
             }
             if (routeName === 'notes') {
-                // Determine whether this update is an autosave/draft. Autosave updates
-                // (clients set `isDraft: true`) should NOT create a version entry.
-                const isDraftUpdate = !!req.body.isDraft;
+                // Draft saving is not supported: ignore any client-provided draft flag.
+                if (Object.prototype.hasOwnProperty.call(req.body, 'isDraft')) {
+                    delete req.body.isDraft;
+                }
                 updates.updatedAt = new Date();
 
                 let updated;
-                if (isDraftUpdate) {
-                    // For draft/autosave updates, just apply the changes without
-                    // pushing a versions snapshot to avoid polluting the versions list.
-                    updated = await model.findByIdAndUpdate(req.params.id, { $set: updates }, { new: true });
-                } else {
-                    // create prev snapshot using the current document
-                    const prevSnapshot = {
-                        title: current.title,
-                        subject: current.subject,
-                        content: current.content,
-                        imageUrl: current.imageUrl,
-                        createdAt: new Date(),
-                        createdBy: req.user ? req.user._id : null
-                    };
+                // create prev snapshot using the current document
+                const prevSnapshot = {
+                    title: current.title,
+                    subject: current.subject,
+                    content: current.content,
+                    format: current.format || 'html',
+                    imageUrl: current.imageUrl,
+                    createdAt: new Date(),
+                    createdBy: req.user ? req.user._id : null
+                };
 
-                    // Use findByIdAndUpdate with $push + $each + $slice to keep versions trimmed atomically
-                    updated = await model.findByIdAndUpdate(req.params.id, {
-                        $push: { versions: { $each: [prevSnapshot], $slice: -20 } },
-                        $set: updates
-                    }, { new: true });
-                }
+                // Use findByIdAndUpdate with $push + $each + $slice to keep versions trimmed atomically
+                updated = await model.findByIdAndUpdate(req.params.id, {
+                    $push: { versions: { $each: [prevSnapshot], $slice: -20 } },
+                    $set: updates
+                }, { new: true });
 
                 if (!updated) return res.status(404).json({ msg: 'Item not found after update' });
 
@@ -339,7 +456,20 @@ module.exports.createCrudRoutes = function(model, routeName, populatePaths = [])
                 if (updated.topicId) {
                     try {
                         const Topic = require('../models/Topic');
-                        await Topic.findByIdAndUpdate(updated.topicId, { notes: updated.content, updatedAt: new Date() });
+                        const topic = await Topic.findById(updated.topicId);
+                        if (topic) {
+                            const syncedHtml = (updated.format === 'markdown') ? cleanHtml(markdownToHtml(updated.content || '')) : (updated.content || '');
+                            const nextArticles = Array.isArray(topic.articles) ? [...topic.articles] : [];
+                            if (nextArticles.length === 0) {
+                                nextArticles.push({ heading: updated.title || '', content: syncedHtml, order: 0 });
+                            } else {
+                                nextArticles[0] = { ...nextArticles[0].toObject?.() || nextArticles[0], content: syncedHtml };
+                                if (!nextArticles[0].heading) nextArticles[0].heading = updated.title || '';
+                            }
+                            topic.articles = nextArticles;
+                            topic.updatedAt = new Date();
+                            await topic.save();
+                        }
                     } catch (e) {
                         console.warn('Could not attach updated note to topic:', e.message);
                     }
@@ -405,6 +535,7 @@ module.exports.adminUtilitiesRouter = function() {
                 title: item.title,
                 subject: item.subject,
                 content: item.content,
+                format: item.format || 'html',
                 imageUrl: item.imageUrl,
                 label: label || null,
                 reason: reason || null,

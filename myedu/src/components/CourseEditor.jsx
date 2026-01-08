@@ -1,5 +1,4 @@
-import React, { useState, useEffect, Suspense, lazy, useMemo } from 'react';
-import { EditorView } from '@codemirror/view';
+import React, { useState, useEffect, Suspense, lazy, useRef } from 'react';
 
 const CourseContent = lazy(() => import('./CourseContent'));
 const EditorPanel = lazy(() => import('./CourseEditorEditorPanel'));
@@ -8,10 +7,23 @@ const EditorPanel = lazy(() => import('./CourseEditorEditorPanel'));
 // @uiw/react-codemirror and the HTML language package for basic highlighting.
 export default function CourseEditor({ initial = '', onChange }) {
   const [value, setValue] = useState(initial);
-  const [autoFormatOnPaste, setAutoFormatOnPaste] = useState(true);
+  const AUTO_FORMAT_ON_PASTE = true;
+  const ignoreNextChangeRef = useRef(false);
 
   useEffect(() => {
-    setValue(initial);
+    // If HTML arrives as a single long line (common when pasted/saved),
+    // format it once so it's readable in the source editor.
+    try {
+      const next = initial || '';
+      const looksLikeHtml = /<[^>]+>/.test(next);
+      if (looksLikeHtml && next && !next.includes('\n')) {
+        setValue(formatHtml(next));
+      } else {
+        setValue(next);
+      }
+    } catch (_) {
+      setValue(initial);
+    }
   }, [initial]);
 
   function handleEdit(next) {
@@ -119,137 +131,36 @@ export default function CourseEditor({ initial = '', onChange }) {
     }
   };
 
-  // DOM paste handler: convert HTML clipboard data to plaintext while
-  // preserving block-level elements as newlines so pasted HTML keeps line breaks.
-  const pasteHandler = useMemo(() => EditorView.domEventHandlers({
-    paste: (event, view) => {
-      try {
-        const clipboard = event.clipboardData;
-        if (!clipboard) return false;
-        // Prefer plain text from clipboard if available (it usually preserves
-        // newlines). If HTML exists and plain text is empty, convert HTML to
-        // a plain-text representation that inserts newlines for block tags.
-        let text = clipboard.getData('text/plain') || '';
-        const htmlData = clipboard.getData('text/html') || '';
-
-        // helper: walk DOM and convert to text while preserving block breaks
-        const domToText = (node) => {
-          if (!node) return '';
-          const nodeType = node.nodeType;
-          // TEXT_NODE
-          if (nodeType === Node.TEXT_NODE) return node.nodeValue || '';
-          if (nodeType !== Node.ELEMENT_NODE) return '';
-          const tag = node.tagName.toLowerCase();
-          // preserve pre/code as-is (they may contain meaningful newlines)
-          if (tag === 'pre' || tag === 'code' || tag === 'textarea') return node.textContent || '';
-          if (tag === 'br') return '\n';
-          const isBlock = ['p','div','li','h1','h2','h3','h4','h5','h6','tr','table','thead','tbody','tfoot','ul','ol','section','article','header','footer','aside','blockquote'].includes(tag);
-          let parts = [];
-          node.childNodes.forEach(child => parts.push(domToText(child)));
-          let joined = parts.join('');
-          if (isBlock) {
-            // Ensure a single trailing newline for blocks
-            if (!joined.endsWith('\n')) joined = joined + '\n';
-            // Leading/trailing spaces/newlines can be noisy; normalize a bit
-            joined = joined.replace(/\n{3,}/g, '\n\n');
-          }
-          return joined;
-        };
-
-        // If the plain-text looks like HTML (many editors put HTML into
-        // text/plain) we should parse it as HTML as well. This handles
-        // cases where `text/plain` contains tags like `<p>...</p>` on one line.
-        const looksLikeHtml = text && /<[^>]+>/.test(text);
-        if ((htmlData && (!text || text.trim() === '')) || (!htmlData && looksLikeHtml)) {
-          try {
-            const parser = new DOMParser();
-            const doc = parser.parseFromString(htmlData || text, 'text/html');
-            // First try a DOM-to-text conversion that preserves block newlines
-            text = domToText(doc.body || doc.documentElement) || '';
-            // If result still looks like a single line or is empty, fall back
-            // to placing each top-level element's outerHTML on its own line
-            if (!text || (typeof text === 'string' && !text.includes('\n'))) {
-              try {
-                const nodes = Array.from((doc.body || doc.documentElement).childNodes || []);
-                const parts = nodes.map(n => {
-                  if (n.nodeType === Node.ELEMENT_NODE) return n.outerHTML;
-                  if (n.nodeType === Node.TEXT_NODE) return n.nodeValue || '';
-                  return '';
-                }).filter(Boolean);
-                if (parts.length > 0) text = parts.join('\n');
-              } catch (e) {
-                // ignore fallback error
-              }
-            }
-            // Trim a single trailing newline inserted by the conversion
-            if (text.endsWith('\n')) text = text.replace(/\n+$/,'\n');
-          } catch (e) {
-            // fallback to any plain text available
-            text = clipboard.getData('text/plain') || '';
-          }
-        }
-
-        // If we have text, prevent default paste and insert at selection
-        if (text) {
-          event.preventDefault();
-          const { state } = view;
-          const { from, to } = state.selection.main;
-          view.dispatch({
-            changes: { from, to, insert: text },
-            selection: { anchor: from + text.length }
-          });
-
-          try {
-            // After inserting, get complete doc text and optionally format it
-            // so pasted HTML that arrived as one line becomes pretty-printed.
-            const afterInsert = view.state.doc.toString();
-            if (autoFormatOnPaste) {
-              const formatted = formatHtml(afterInsert || '');
-              if (formatted && formatted !== afterInsert) {
-                // Replace entire document with formatted content
-                view.dispatch({ changes: { from: 0, to: view.state.doc.length, insert: formatted } });
-                // Keep React state in sync
-                handleEdit(formatted);
-              } else {
-                handleEdit(afterInsert);
-              }
-            } else {
-              handleEdit(afterInsert);
-            }
-          } catch (e) {
-            // If formatting fails, at least sync React state
-            try { handleEdit(view.state.doc.toString()); } catch (_) { /* ignore */ }
-          }
-
-          return true;
-        }
-      } catch (e) {
-        // fallback to default behavior
-        console.error('Paste handler error', e);
-        return false;
-      }
-      return false;
-    }
-  }), [autoFormatOnPaste, handleEdit]);
-
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
       <div>
         <label className="block text-sm font-medium mb-2">HTML source</label>
         <div className="flex items-center gap-4 mb-2">
           <button type="button" className="admin-button-secondary" onClick={handleFormatClick}>Format</button>
-          <label className="flex items-center gap-2 text-sm">
-            <input type="checkbox" checked={autoFormatOnPaste} onChange={(e) => setAutoFormatOnPaste(e.target.checked)} />
-            <span>Auto-format on paste</span>
-          </label>
+          <span className="text-sm text-gray-500">Pasted HTML auto-formats</span>
         </div>
         <Suspense fallback={<div className="p-4">Loading editor…</div>}>
           <EditorPanel
             value={value}
-            onChange={(val) => handleEdit(val)}
-            autoFormatOnPaste={autoFormatOnPaste}
-            setAutoFormatOnPaste={setAutoFormatOnPaste}
-            handleFormatClick={handleFormatClick}
+            onChange={(val) => {
+              if (ignoreNextChangeRef.current) {
+                ignoreNextChangeRef.current = false;
+                return;
+              }
+              handleEdit(val);
+            }}
+            onPaste={(afterInsert) => {
+              if (!AUTO_FORMAT_ON_PASTE) return handleEdit(afterInsert);
+              try {
+                const formatted = formatHtml(afterInsert || '');
+                // Prevent the raw "afterInsert" onChange from winning.
+                ignoreNextChangeRef.current = true;
+                handleEdit(formatted);
+              } catch (_) {
+                ignoreNextChangeRef.current = true;
+                handleEdit(afterInsert);
+              }
+            }}
           />
         </Suspense>
       </div>

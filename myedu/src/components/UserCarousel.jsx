@@ -11,57 +11,65 @@ const API_BASE_URL = `${BASE_URL}/api`;
 
 const UserCard = ({ user, onFollow, isFollowing, isLoading }) => {
   return (
-    <div className="card user-card">
-      <div className="profileImage">
+    <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur p-4 text-center">
+      <div className="relative mx-auto mb-3 flex h-[84px] w-[84px] items-center justify-center">
         {user.profilePicture ? (
-          <img src={normalizeImageSrc(user.profilePicture)} alt={user.username} className="profile-img" />
+          <img
+            src={normalizeImageSrc(user.profilePicture)}
+            alt={user.username}
+            className="h-[84px] w-[84px] rounded-full object-cover ring-2 ring-white/10"
+          />
         ) : (
-          <svg viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg" className="profile-svg">
-            <circle r="60" fill="transparent" cy="64" cx="64"></circle>
-            <circle r="48" fill="transparent" cy="64" cx="64"></circle>
-            <path fill="#191919" d="m64 14a32 32 0 0 1 32 32v41a6 6 0 0 1 -6 6h-52a6 6 0 0 1 -6-6v-41a32 32 0 0 1 32-32z"></path>
-            <path opacity="1" fill="#191919" d="m62.73 22h2.54a23.73 23.73 0 0 1 23.73 23.73v42.82a4.45 4.45 0 0 1 -4.45 4.45h-41.1a4.45 4.45 0 0 1 -4.45-4.45v-42.82a23.73 23.73 0 0 1 23.73-23.73z"></path>
-            <circle r="7" fill="#fbc0aa" cy="65" cx="89"></circle>
-            <path fill="#4bc190" d="m64 124a59.67 59.67 0 0 0 34.69-11.06l-3.32-9.3a10 10 0 0 0 -9.37-6.64h-43.95a10 10 0 0 0 -9.42 6.64l-3.32 9.3a59.67 59.67 0 0 0 34.69 11.06z"></path>
-          </svg>
+          <div className="h-[84px] w-[84px] rounded-full bg-white/10 ring-2 ring-white/10" aria-hidden="true" />
         )}
+
         {user.role === 'staff' && (
-          <span className="staff-badge" title="Staff" aria-hidden="false">
+          <span
+            className="absolute -right-1 -top-1 inline-flex h-7 w-7 items-center justify-center rounded-full bg-white/10 text-white ring-1 ring-white/10"
+            title="Staff"
+            aria-hidden="false"
+          >
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
               <path d="M12 2l2.9 6.59L22 9.27l-5 4.87L18.18 22 12 18.56 5.82 22 7 14.14l-5-4.87 7.1-0.68L12 2z" fill="currentColor" />
             </svg>
           </span>
         )}
       </div>
-      <div className="textContainer">
-        <p className="name">{user.username}</p>
-        <p className="profile">{user.role === 'staff' ? (user.bio || 'Staff member') : (user.bio || 'Learner')}</p>
-        <div className="mt-2">
-          <button
-            className={`follow-btn ${isFollowing ? 'following' : ''}`}
-            onClick={() => onFollow(user.id)}
-            aria-pressed={isFollowing}
-            aria-label={isFollowing ? `Unfollow ${user.username}` : `Follow ${user.username}`}
-            disabled={isLoading}
-          >
-            <span className="icon" aria-hidden="true">
-              {isLoading ? (
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="spinner">
-                  <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeDasharray="60" strokeDashoffset="0"></circle>
-                </svg>
-              ) : isFollowing ? (
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M9 12l2 2 4-4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-              ) : (
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-              )}
-            </span>
-            <span className="text">{isFollowing ? 'Following' : 'Follow'}</span>
-          </button>
-        </div>
+
+      <p className="text-sm font-semibold text-white">{user.username}</p>
+      <p className="mt-1 line-clamp-2 text-xs text-white/70">
+        {user.role === 'staff' ? (user.bio || 'Staff member') : (user.bio || 'Learner')}
+      </p>
+
+      <div className="mt-3">
+        <button
+          className={`inline-flex w-full items-center justify-center gap-2 rounded-full px-3 py-2 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-70 ${
+            isFollowing
+              ? 'border border-white/10 bg-white/10 text-white hover:bg-white/15'
+              : 'bg-gradient-to-r from-purple-500 to-[#167468] text-white hover:opacity-95'
+          }`}
+          onClick={() => onFollow(user.id)}
+          aria-pressed={isFollowing}
+          aria-label={isFollowing ? `Unfollow ${user.username}` : `Follow ${user.username}`}
+          disabled={isLoading}
+        >
+          <span className="inline-flex items-center justify-center" aria-hidden="true">
+            {isLoading ? (
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="animate-spin">
+                <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeDasharray="60" strokeDashoffset="0"></circle>
+              </svg>
+            ) : isFollowing ? (
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M9 12l2 2 4-4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            ) : (
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            )}
+          </span>
+          <span>{isFollowing ? 'Following' : 'Follow'}</span>
+        </button>
       </div>
     </div>
   );
@@ -202,9 +210,9 @@ const UserCarousel = () => {
   };
 
   return (
-    <div className="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-lg mt-6 user-carousel-card">
-      <h3 className="text-lg font-semibold mb-2">Explore People</h3>
-      <p className="text-sm text-gray-500 mb-3">Browse learners and staff, follow to get updates.</p>
+    <div className="mt-6 rounded-2xl border border-white/10 bg-white/5 backdrop-blur p-6 user-carousel-card">
+      <h3 className="text-lg font-semibold text-white">Explore People</h3>
+      <p className="mt-1 text-sm text-white/70">Browse learners and staff, follow to get updates.</p>
 
       <div className="carousel-wrap">
         <button className="carousel-nav left" onClick={() => scroll('left')} aria-label="Scroll left">‹</button>

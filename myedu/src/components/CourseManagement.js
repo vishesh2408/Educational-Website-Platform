@@ -66,13 +66,13 @@ const TopicEditorModal = ({ show, topic, onSave, onCancel, courseTitle, moduleTi
     if (!show || !topic) return null;
 
     const [editedTopic, setEditedTopic] = useState(topic);
-    const [quillContent, setQuillContent] = useState(topic.notes || '');
     const [resources, setResources] = useState(topic.otherResources || []);
+    const [articles, setArticles] = useState(Array.isArray(topic.articles) ? topic.articles : []);
 
     useEffect(() => {
         setEditedTopic(topic);
-        setQuillContent(topic.notes || '');
         setResources(topic.otherResources || []);
+        setArticles(Array.isArray(topic.articles) ? topic.articles : []);
     }, [topic]);
 
     const handleResourceChange = (index, field, value) => {
@@ -85,9 +85,33 @@ const TopicEditorModal = ({ show, topic, onSave, onCancel, courseTitle, moduleTi
         e.preventDefault();
         onSave({ 
             ...editedTopic, 
-            notes: quillContent,
+            articles: (articles || [])
+                .map((a, idx) => ({
+                    ...a,
+                    order: typeof a.order === 'number' ? a.order : idx,
+                }))
+                .filter((a) => (a.heading && String(a.heading).trim()) || (a.content && String(a.content).trim())),
             otherResources: resources.filter(r => r.name && r.url)
         });
+    };
+
+    const updateArticle = (index, patch) => {
+        setArticles((prev) => {
+            const next = Array.isArray(prev) ? [...prev] : [];
+            next[index] = { ...(next[index] || {}), ...patch };
+            return next;
+        });
+    };
+
+    const addArticle = () => {
+        setArticles((prev) => ([
+            ...(Array.isArray(prev) ? prev : []),
+            { heading: '', content: '', videoURL: '', quizId: '' }
+        ]));
+    };
+
+    const deleteArticle = (index) => {
+        setArticles((prev) => (Array.isArray(prev) ? prev.filter((_, i) => i !== index) : []));
     };
 
     return (
@@ -107,21 +131,83 @@ const TopicEditorModal = ({ show, topic, onSave, onCancel, courseTitle, moduleTi
                         <input type="text" name="title" value={editedTopic.title} onChange={(e) => setEditedTopic(prev => ({ ...prev, title: e.target.value }))} required className="form-input" />
                     </div>
                     
-                    <div className="form-group">
-                        <label className="form-label">Notes Content (HTML source)</label>
-                        <CourseEditor initial={quillContent} onChange={setQuillContent} />
-                    </div>
-                    
-                    <div className="form-group">
-                        <label className="form-label">Video URL (Optional)</label>
-                        <input type="text" name="videoURL" value={editedTopic.videoURL || ''} onChange={(e) => setEditedTopic(prev => ({ ...prev, videoURL: e.target.value }))} className="form-input" placeholder="e.g., https://youtube.com/..." />
-                    </div>
-                    
-                    <div className="form-group">
-                        <label className="form-label">Linked Quiz ID (Optional)</label>
-                        <input type="text" name="quizId" value={editedTopic.quizId || ''} onChange={(e) => setEditedTopic(prev => ({ ...prev, quizId: e.target.value }))} className="form-input" placeholder="MongoDB Quiz ID" />
-                    </div>
+                    <h4 className="font-bold mt-6 mb-2 text-lg text-gray-800 dark:text-gray-200">Articles (Recommended)</h4>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
+                        Add multiple articles for this topic. Each article supports a heading and content (Markdown or HTML).
+                        Video URL and Quiz ID are optional per article.
+                    </p>
 
+                    {(articles || []).length > 0 ? (
+                        <div className="space-y-4">
+                            {articles.map((article, index) => (
+                                <div key={article._id || index} className="p-4 border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800">
+                                    <div className="flex items-center justify-between gap-3 mb-3">
+                                        <div className="flex-1">
+                                            <label className="form-label">Article Heading</label>
+                                            <input
+                                                type="text"
+                                                value={article.heading || ''}
+                                                onChange={(e) => updateArticle(index, { heading: e.target.value })}
+                                                className="form-input"
+                                                placeholder="e.g., Introduction"
+                                            />
+                                        </div>
+                                        <button
+                                            type="button"
+                                            onClick={() => deleteArticle(index)}
+                                            className="admin-action-button delete-button"
+                                            title="Delete Article"
+                                        >
+                                            <Trash2 size={18} />
+                                        </button>
+                                    </div>
+
+                                    <div className="form-group">
+                                        <label className="form-label">Article Content</label>
+                                        <textarea
+                                            value={article.content || ''}
+                                            onChange={(e) => updateArticle(index, { content: e.target.value })}
+                                            className="form-textarea"
+                                            rows={8}
+                                            placeholder="Write Markdown or HTML here..."
+                                        />
+                                    </div>
+
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div className="form-group">
+                                            <label className="form-label">Video URL (Optional)</label>
+                                            <input
+                                                type="text"
+                                                value={article.videoURL || ''}
+                                                onChange={(e) => updateArticle(index, { videoURL: e.target.value })}
+                                                className="form-input"
+                                                placeholder="e.g., https://youtube.com/..."
+                                            />
+                                        </div>
+                                        <div className="form-group">
+                                            <label className="form-label">Linked Quiz ID (Optional)</label>
+                                            <input
+                                                type="text"
+                                                value={article.quizId || ''}
+                                                onChange={(e) => updateArticle(index, { quizId: e.target.value })}
+                                                className="form-input"
+                                                placeholder="MongoDB Quiz ID"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="p-4 border border-dashed border-gray-300 dark:border-gray-600 rounded-xl text-sm text-gray-600 dark:text-gray-400">
+                            No articles added yet.
+                        </div>
+                    )}
+
+                    <button type="button" onClick={addArticle} className="admin-button-secondary w-full my-2">
+                        + Add Article
+                    </button>
+                    
                     <h4 className="font-bold mt-4 mb-2 text-lg text-gray-800 dark:text-gray-200">Other Resources</h4>
                     {resources.map((res, index) => (
                         <div key={index} className="flex gap-4 mb-2 items-center p-2 border border-gray-300 dark:border-gray-600 rounded">

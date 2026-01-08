@@ -4,6 +4,9 @@ module.exports = {
   // Use class strategy and support the app's `.dark-theme` class from ThemeContext.
   darkMode: ['class', '.dark-theme'],
   theme: {
+    container: {
+      padding: '0rem',
+    },
     extend: {
       keyframes: {
         move: {

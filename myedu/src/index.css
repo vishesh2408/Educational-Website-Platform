@@ -9,7 +9,7 @@ body {
 
 /* Apply the requested global page background color (match Profile.jsx) */
 body {
-  @apply bg-teal-50 dark:bg-slate-900;
+  @apply bg-black dark:bg-black;
 }
 
 code {
@@ -28,73 +28,73 @@ code {
 @layer base {
   /* Container */
   :where(.course-content) {
-    @apply w-full text-slate-800 dark:text-slate-100 leading-relaxed;
+    @apply w-full text-gray-200 leading-relaxed;
   }
 
   /* Fallback text when specific tags are not present */
   :where(.course-content *) {
-    @apply text-slate-800 dark:text-slate-100 leading-relaxed;
+    @apply text-gray-200 leading-relaxed;
   }
 
   /* Generic blocks and divs */
   :where(.course-content) div,
   :where(.course-content) .content-block {
-    @apply space-y-3 text-slate-800 dark:text-slate-100;
+    @apply space-y-3 text-gray-200;
   }
 
   /* Headings */
-  :where(.course-content) h1 { @apply text-4xl font-extrabold mt-8 mb-4 text-slate-900 dark:text-white; }
-  :where(.course-content) h2 { @apply text-3xl font-bold mt-7 mb-3 text-slate-900 dark:text-white border-b-2 border-teal-400 pb-2; }
-  :where(.course-content) h3 { @apply text-2xl font-semibold mt-6 mb-3 text-slate-900 dark:text-white; }
-  :where(.course-content) h4 { @apply text-xl font-semibold mt-5 mb-2 text-slate-800 dark:text-slate-100; }
-  :where(.course-content) h5 { @apply text-lg font-semibold mt-4 mb-2 text-slate-800 dark:text-slate-100; }
-  :where(.course-content) h6 { @apply text-base font-semibold mt-3 mb-2 text-slate-700 dark:text-slate-200; }
+  :where(.course-content) h1 { @apply text-4xl font-extrabold mt-8 mb-4 text-white; }
+  :where(.course-content) h2 { @apply text-3xl font-bold mt-7 mb-3 text-white border-b-2 border-teal-400 pb-2; }
+  :where(.course-content) h3 { @apply text-2xl font-semibold mt-6 mb-3 text-white; }
+  :where(.course-content) h4 { @apply text-xl font-semibold mt-5 mb-2 text-gray-100; }
+  :where(.course-content) h5 { @apply text-lg font-semibold mt-4 mb-2 text-gray-100; }
+  :where(.course-content) h6 { @apply text-base font-semibold mt-3 mb-2 text-gray-200; }
   
   /* Paragraph and inline text */
-    :where(.course-content) p { @apply text-base leading-relaxed mb-4 text-slate-800 dark:text-slate-200; }
-  :where(.course-content) strong { @apply font-bold text-slate-900 dark:text-white; }
-  :where(.course-content) em { @apply italic text-slate-800 dark:text-slate-200; }
-  :where(.course-content) mark { @apply bg-yellow-200 dark:bg-yellow-900 px-1 rounded; }
+  :where(.course-content) p { @apply text-base leading-relaxed mb-4 text-gray-300; }
+  :where(.course-content) strong { @apply font-bold text-white; }
+  :where(.course-content) em { @apply italic text-gray-300; }
+  :where(.course-content) mark { @apply bg-yellow-900 px-1 rounded text-yellow-100; }
   
   /* Links */
-  :where(.course-content) a { @apply text-teal-600 hover:text-teal-700 dark:text-teal-400 dark:hover:text-teal-300 underline transition-colors; }
+  :where(.course-content) a { @apply text-teal-400 hover:text-teal-300 underline transition-colors; }
   
   /* Lists */
   :where(.course-content) ul { @apply list-disc pl-6 mb-4 space-y-1; }
   :where(.course-content) ol { @apply list-decimal pl-6 mb-4 space-y-1; }
-  :where(.course-content) li { @apply text-slate-700 dark:text-slate-300; }
+  :where(.course-content) li { @apply text-gray-300; }
   
   /* Images */
   :where(.course-content) img { @apply max-w-full h-auto rounded-lg my-4 shadow-md; }
   
   /* Blockquotes */
-  :where(.course-content) blockquote { @apply border-l-4 border-teal-500 pl-4 italic text-slate-600 dark:text-slate-400 my-4 bg-slate-50 dark:bg-slate-800 p-3 rounded; }
+  :where(.course-content) blockquote { @apply border-l-4 border-teal-500 pl-4 italic text-gray-300 my-4 bg-white/5 border border-white/10 p-3 rounded; }
   
   /* Code blocks */
   :where(.course-content) pre { @apply bg-slate-900 text-slate-100 p-4 rounded-lg overflow-x-auto my-4 shadow-lg font-mono text-sm; }
   :where(.course-content) pre code { @apply bg-transparent p-0 rounded-none; }
-  :where(.course-content) .code-panel { @apply border border-slate-800/50 dark:border-slate-100/10 shadow-lg; }
+  :where(.course-content) .code-panel { @apply border border-white/10 shadow-lg; }
   
   /* Inline code */
-  :where(.course-content) code { @apply font-mono text-sm bg-slate-100 dark:bg-slate-800 text-teal-700 dark:text-teal-300 px-2 py-1 rounded; }
+  :where(.course-content) code { @apply font-mono text-sm bg-white/10 text-teal-300 px-2 py-1 rounded; }
   
   /* Horizontal rules */
-  :where(.course-content) hr { @apply border-0 border-t-2 border-slate-300 dark:border-slate-600 my-6; }
+  :where(.course-content) hr { @apply border-0 border-t border-white/10 my-6; }
   
   /* Tables */
   :where(.course-content) table { @apply w-full border-collapse my-4 shadow-sm rounded-lg overflow-hidden; }
   :where(.course-content) th { @apply bg-teal-600 text-white px-3 py-2 text-sm font-semibold text-left; }
-  :where(.course-content) td { @apply border border-slate-200 dark:border-slate-700 px-3 py-2 text-sm bg-white dark:bg-slate-800; }
-  :where(.course-content) tbody tr:hover { @apply bg-slate-50 dark:bg-slate-700; }
+  :where(.course-content) td { @apply border border-white/10 px-3 py-2 text-sm bg-white/5 text-gray-200; }
+  :where(.course-content) tbody tr:hover { @apply bg-white/5; }
   
   /* Abbreviations */
-  :where(.course-content) abbr { @apply cursor-help border-b border-dashed text-slate-700 dark:text-slate-300; }
+  :where(.course-content) abbr { @apply cursor-help border-b border-dashed text-gray-300; }
   
   /* Strikethrough */
-  :where(.course-content) del { @apply line-through text-slate-500 dark:text-slate-400; }
+  :where(.course-content) del { @apply line-through text-gray-400; }
   
   /* Small text */
-  :where(.course-content) small { @apply text-sm text-slate-600 dark:text-slate-400; }
+  :where(.course-content) small { @apply text-sm text-gray-400; }
 
   /* TOC / heading anchors: add class `toc-heading` or attribute `data-toc-id="..."` to any heading */
   :where(.course-content) .toc-heading,
@@ -104,6 +104,6 @@ code {
   :where(.course-content) .toc-heading::before,
   :where(.course-content) [data-toc-id]::before {
     content: "#";
-    @apply absolute -left-3 top-1 text-teal-500 dark:text-teal-300 font-semibold;
+    @apply absolute -left-3 top-1 text-teal-300 font-semibold;
   }
 }

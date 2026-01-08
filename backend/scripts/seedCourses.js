@@ -195,8 +195,15 @@ async function seed() {
             moduleId: mod._id,
             title: t.title,
             order: topicOrder++,
-            notes: t.notes || '',
-            videoURL: t.videoURL || '',
+            articles: Array.isArray(t.articles) ? t.articles : [
+              {
+                heading: t.title || '',
+                content: t.notes || '',
+                videoURL: t.videoURL || '',
+                quizId: t.quizId || null,
+                order: 0,
+              }
+            ],
           });
           await topic.save();
           mod.topics.push(topic._id);

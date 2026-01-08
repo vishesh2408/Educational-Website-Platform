@@ -7,6 +7,7 @@ const versionSchema = new mongoose.Schema({
     title: String,
     subject: String,
     content: String,
+    format: { type: String, enum: ['html', 'markdown'], default: 'html' },
     imageUrl: String,
     label: { type: String, default: null },
     reason: { type: String, default: null },
@@ -17,7 +18,8 @@ const versionSchema = new mongoose.Schema({
 const noteSchema = new mongoose.Schema({
     title: { type: String, required: true },
     subject: { type: String },
-    content: { type: String }, // Rich text content from Quill
+    content: { type: String },
+    format: { type: String, enum: ['html', 'markdown'], default: 'html' },
     topicId: { type: mongoose.Schema.Types.ObjectId, ref: 'Topic', default: null },
     imageUrl: { type: String },
     isDraft: { type: Boolean, default: false },

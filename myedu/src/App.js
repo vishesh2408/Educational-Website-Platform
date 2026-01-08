@@ -1,90 +1,8 @@
 
 
-
-// import React, { useState, useEffect } from 'react';
-// import { Routes, Route, Navigate } from 'react-router-dom';
-// import HomePage from './components/HomePage';
-// import ContestsPage from './components/ContestsPage';
-// import ForumPage from './components/ForumPage';
-// import QuizzesPage from './components/QuizzesPage';
-// import CoursesPage from './components/CoursesPage';
-// import AdminDashboard from './components/AdminDashboard';
-// import AuthPage from './components/AuthPage';
-// import Profile from './components/Profile';
-// import PageSection from './components/PageSection';
-// import UserDashboard from './components/UserDashboard';
-// import { useAuth } from './contexts/AuthContext';
-// import { useTheme } from './contexts/ThemeContext';
-// import './App.css';
-
-// export default function App() {
-//   const { currentUser, isLoadingUser, logout } = useAuth();
-//   const { theme, toggleTheme } = useTheme();
-//   const [isMenuOpen, setIsMenuOpen] = useState(false);
-
-//   useEffect(() => {
-//     if (!document.querySelector('link[href*="font-awesome"]')) {
-//       const link = document.createElement('link');
-//       link.href = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css';
-//       link.rel = 'stylesheet';
-//       document.head.appendChild(link);
-//     }
-//   }, []);
-
-//   if (isLoadingUser) {
-//     return (
-//       <div className="flex items-center justify-center min-h-[calc(100vh-7rem)] text-2xl text-gray-600">
-//         Loading user session...
-//       </div>
-//     );
-//   }
-
-//   return (
-//     // FIX: Removed `flex flex-col min-h-screen` from here. 
-//     // We will handle the layout one level down in UserDashboard.
-//     <div className={`${theme}-theme`}> 
-//       <Routes>
-//         <Route path="/" element={<Navigate to="/user/dashboard" />} />
-//         <Route path="/auth" element={<AuthPage />} />
-//         <Route path="/admin/*" element={<AdminDashboard />} />
-
-//         <Route
-//           path="/user/dashboard"
-//           element={
-//             <UserDashboard
-//               theme={theme}
-//               toggleTheme={toggleTheme}
-//               user={currentUser}
-//               logout={logout}
-//               isMenuOpen={isMenuOpen}
-//               setIsMenuOpen={setIsMenuOpen}
-//             />
-//           }>
-//           <Route index element={<HomePage />} />
-//           <Route path="profile" element={<Profile />} />
-//           <Route path="contests" element={<ContestsPage />} />
-//           <Route path="forum" element={<ForumPage />} />
-//           <Route path="courses" element={<CoursesPage />} />
-//           <Route path="quizzes" element={<QuizzesPage />} />
-//         </Route>
-
-//         <Route
-//           path="*"
-//           element={
-//             <PageSection title="Page Not Found">
-//               <p className="text-center text-lg text-gray-600">The page you’re looking for does not exist.</p>
-//             </PageSection>
-//           }
-//         />
-//       </Routes>
-//     </div>
-//   );
-// }
-
-
-
 import React, { useState, useEffect, Suspense, lazy } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
+import { GraduationCap } from 'lucide-react';
 const HomePage = lazy(() => import('./components/HomePage'));
 const ContestsPage = lazy(() => import('./components/ContestsPage'));
 const ForumPage = lazy(() => import('./components/ForumPage'));
@@ -103,6 +21,31 @@ import { ProtectedRoute, AdminRoute, UserRoute } from './components/ProtectedRou
 import './App.css';
 const ForgotPassword = lazy(() => import('./components/ForgotPassword'));
 const ResetPassword = lazy(() => import('./components/ResetPassword'));
+const SubscriptionsPage = lazy(() => import('./components/SubscriptionsPage'));
+
+function FullScreenLoader() {
+  return (
+    <div className="min-h-screen w-full bg-slate-950 flex flex-col items-center justify-center px-6">
+      <div className="flex flex-col items-center justify-center">
+        {/* Logo (same style as navbar) */}
+        <div className="flex items-center gap-3 mb-8">
+          <div className="bg-gradient-to-br from-purple-500 to-[#167468] p-4 rounded-xl">
+            <GraduationCap className="w-8 h-8 text-white" />
+          </div>
+          <span className="text-white font-bold text-3xl">LearnBent</span>
+        </div>
+
+        {/* Animated Colorful Loader - Centered */}
+        <div className="relative flex items-center justify-center w-64 h-64">
+          <div className="absolute w-12 h-12 bg-[rgb(158,136,246)] rounded animate-move shadow-[0px_7px_29px_0px_rgb(158,136,246)]" style={{ animationDelay: '-1s' }} />
+          <div className="absolute w-12 h-12 bg-[rgb(97,183,253)] rounded animate-move shadow-[0px_7px_29px_0px_rgb(97,183,253)]" style={{ animationDelay: '-2s' }} />
+          <div className="absolute w-12 h-12 bg-[rgb(95,249,175)] rounded animate-move shadow-[0px_7px_29px_0px_rgb(95,249,175)]" style={{ animationDelay: '-3s' }} />
+          <div className="absolute w-12 h-12 bg-[rgb(243,171,89)] rounded animate-move shadow-[0px_7px_29px_0px_rgb(243,171,89)]" style={{ animationDelay: '-4s' }} />
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function App() {
   const { currentUser, isLoadingUser, logout } = useAuth();
@@ -118,53 +61,13 @@ export default function App() {
   }, []);
 
   if (isLoadingUser) {
-    return (
-      <div className="min-h-screen w-full bg-gray-50 flex flex-col items-center justify-center py-10 space-y-8">
-        
-
-        {/* Skeleton Content Below */}
-        <div className="w-full max-w-5xl px-10 animate-pulse space-y-10">
-          <div className="flex items-center space-x-6">
-            <div className="h-16 w-16 rounded-full bg-gray-200" />
-            <div className="flex-1 space-y-4 py-2">
-              <div className="h-3 w-1/3 rounded bg-gray-200" />
-              <div className="grid grid-cols-12 gap-4">
-                <div className="col-span-8 h-3 rounded bg-gray-200" />
-                <div className="col-span-4 h-3 rounded bg-gray-200" />
-              </div>
-            </div>
-          </div>
-
-
-
-
-          {/* Animated Colorful Loader - Large Centered */}
-        <div className="relative ml-60 pl-32 flex items-center justify-center w-64 h-64">
-          {/* Purple */}
-          <div className="absolute w-12 h-12 bg-[rgb(158,136,246)] rounded animate-move shadow-[0px_7px_29px_0px_rgb(158,136,246)]" style={{ animationDelay: '-1s' }} />
-          {/* Blue */}
-          <div className="absolute w-12 h-12 bg-[rgb(97,183,253)] rounded animate-move shadow-[0px_7px_29px_0px_rgb(97,183,253)]" style={{ animationDelay: '-2s' }} />
-          {/* Green */}
-          <div className="absolute w-12 h-12 bg-[rgb(95,249,175)] rounded animate-move shadow-[0px_7px_29px_0px_rgb(95,249,175)]" style={{ animationDelay: '-3s' }} />
-          {/* Orange */}
-          <div className="absolute w-12 h-12 bg-[rgb(243,171,89)] rounded animate-move shadow-[0px_7px_29px_0px_rgb(243,171,89)]" style={{ animationDelay: '-4s' }} />
-        </div>
-
-
-          <div className="space-y-4">
-            <div className="h-4 w-full rounded bg-gray-200" />
-            <div className="h-4 w-11/12 rounded bg-gray-200" />
-            <div className="h-48 w-full rounded bg-gray-200" />
-          </div>
-        </div>
-      </div>
-    );
+    return <FullScreenLoader />;
   }
 
   return (
     <div className={`${theme}-theme`}>
-      <Suspense fallback={<div className="p-6">Loading…</div>}>
-      <Routes>
+      <Suspense fallback={<FullScreenLoader />}>
+        <Routes>
         {/* Default Redirect */}
         <Route path="/" element={<Navigate to={currentUser?.role === 'admin' ? '/admin' : '/user/dashboard'} />} />
 
@@ -201,6 +104,16 @@ export default function App() {
           <Route path="courses/:id/topics/:topicId" element={<TopicView/>} />
           <Route path="quizzes" element={<QuizzesPage />} />
         </Route>
+
+        {/* User account subscriptions (outside dashboard path for direct link) */}
+        <Route
+          path="/user/account/subscriptions"
+          element={
+            <UserRoute>
+              <SubscriptionsPage />
+            </UserRoute>
+          }
+        />
 
         {/* Catch-all */}
         <Route

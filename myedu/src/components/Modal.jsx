@@ -51,30 +51,25 @@ const Modal = ({ show, title, message, onClose, isSuccess = false }) => {
   }
 
   return (
-    // Modal Overlay: A fixed, full-screen overlay with a semi-transparent black background.
-    // It uses flexbox to center the modal content both horizontally and vertically.
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900 bg-opacity-70 backdrop-blur-sm">
-      {/* Modal Content: The main container for the modal. */}
-      {/* It now has a white background as requested, rounded corners, a shadow, and a smooth transition. */}
-      {/* The max-w-lg and mx-4 classes ensure it's responsive on different screen sizes. */}
-      <div className="relative w-full max-w-lg mx-4 p-6 bg-white rounded-xl shadow-2xl transform transition-all duration-300 scale-100 opacity-100">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+      <div className="relative w-full max-w-lg p-6 bg-white/5 border border-white/10 backdrop-blur rounded-2xl shadow-2xl transform transition-all duration-300 scale-100 opacity-100">
         
         {/* Modal Header: Displays the title and a close button. */}
         {/* The 'flex' and 'justify-between' classes align the title and button. */}
-        <div className="flex items-center justify-between pb-4 border-b border-gray-200">
+        <div className="flex items-center justify-between pb-4 border-b border-white/10">
           <div className="flex items-center space-x-2">
             {/* Success Animation: Conditionally render the green checkmark icon. */}
             {isSuccess && (
-              <CheckCircle size={24} className="text-green-500 animate-pulse" />
+              <CheckCircle size={24} className="text-green-400 animate-pulse" />
             )}
-            <h3 className="text-xl font-bold text-gray-900">
+            <h3 className="text-xl font-bold text-white">
               {title}
             </h3>
           </div>
           {/* Close Button: A visually appealing button with hover effects. */}
           <button
             onClick={onClose}
-            className="p-1 rounded-full text-gray-500 hover:text-gray-900 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-teal-500"
+            className="p-1 rounded-full text-gray-300 hover:text-white transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-[#167468]"
             aria-label="Close modal"
           >
             <X size={24} />
@@ -82,16 +77,16 @@ const Modal = ({ show, title, message, onClose, isSuccess = false }) => {
         </div>
         
         {/* Modal Body: Displays the main message. */}
-        <p className="mt-4 text-gray-700">
+        <p className="mt-4 text-gray-200 whitespace-pre-line">
           {message}
         </p>
 
         {/* Modal Footer: Contains the action button. */}
         {/* It is aligned to the right and provides top margin. */}
-        <div className="flex justify-end pt-4 mt-6 border-t border-gray-200">
+        <div className="flex justify-end pt-4 mt-6 border-t border-white/10">
           <button
             onClick={onClose}
-            className="px-6 py-2 bg-gray-200 text-gray-800 rounded-lg font-semibold hover:bg-gray-300 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-teal-500"
+            className="px-6 py-2 bg-white/5 border border-white/10 text-gray-200 rounded-2xl font-semibold hover:bg-white/10 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-[#167468]"
           >
             Close
           </button>

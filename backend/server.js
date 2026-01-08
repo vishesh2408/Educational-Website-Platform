@@ -48,6 +48,7 @@ const SocialRoutes = require('./routes/SocialRoutes');
 const ForumRoutes = require('./routes/ForumRoutes');
 
 const adminRoutes = require('./routes/adminRoutes');
+const adminUploadsRoutes = require('./routes/adminUploadsRoutes');
 
 // Load environment variables from .env file
 dotenv.config();
@@ -189,8 +190,8 @@ app.use('/api/admin/courses', authMiddleware, adminMiddleware, adminRouteFactory
 // Module Population Fix: Populate Topics on Module requests
 app.use('/api/admin/modules', authMiddleware, adminMiddleware, adminRouteFactory.createCrudRoutes(Module, 'modules', ['topics']));
 
-// Topic Population: Populate Quiz ID on Topic requests
-app.use('/api/admin/topics', authMiddleware, adminMiddleware, adminRouteFactory.createCrudRoutes(Topic, 'topics', ['quizId']));
+// Topic Population: Populate nested Quiz IDs on Topic articles
+app.use('/api/admin/topics', authMiddleware, adminMiddleware, adminRouteFactory.createCrudRoutes(Topic, 'topics', ['articles.quizId']));
 
 // keep the rest as it is
 app.use('/api/admin/contests', authMiddleware, adminMiddleware, adminRouteFactory.createCrudRoutes(Contest, 'contests'));
@@ -198,6 +199,9 @@ app.use('/api/admin/forum-posts', authMiddleware, adminMiddleware, adminRouteFac
 // Admin CRUD for ForumPremium (pricing, features, free lists, limits)
 // Extracted to a dedicated router for better organization
 require('./routes/forummanagement')(app, authMiddleware, adminMiddleware);
+
+// Newsletter: public subscribe + admin management
+require('./routes/newsletterRoutes')(app, authMiddleware, adminMiddleware);
 
 // Forum premium admin endpoints moved to backend/routes/forummanagement.js
 app.use('/api/admin/quizzes', authMiddleware, adminMiddleware, adminRouteFactory.createCrudRoutes(Quiz, 'quizzes'));
@@ -210,13 +214,16 @@ app.use('/api/admin/users', authMiddleware, adminMiddleware, adminRouteFactory.c
 // Admin utilities (sanitize preview, etc.)
 app.use('/api/admin/util', authMiddleware, adminMiddleware, adminRouteFactory.adminUtilitiesRouter());
 
+// Admin uploads for embedding files/images in markdown notes
+app.use('/api/admin/uploads', authMiddleware, adminMiddleware, adminUploadsRoutes);
+
 
 // --- Admin CRUD mounts (use factory from routes/adminRoutes.js) ---
 const adminRoutesFactory = require('./routes/adminRoutes');
 
 app.use('/api/admin/courses', authMiddleware, adminMiddleware, adminRoutesFactory.createCrudRoutes(Course, 'courses', [{ path: 'modules', populate: { path: 'topics' } }]));
 app.use('/api/admin/modules', authMiddleware, adminMiddleware, adminRoutesFactory.createCrudRoutes(Module, 'modules', ['topics']));
-app.use('/api/admin/topics', authMiddleware, adminMiddleware, adminRoutesFactory.createCrudRoutes(Topic, 'topics', ['quizId']));
+app.use('/api/admin/topics', authMiddleware, adminMiddleware, adminRoutesFactory.createCrudRoutes(Topic, 'topics', ['articles.quizId']));
 app.use('/api/admin/contests', authMiddleware, adminMiddleware, adminRoutesFactory.createCrudRoutes(Contest, 'contests'));
 app.use('/api/admin/forum-posts', authMiddleware, adminMiddleware, adminRoutesFactory.createCrudRoutes(ForumPost, 'forum-posts'));
 // Forum premium admin endpoints are handled separately in routes/forummanagement
@@ -572,6 +579,26 @@ app.post('/api/user/subscription/subscribe', authMiddleware, async (req, res) =>
     }
 });
 
+// @route   GET /api/user/subscription/status
+// @desc    Get user's current subscription status
+// @access  Private (User)
+app.get('/api/user/subscription/status', authMiddleware, async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const user = await User.findById(userId).select('subscription');
+        
+        if (!user) {
+            return res.status(404).json({ msg: 'User not found' });
+        }
+
+        res.json({ 
+            subscription: user.subscription || { plan: 'free', status: 'inactive' }
+        });
+    } catch (err) {
+        console.error('Error fetching subscription status:', err.message);
+        res.status(500).json({ msg: 'Server Error' });
+    }
+});
 
 // QuizeRoutes defines user quiz endpoints relative to '/api' (e.g. '/user/quizzes/attempt')
 // We already apply `authMiddleware` to '/api/user' globally above, so mount the router at '/api'

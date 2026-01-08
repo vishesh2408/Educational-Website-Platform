@@ -564,6 +564,18 @@
                     appearance: none;
                 }
 
+                /* Native select dropdown (Windows) can show white popup.
+                   Force dark color-scheme + option backgrounds for Forum selects. */
+                #filter-category,
+                #newPostCategory {
+                    color-scheme: dark;
+                }
+                #filter-category option,
+                #newPostCategory option {
+                    background-color: #020617; /* slate-950 */
+                    color: #FFFFFF;
+                }
+
                 .advanced-filter-toggle {
                     background: none;
                     border: none;

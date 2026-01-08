@@ -341,7 +341,7 @@ const ContestsPage = ({ openModal }) => {
 
     if (isLoading) {
         return (
-            <div className="contests-page-container flex items-center justify-center min-h-[calc(100vh-7rem)]">
+            <div className="contests-page-container bg-slate-950 text-white flex items-center justify-center min-h-[calc(100vh-7rem)]">
                 <div className="w-full max-w-4xl">
                     <Skeleton variant="list" count={3} />
                 </div>
@@ -351,14 +351,14 @@ const ContestsPage = ({ openModal }) => {
 
     if (error) {
         return (
-            <div className="contests-page-container flex items-center justify-center min-h-[calc(100vh-7rem)]">
-                <p className="text-xl text-red-600">{error}</p>
+            <div className="contests-page-container bg-slate-950 text-white flex items-center justify-center min-h-[calc(100vh-7rem)]">
+                <p className="text-xl text-red-400">{error}</p>
             </div>
         );
     }
 
     return (
-        <div className="contests-page-container">
+        <div className="contests-page-container bg-slate-950 text-white">
             
             <div className="contests-main-content">
                 <header className="contests-page-header">

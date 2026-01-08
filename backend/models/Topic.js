@@ -1,21 +1,24 @@
 
 const mongoose = require('mongoose');
-const Module = require('./Module');
-const Quiz = require('./Quiz');
+
+const topicArticleSchema = new mongoose.Schema({
+    heading: { type: String, default: '' },
+    content: { type: String, default: '' }, // Markdown or HTML
+    videoURL: { type: String, default: '' },
+    quizId: { type: mongoose.Schema.Types.ObjectId, ref: 'Quiz', default: null },
+    order: { type: Number, default: 0 },
+}, { _id: true, timestamps: true });
 
 const topicSchema = new mongoose.Schema({
     moduleId: { type: mongoose.Schema.Types.ObjectId, ref: "Module", required: true }, // ✅ ensures each topic belongs to a module
     title: { type: String, required: true },
     order: { type: Number, required: true },
-    // Core Content
-    notes: { type: String, default: '' }, // Quill/Markdown content
-    videoURL: { type: String, default: '' },
+    // Multi-article topic content
+    articles: { type: [topicArticleSchema], default: [] },
     otherResources: [{ 
         name: { type: String }, 
         url: { type: String } 
     }],
-    // Linked Resources
-    quizId: { type: mongoose.Schema.Types.ObjectId, ref: 'Quiz', default: null }, 
     // Engagement
     likes: { type: Number, default: 0 },
     dislikes: { type: Number, default: 0 },
