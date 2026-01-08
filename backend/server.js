@@ -57,8 +57,22 @@ const app = express();
 
 app.use(helmet()); // NEW: Sets various HTTP headers for security
 // Configure CORS to allow credentials (for cookies) from the frontend
+const allowedOrigins = [
+    'http://localhost:3000',
+    'https://educational-website-platform.vercel.app',
+    process.env.FRONTEND_URL
+].filter(Boolean);
+
 app.use(cors({
-    origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+    origin: function (origin, callback) {
+        // Allow requests with no origin (like mobile apps or curl)
+        if (!origin) return callback(null, true);
+        if (allowedOrigins.indexOf(origin) !== -1) {
+            callback(null, true);
+        } else {
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
     credentials: true,
 }));
 
@@ -142,18 +156,25 @@ app.use(compression());
 // Serve uploaded profile images with a cache TTL (7 days)
 app.use('/upload', express.static('upload', { maxAge: '7d' }));
 
-// Serve frontend production build with caching for static assets
+// Serve frontend production build with caching for static assets (only if build exists)
+const fs = require('fs');
 if (process.env.NODE_ENV === 'production') {
     const buildPath = path.join(__dirname, '..', 'myedu', 'build');
-    app.use(express.static(buildPath, {
-        maxAge: '7d',
-        setHeaders: (res, filePath) => {
-            // If file name contains a long hex fingerprint, serve as immutable
-            if (/\.[0-9a-f]{8,}\./.test(filePath)) {
-                res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+    // Only serve static files if the build directory exists (for standalone backend deployments)
+    if (fs.existsSync(buildPath)) {
+        logger.info('Frontend build directory found, serving static files');
+        app.use(express.static(buildPath, {
+            maxAge: '7d',
+            setHeaders: (res, filePath) => {
+                // If file name contains a long hex fingerprint, serve as immutable
+                if (/\.[0-9a-f]{8,}\./.test(filePath)) {
+                    res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+                }
             }
-        }
-    }));
+        }));
+    } else {
+        logger.info('Frontend build directory not found, running as API-only backend');
+    }
 }
 
 // Temporary debug route to expose non-sensitive DB connection info
@@ -636,12 +657,15 @@ app.get('/api/debug/db-info', (req, res) => {
     }
 });
 
-// Catch-all route for SPA - must be AFTER all API routes
+// Catch-all route for SPA - must be AFTER all API routes (only if build exists)
 if (process.env.NODE_ENV === 'production') {
     const buildPath = path.join(__dirname, '..', 'myedu', 'build');
-    app.get(/^\/(?!api).*/, (req, res) => {
-        res.sendFile(path.join(buildPath, 'index.html'));
-    });
+    const indexPath = path.join(buildPath, 'index.html');
+    if (fs.existsSync(indexPath)) {
+        app.get(/^\/(?!api).*/, (req, res) => {
+            res.sendFile(indexPath);
+        });
+    }
 }
 
 app.listen(PORT, () => console.log(`Server started on port ${PORT}`));
