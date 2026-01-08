@@ -1,13 +1,3 @@
-// import React from 'react';
-
-// const SectionTitle = ({ children }) => (
-//     <h2 className="section-title">
-//         {children}
-//         <span className="section-title-underline"></span>
-//     </h2>
-// );
-
-// export default SectionTitle;
 
 
 import React from 'react';

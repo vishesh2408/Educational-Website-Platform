@@ -17,15 +17,28 @@ const API_BASE_URL = `${BASE_URL}/api`;
 const MessageBox = ({ type, text }) => {
     if (!text) return null;
     let Icon;
-    let classes = 'message-box ';
+    let baseClasses = 'flex items-center gap-2 p-4 rounded-lg mb-4 border';
+    let colorClasses = '';
+    
     switch (type) {
-        case 'info': Icon = Info; classes += 'message-info'; break;
-        case 'success': Icon = CheckCircle; classes += 'message-success'; break;
-        case 'error': Icon = AlertCircle; classes += 'message-error'; break;
-        default: Icon = Info; classes += 'message-info';
+        case 'info': 
+            Icon = Info; 
+            colorClasses = 'bg-blue-50 border-blue-300 text-blue-700 dark:bg-blue-900/20 dark:border-blue-700 dark:text-blue-300'; 
+            break;
+        case 'success': 
+            Icon = CheckCircle; 
+            colorClasses = 'bg-green-50 border-green-300 text-green-700 dark:bg-green-900/20 dark:border-green-700 dark:text-green-300'; 
+            break;
+        case 'error': 
+            Icon = AlertCircle; 
+            colorClasses = 'bg-red-50 border-red-300 text-red-700 dark:bg-red-900/20 dark:border-red-700 dark:text-red-300'; 
+            break;
+        default: 
+            Icon = Info; 
+            colorClasses = 'bg-blue-50 border-blue-300 text-blue-700 dark:bg-blue-900/20 dark:border-blue-700 dark:text-blue-300';
     }
     return (
-        <div className={classes}>
+        <div className={`${baseClasses} ${colorClasses}`}>
             {Icon && <Icon size={20} />}
             {text}
         </div>
@@ -36,20 +49,20 @@ const MessageBox = ({ type, text }) => {
 const ConfirmationModal = ({ show, title, message, onConfirm, onCancel, confirmText = 'Confirm', cancelText = 'Cancel', confirmButtonClass = 'button-danger' }) => {
     if (!show) return null;
     return (
-        <div className="modal-overlay">
-            <div className="modal-content">
-                <div className="modal-header">
-                    <h3 className="modal-title">{title}</h3>
-                    <button onClick={onCancel} className="modal-close-button">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+            <div className="bg-white dark:bg-slate-800 rounded-lg shadow-xl max-w-sm w-full mx-4">
+                <div className="flex items-center justify-between border-b border-gray-200 dark:border-gray-700 p-6">
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{title}</h3>
+                    <button onClick={onCancel} className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300">
                         <X size={24} />
                     </button>
                 </div>
-                <p className="modal-message">{message}</p>
-                <div className="modal-actions">
-                    <button onClick={onCancel} className="button-base button-cancel">
+                <p className="p-6 text-gray-700 dark:text-gray-300">{message}</p>
+                <div className="flex gap-3 p-6 border-t border-gray-200 dark:border-gray-700 justify-end">
+                    <button onClick={onCancel} className="px-4 py-2 rounded-lg bg-gray-200 text-gray-800 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600 transition-colors">
                         {cancelText}
                     </button>
-                    <button onClick={onConfirm} className={`button-base ${confirmButtonClass}`}>
+                    <button onClick={onConfirm} className={`px-4 py-2 rounded-lg text-white transition-colors ${confirmButtonClass === 'button-danger' ? 'bg-red-600 hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-800' : 'bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800'}`}>
                         {confirmText}
                     </button>
                 </div>
@@ -245,57 +258,92 @@ const SkillManagement = () => {
     };
 
     return (
-        <>
+        <div className="p-6">
             <MessageBox type={formMessage.type} text={formMessage.text} />
-            <h3 className="admin-section-title">
-                <PlusCircle size={20} /> Add New Skill
+            
+            {/* Add New Skill Section */}
+            <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                <PlusCircle size={24} className="text-blue-600 dark:text-blue-400" /> Add New Skill
             </h3>
-            <form onSubmit={handleAddSkill} className="form-container">
-                <div className="form-group">
-                    <label htmlFor="newSkillTitle" className="form-label">Title</label>
-                    <input type="text" id="newSkillTitle" name="title" value={newSkill.title} onChange={(e) => setNewSkill({ ...newSkill, title: e.target.value })} required className="form-input" />
+            <form onSubmit={handleAddSkill} className="bg-white dark:bg-slate-800 rounded-lg shadow-md p-6 mb-8 border border-gray-200 dark:border-gray-700">
+                <div className="mb-4">
+                    <label htmlFor="newSkillTitle" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Title</label>
+                    <input 
+                        type="text" 
+                        id="newSkillTitle" 
+                        name="title" 
+                        value={newSkill.title} 
+                        onChange={(e) => setNewSkill({ ...newSkill, title: e.target.value })} 
+                        required 
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-white dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
                 </div>
-                <div className="form-group">
-                    <label htmlFor="newSkillIcon" className="form-label">Icon (e.g., URL to image or icon font class)</label>
-                    <input type="text" id="newSkillIcon" name="icon" value={newSkill.icon} onChange={(e) => setNewSkill({ ...newSkill, icon: e.target.value })} required className="form-input" placeholder="e.g., https://img.icons8.com/..., fab fa-js" />
+                <div className="mb-4">
+                    <label htmlFor="newSkillIcon" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Icon (e.g., URL to image or icon font class)</label>
+                    <input 
+                        type="text" 
+                        id="newSkillIcon" 
+                        name="icon" 
+                        value={newSkill.icon} 
+                        onChange={(e) => setNewSkill({ ...newSkill, icon: e.target.value })} 
+                        required 
+                        placeholder="e.g., https://img.icons8.com/..., fab fa-js"
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-white dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
                 </div>
-                <button type="submit" disabled={isLoading} className="form-submit-button">
-                    {isLoading ? 'Adding...' : <><PlusCircle size={20} className="icon-mr" /> Add Skill</>}
+                <button 
+                    type="submit" 
+                    disabled={isLoading} 
+                    className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-semibold py-2 px-4 rounded-lg transition-colors flex items-center justify-center gap-2"
+                >
+                    {isLoading ? 'Adding...' : <><PlusCircle size={20} /> Add Skill</>}
                 </button>
             </form>
 
-            <h3 className="admin-section-title">
-                <Info size={20} /> Existing Skills
+            {/* Existing Skills Section */}
+            <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                <Info size={24} className="text-green-600 dark:text-green-400" /> Existing Skills
             </h3>
             {isLoading ? (
                 <p className="text-center text-gray-500 dark:text-gray-400">Loading skills...</p>
             ) : skills.length === 0 ? (
-                <p className="message-info">No skills found. Add a new skill above!</p>
+                <div className="flex items-center gap-2 p-4 rounded-lg bg-blue-50 border border-blue-300 text-blue-700 dark:bg-blue-900/20 dark:border-blue-700 dark:text-blue-300">
+                    <Info size={20} />
+                    No skills found. Add a new skill above!
+                </div>
             ) : (
-                <div className="table-container">
-                    <table className="data-table">
-                        <thead className="table-header">
+                <div className="overflow-x-auto bg-white dark:bg-slate-800 rounded-lg shadow-md border border-gray-200 dark:border-gray-700">
+                    <table className="w-full">
+                        <thead className="bg-gray-100 dark:bg-slate-700 border-b border-gray-200 dark:border-gray-600">
                             <tr>
-                                <th className="table-header-th rounded-tl-lg">Title</th>
-                                <th className="table-header-th">Icon</th>
-                                <th className="table-header-th rounded-tr-lg">Actions</th>
+                                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900 dark:text-white">Title</th>
+                                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900 dark:text-white">Icon</th>
+                                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900 dark:text-white">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
                             {skills.map((skill) => (
-                                <tr key={skill._id} className="table-row">
-                                    <td className="table-cell" data-label="Title">{skill.title}</td>
-                                    <td className="table-cell" data-label="Icon">
+                                <tr key={skill._id} className="border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors">
+                                    <td className="px-6 py-4 text-gray-900 dark:text-white">{skill.title}</td>
+                                    <td className="px-6 py-4">
                                         {skill.icon.startsWith('http') ?
-                                            <img src={skill.icon} alt={skill.title} className="skill-track-icon-image" onError={(e) => e.target.style.display = 'none'} /> :
-                                            <i className={`${skill.icon} skill-track-icon-font`}></i>
+                                            <img src={skill.icon} alt={skill.title} className="w-8 h-8 object-contain" onError={(e) => e.target.style.display = 'none'} /> :
+                                            <i className={`${skill.icon} text-xl`}></i>
                                         }
                                     </td>
-                                    <td className="table-cell table-actions">
-                                        <button onClick={() => startEditingSkill(skill)} title="Edit" className="button-action button-edit">
+                                    <td className="px-6 py-4 flex gap-2">
+                                        <button 
+                                            onClick={() => startEditingSkill(skill)} 
+                                            title="Edit" 
+                                            className="p-2 bg-blue-100 text-blue-600 hover:bg-blue-200 dark:bg-blue-900/30 dark:text-blue-400 dark:hover:bg-blue-900/50 rounded-lg transition-colors"
+                                        >
                                             <Edit size={18} />
                                         </button>
-                                        <button onClick={() => confirmDeleteSkill(skill._id)} title="Delete" className="button-action button-delete">
+                                        <button 
+                                            onClick={() => confirmDeleteSkill(skill._id)} 
+                                            title="Delete" 
+                                            className="p-2 bg-red-100 text-red-600 hover:bg-red-200 dark:bg-red-900/30 dark:text-red-400 dark:hover:bg-red-900/50 rounded-lg transition-colors"
+                                        >
                                             <Trash2 size={18} />
                                         </button>
                                     </td>
@@ -305,27 +353,55 @@ const SkillManagement = () => {
                     </table>
                 </div>
             )}
+
+            {/* Edit Modal */}
             {isEditModalOpen && editingSkill && (
-                <div className="modal-overlay">
-                    <div className="modal-content">
-                        <div className="modal-header">
-                            <h3 className="modal-title">Edit Skill</h3>
-                            <button onClick={() => setIsEditModalOpen(false)} className="modal-close-button">
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+                    <div className="bg-white dark:bg-slate-800 rounded-lg shadow-xl max-w-md w-full mx-4">
+                        <div className="flex items-center justify-between border-b border-gray-200 dark:border-gray-700 p-6">
+                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Edit Skill</h3>
+                            <button onClick={() => setIsEditModalOpen(false)} className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300">
                                 <X size={24} />
                             </button>
                         </div>
-                        <form onSubmit={handleUpdateSkill}>
-                            <div className="form-group">
-                                <label htmlFor="editSkillTitle" className="form-label">Title</label>
-                                <input type="text" id="editSkillTitle" name="title" value={editingSkill.title} onChange={handleEditChange} required className="form-input" />
+                        <form onSubmit={handleUpdateSkill} className="p-6">
+                            <div className="mb-4">
+                                <label htmlFor="editSkillTitle" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Title</label>
+                                <input 
+                                    type="text" 
+                                    id="editSkillTitle" 
+                                    name="title" 
+                                    value={editingSkill.title} 
+                                    onChange={handleEditChange} 
+                                    required 
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-white dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                />
                             </div>
-                            <div className="form-group">
-                                <label htmlFor="editSkillIcon" className="form-label">Icon</label>
-                                <input type="text" id="editSkillIcon" name="icon" value={editingSkill.icon} onChange={handleEditChange} required className="form-input" />
+                            <div className="mb-6">
+                                <label htmlFor="editSkillIcon" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Icon</label>
+                                <input 
+                                    type="text" 
+                                    id="editSkillIcon" 
+                                    name="icon" 
+                                    value={editingSkill.icon} 
+                                    onChange={handleEditChange} 
+                                    required 
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-white dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                />
                             </div>
-                            <div className="modal-actions">
-                                <button type="button" onClick={() => setIsEditModalOpen(false)} className="button-base button-cancel">Cancel</button>
-                                <button type="submit" disabled={isLoading} className="button-base button-primary">
+                            <div className="flex gap-3 justify-end">
+                                <button 
+                                    type="button" 
+                                    onClick={() => setIsEditModalOpen(false)} 
+                                    className="px-4 py-2 rounded-lg bg-gray-200 text-gray-800 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600 transition-colors"
+                                >
+                                    Cancel
+                                </button>
+                                <button 
+                                    type="submit" 
+                                    disabled={isLoading} 
+                                    className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white transition-colors"
+                                >
                                     {isLoading ? 'Updating...' : 'Update Skill'}
                                 </button>
                             </div>
@@ -333,8 +409,16 @@ const SkillManagement = () => {
                     </div>
                 </div>
             )}
-            <ConfirmationModal show={isDeleting} title="Confirm Deletion" message="Are you sure you want to delete this skill? This action cannot be undone." onConfirm={handleDeleteSkill} onCancel={() => setIsDeleting(false)} />
-        </>
+
+            {/* Delete Confirmation Modal */}
+            <ConfirmationModal 
+                show={isDeleting} 
+                title="Confirm Deletion" 
+                message="Are you sure you want to delete this skill? This action cannot be undone." 
+                onConfirm={handleDeleteSkill} 
+                onCancel={() => setIsDeleting(false)} 
+            />
+        </div>
     );
 };
 
