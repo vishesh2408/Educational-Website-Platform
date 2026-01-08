@@ -2,7 +2,6 @@
 import React, { useState, useEffect } from 'react';
 import { CheckCircle, AlertCircle, X } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext'; // ✅ Import the useAuth hook
-import './SkillManagement.css'; // Import your CSS styles
 
 import {
     PlusCircle, Edit, Trash2, Info // Import necessary Lucide icons
@@ -340,6 +339,7 @@ const SkillManagement = () => {
 };
 
 export default SkillManagement;
+
 
 
 
