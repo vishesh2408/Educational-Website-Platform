@@ -177,7 +177,7 @@ const Footer = () => {
               <h3 className="text-white text-xl font-bold mb-2">Subscribe to Our Newsletter</h3>
               <p className="text-gray-400 text-sm">Get the latest updates, course discounts and learning resources</p>
             </div>
-            <div className="flex gap-2 w-full md:w-auto">
+            <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 w-full md:w-auto">
               <input
                 type="email"
                 placeholder="Enter your email"
@@ -189,11 +189,11 @@ const Footer = () => {
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') submitNewsletter();
                 }}
-                className="bg-white/10 border border-white/20 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#167468] flex-1 md:w-80 transition-all"
+                className="bg-white/10 border border-white/20 rounded-lg px-4 py-2.5 sm:py-3 text-sm sm:text-base text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#167468] w-full sm:flex-1 md:w-80 transition-all"
               />
               <motion.button
                 type="button"
-                className="bg-gradient-to-r from-purple-500 to-[#167468] text-white px-8 py-3 rounded-lg whitespace-nowrap font-bold shadow-lg"
+                className="bg-gradient-to-r from-purple-500 to-[#167468] text-white px-6 sm:px-8 py-2.5 sm:py-3 rounded-lg whitespace-nowrap font-bold shadow-lg text-sm sm:text-base w-full sm:w-auto"
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={submitNewsletter}

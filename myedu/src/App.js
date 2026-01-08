@@ -88,15 +88,10 @@ export default function App() {
         />
 
         {/* User Protected Route */}
-        <Route
-          path="/user/dashboard/*"
-          element={
-            <UserRoute>
-              <UserDashboard />
-            </UserRoute>
-          }>
+        {/* User Dashboard - Now publicly accessible */}
+        <Route path="/user/dashboard/*" element={<UserDashboard />}>
           <Route index element={<HomePage />} />
-          <Route path="profile" element={<Profile />} />
+          <Route path="profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
           <Route path="contests" element={<ContestsPage />} />
           <Route path="forum" element={<ForumPage />} />
           <Route path="courses" element={<CoursesPage />} />
@@ -106,13 +101,10 @@ export default function App() {
         </Route>
 
         {/* User account subscriptions (outside dashboard path for direct link) */}
+        {/* User account subscriptions - Protected */}
         <Route
           path="/user/account/subscriptions"
-          element={
-            <UserRoute>
-              <SubscriptionsPage />
-            </UserRoute>
-          }
+          element={<ProtectedRoute><SubscriptionsPage /></ProtectedRoute>}
         />
 
         {/* Catch-all */}

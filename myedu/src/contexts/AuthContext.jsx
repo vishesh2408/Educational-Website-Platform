@@ -26,7 +26,10 @@ export const AuthProvider = ({ children }) => {
 
   const handleLogout = useCallback(async () => {
     try {
-      await fetch(`${API_BASE_URL}/auth/logout`, { method: 'POST' });
+      await fetch(`${API_BASE_URL}/auth/logout`, {
+        method: 'POST',
+        credentials: 'include', // ensure auth cookie/session is cleared server-side
+      });
     } catch (e) {
       console.error('Logout API call failed, clearing locally:', e);
     }

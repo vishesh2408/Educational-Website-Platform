@@ -60,18 +60,18 @@ const RunningWithErrorsIcon = (props) => (
 // --- End of Icons ---
 
 const PageSection = ({ title, children }) => (
-  <section className="mb-8">
-    <h2 className="text-3xl font-bold text-white mb-4">{title}</h2>
+  <section className="mb-4 sm:mb-6 lg:mb-8">
+    <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-white mb-3 sm:mb-4">{title}</h2>
     {children}
   </section>
 );
 
 const DashboardCard = ({ icon, title, value, color }) => (
-  <div className={`flex items-center p-6 rounded-2xl shadow-lg ${color} text-white`}>
-    <div className="text-4xl mr-4">{icon}</div>
+  <div className={`flex items-center p-4 sm:p-5 lg:p-6 rounded-xl sm:rounded-2xl shadow-lg ${color} text-white`}>
+    <div className="text-2xl sm:text-3xl lg:text-4xl mr-3 sm:mr-4 shrink-0">{icon}</div>
     <div>
-      <h3 className="text-lg font-medium">{title}</h3>
-      <p className="text-3xl font-bold mt-1">{value}</p>
+      <h3 className="text-sm sm:text-base lg:text-lg font-medium">{title}</h3>
+      <p className="text-2xl sm:text-3xl font-bold mt-1">{value}</p>
     </div>
   </div>
 );
@@ -127,8 +127,8 @@ const ProjectForm = ({ project = {}, isNew, onSubmit, onDelete, onCancel }) => {
     };
 
     return (
-        <div className="bg-white/5 border border-white/10 backdrop-blur p-6 rounded-2xl shadow-md mb-4">
-            <h4 className="font-semibold text-lg text-white mb-3">{isNew ? 'Add New Project' : `Edit Project: ${formData.title}`}</h4>
+        <div className="bg-white/5 border border-white/10 backdrop-blur p-4 sm:p-5 lg:p-6 rounded-xl sm:rounded-2xl shadow-md mb-4">
+            <h4 className="font-semibold text-base sm:text-lg text-white mb-3">{isNew ? 'Add New Project' : `Edit Project: ${formData.title}`}</h4>
             <form onSubmit={handleSubmit} className="space-y-3">
               <input type="text" name="title" value={formData.title} onChange={handleChange} placeholder="Title" required className="w-full p-2 rounded bg-white/5 border border-white/10 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#167468]" />
               <textarea name="description" value={formData.description} onChange={handleChange} placeholder="Description" required className="w-full p-2 rounded bg-white/5 border border-white/10 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#167468]"></textarea>
@@ -137,19 +137,19 @@ const ProjectForm = ({ project = {}, isNew, onSubmit, onDelete, onCancel }) => {
                     <option value="Completed">Completed</option>
                     <option value="Stuck">Stuck</option>
                 </select>
-                <div className="flex justify-between items-center">
-                  <div className="flex items-center">
-                    <button type="submit" disabled={isLoading} className="px-4 py-2 bg-gradient-to-r from-purple-500 to-[#167468] text-white rounded hover:opacity-95 disabled:opacity-50">
+                <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3">
+                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                    <button type="submit" disabled={isLoading} className="px-4 py-2 bg-gradient-to-r from-purple-500 to-[#167468] text-white rounded hover:opacity-95 disabled:opacity-50 text-sm sm:text-base w-full sm:w-auto">
                       {isLoading ? 'Saving...' : (isNew ? 'Add Project' : 'Update Project')}
                     </button>
                     {isNew && onCancel && (
-                      <button type="button" onClick={onCancel} disabled={isLoading} className="ml-3 px-3 py-2 bg-white/10 border border-white/10 text-white rounded hover:bg-white/15">
+                      <button type="button" onClick={onCancel} disabled={isLoading} className="px-3 py-2 bg-white/10 border border-white/10 text-white rounded hover:bg-white/15 text-sm sm:text-base w-full sm:w-auto">
                         Cancel
                       </button>
                     )}
                   </div>
                   {!isNew && (
-                    <button type="button" onClick={() => onDelete(project._id)} disabled={isLoading} className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 disabled:opacity-50">
+                    <button type="button" onClick={() => onDelete(project._id)} disabled={isLoading} className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 disabled:opacity-50 text-sm sm:text-base w-full sm:w-auto">
                       Delete
                     </button>
                   )}
@@ -882,13 +882,15 @@ const handleSkillStringChange = (e) => {
   }
 
   if (loading) {
-    return <div className="flex justify-center items-center h-screen bg-slate-950 text-white">
-      <div className="text-xl font-medium text-gray-200">Loading Profile...</div>
+    return <div className="flex justify-center items-center h-screen bg-slate-950 text-white px-4">
+      <div className="text-base sm:text-lg lg:text-xl font-medium text-gray-200 text-center">Loading Profile...</div>
     </div>;
   }
 
   if (error) {
-    return <div className="flex justify-center items-center h-screen bg-slate-950 text-red-400 p-4">Error: {error}. Please try logging in again.</div>;
+    return <div className="flex justify-center items-center h-screen bg-slate-950 text-red-400 p-4 text-center">
+      <div className="text-sm sm:text-base">Error: {error}. Please try logging in again.</div>
+    </div>;
   }
 
 
@@ -901,9 +903,9 @@ const currentProfilePicUrl = profileData.profilePicture
 
   // Helper for rendering skill inputs
   const renderSkillSection = (field, title, description) => (
-      <div key={field} className="mt-4 p-4 border border-white/10 rounded-xl bg-white/5">
-        <div className="flex justify-between items-center mb-2">
-            <h4 className="font-semibold text-white">{title}</h4>
+      <div key={field} className="mt-4 p-3 sm:p-4 border border-white/10 rounded-lg sm:rounded-xl bg-white/5">
+        <div className="flex justify-between items-center mb-2 gap-2">
+            <h4 className="font-semibold text-white text-sm sm:text-base">{title}</h4>
             {/* <h3>{title}</h3> */}
     {/* <ul>
       {profileData[field]?.map((item, i) => (
@@ -911,7 +913,7 @@ const currentProfilePicUrl = profileData.profilePicture
       ))}
     </ul> */}
 
-            <button onClick={() => setEditing(prev => ({ ...prev, [field]: !prev[field] }))} className="text-sm text-teal-300 hover:underline">
+            <button onClick={() => setEditing(prev => ({ ...prev, [field]: !prev[field] }))} className="text-xs sm:text-sm text-teal-300 hover:underline whitespace-nowrap">
                 {editing[field] ? 'Cancel' : 'Edit'}
             </button>
         </div>
@@ -946,7 +948,7 @@ const currentProfilePicUrl = profileData.profilePicture
       placeholder={`Add ${title.toLowerCase().slice(0, -1)}`}
     />
 
-        <button className='mt-2 px-3 py-1 bg-gradient-to-r from-purple-500 to-[#167468] text-white rounded hover:opacity-95 disabled:opacity-50 text-sm' onClick={() => handleAddSkill(field, tempData[field])}>
+        <button className='mt-2 px-3 py-2 bg-gradient-to-r from-purple-500 to-[#167468] text-white rounded hover:opacity-95 disabled:opacity-50 text-xs sm:text-sm w-full sm:w-auto' onClick={() => handleAddSkill(field, tempData[field])}>
       {loading ? 'Saving...' : `Add ${title}`}
     </button>
                     <p className="text-xs mt-3 text-gray-400">{description}</p>
@@ -968,26 +970,26 @@ const currentProfilePicUrl = profileData.profilePicture
   );
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white font-sans p-4 sm:p-8">
+    <div className="min-h-screen bg-slate-950 text-white font-sans px-3 py-4 sm:px-6 sm:py-6 lg:px-8 lg:py-8">
       {/* Toast container (shared) */}
       <Toast toast={toast} onClose={() => setToast(null)} />
-      <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-        <header className="mb-10 text-center">
-          <h1 className="text-5xl font-extrabold text-white">My Dashboard</h1>
-          <p className="mt-2 text-lg text-gray-300">Welcome back, {profileData.username}!</p>
+      <div className="max-w-7xl mx-auto">
+        <header className="mb-6 sm:mb-8 lg:mb-10 text-center px-2">
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white">My Dashboard</h1>
+          <p className="mt-2 text-sm sm:text-base lg:text-lg text-gray-300">Welcome back, {profileData.username}!</p>
         </header>
 
-        <main className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <main className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
           {/* Main Profile Info and Dashboard */}
-          <div className="lg:col-span-2 space-y-8">
+          <div className="lg:col-span-2 space-y-4 sm:space-y-6 lg:space-y-8">
             <PageSection title="My Profile">
-              <div className="flex flex-col md:flex-row items-center bg-white/5 border border-white/10 backdrop-blur p-8 rounded-2xl shadow-lg">
+              <div className="flex flex-col md:flex-row items-center md:items-start bg-white/5 border border-white/10 backdrop-blur p-4 sm:p-6 lg:p-8 rounded-xl sm:rounded-2xl shadow-lg">
                 {/* PROFILE PICTURE SECTION */}
-                <div className="relative mb-4 md:mb-0 md:mr-6">
+                <div className="relative mb-4 md:mb-0 md:mr-6 shrink-0">
                   <img 
                     src={currentProfilePicUrl} 
                     alt="Profile" 
-                    className="w-20 h-20 md:w-24 md:h-24 rounded-full border-4 border-white/10 object-cover" 
+                    className="w-24 h-24 sm:w-28 sm:h-28 md:w-24 md:h-24 lg:w-28 lg:h-28 rounded-full border-4 border-white/10 object-cover" 
                   />
                     <input 
                         type="file" 
@@ -1006,18 +1008,18 @@ const currentProfilePicUrl = profileData.profilePicture
                 </div>
 
                 {/* PROFILE INFO DISPLAY/EDIT */}
-                <div className="text-center md:text-left flex-grow">
-                  <div className="flex flex-wrap items-center md:justify-start justify-center mb-2">
+                <div className="text-center md:text-left flex-grow w-full md:w-auto">
+                  <div className="flex flex-wrap items-center md:justify-start justify-center mb-2 gap-2">
                     {editing.username ? (
                         <input 
                           type="text" 
                           name="username" 
                           value={tempData.username} 
                           onChange={handleTempChange} 
-                          className="text-2xl font-bold text-white border border-white/10 p-1 rounded mr-2 bg-white/5 focus:outline-none focus:ring-2 focus:ring-[#167468]"
+                          className="text-lg sm:text-xl lg:text-2xl font-bold text-white border border-white/10 p-1 sm:p-2 rounded bg-white/5 focus:outline-none focus:ring-2 focus:ring-[#167468] w-full sm:w-auto"
                         />
                     ) : (
-                        <h3 className="text-2xl font-bold text-white mr-2">{profileData.username}</h3>
+                        <h3 className="text-lg sm:text-xl lg:text-2xl font-bold text-white">{profileData.username}</h3>
                     )}
                     
                     <span className="inline-block bg-white/10 border border-white/10 text-white/80 text-xs font-semibold px-2.5 py-0.5 rounded-full">{profileData.role}</span>
@@ -1029,24 +1031,24 @@ const currentProfilePicUrl = profileData.profilePicture
                     )}
                   </div>
 
-                  <p className="text-md text-gray-300 mb-2">{profileData.email}</p>
+                  <p className="text-sm sm:text-base text-gray-300 mb-2 break-all">{profileData.email}</p>
 
                   {/* BIO EDITING */}
                   <div className="mt-3">
-                    <div className="flex items-center justify-center md:justify-start mb-1">
-                      <span className="text-sm font-medium text-gray-200 mr-2">Bio:</span>
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-center md:justify-start mb-1 gap-2">
+                      <span className="text-sm font-medium text-gray-200">Bio:</span>
                         {!editing.bio ? (
-                        <span className="text-gray-200 max-w-xl italic">{profileData.bio || 'No bio set.'}</span>
+                        <span className="text-sm text-gray-200 italic break-words">{profileData.bio || 'No bio set.'}</span>
                         ) : (
                             <textarea 
                                 name="bio" 
                                 value={tempData.bio} 
                                 onChange={handleTempChange} 
-                          className="w-full md:w-96 border border-white/10 bg-white/5 text-white p-1 rounded text-sm focus:outline-none focus:ring-2 focus:ring-[#167468]"
+                          className="w-full border border-white/10 bg-white/5 text-white p-2 rounded text-sm focus:outline-none focus:ring-2 focus:ring-[#167468]"
                                 rows="3"
                             />
                         )}
-                      <button onClick={() => setEditing(prev => ({...prev, bio: !prev.bio}))} className="ml-2 text-xs text-teal-300 hover:underline">
+                      <button onClick={() => setEditing(prev => ({...prev, bio: !prev.bio}))} className="text-xs sm:text-sm text-teal-300 hover:underline whitespace-nowrap">
                             {editing.bio ? 'Cancel' : 'Edit'}
                         </button>
                     </div>
@@ -1057,7 +1059,7 @@ const currentProfilePicUrl = profileData.profilePicture
                         <button 
                             onClick={handleProfileUpdate} 
                             disabled={loading}
-                        className="mt-3 px-4 py-2 bg-gradient-to-r from-purple-500 to-[#167468] text-white rounded hover:opacity-95 disabled:opacity-50 transition-colors"
+                        className="mt-3 px-4 py-2 bg-gradient-to-r from-purple-500 to-[#167468] text-white rounded hover:opacity-95 disabled:opacity-50 transition-colors text-sm sm:text-base w-full sm:w-auto"
                         >
                             {loading ? 'Saving...' : 'Save Edits'}
                         </button>
@@ -1066,7 +1068,7 @@ const currentProfilePicUrl = profileData.profilePicture
                 
                 {/* Picture Removal */}
                 {profileData.profilePicture && (
-                   <button onClick={handleRemovePicture} className="text-teal-300 text-sm hover:underline mt-2 md:ml-4">Remove Picture</button>
+                   <button onClick={handleRemovePicture} className="text-teal-300 text-xs sm:text-sm hover:underline mt-3 md:mt-0 md:ml-4 self-center md:self-start">Remove Picture</button>
                 )}
               </div>
 
@@ -1075,15 +1077,15 @@ const currentProfilePicUrl = profileData.profilePicture
 
 
               {/* SKILLS SECTION */}
-              <div className="mt-6 p-6 bg-white/5 border border-white/10 backdrop-blur rounded-2xl shadow-lg">
-                <h3 className="text-xl font-semibold text-white mb-2">Skills</h3>
+              <div className="mt-4 sm:mt-6 p-4 sm:p-6 bg-white/5 border border-white/10 backdrop-blur rounded-xl sm:rounded-2xl shadow-lg">
+                <h3 className="text-lg sm:text-xl font-semibold text-white mb-2">Skills</h3>
                 {renderSkillSection('technicalSkills', 'Technical Skills', 'List all your technical proficiencies.')}
                 {renderSkillSection('softSkills', 'Soft Skills', 'List all your soft skills.')}
                 {renderSkillSection('skillsToLearn', 'Skills to Learn', 'List all skills you want to acquire.')}
                 {renderSkillSection('extraCurricular', 'Extra Curricular Activities', 'List all activities.')}
                 
                 {/* OTHER FIELD */}
-                <div className="mt-4 p-4 border border-white/10 rounded-xl bg-white/5">
+                <div className="mt-4 p-3 sm:p-4 border border-white/10 rounded-lg sm:rounded-xl bg-white/5">
                     <div className="flex justify-between items-center mb-2">
                         <h4 className="font-semibold text-white">Other Information</h4>
                         <button onClick={() => setEditing(prev => ({ ...prev, other: !prev.other }))} className="text-sm text-teal-300 hover:underline">
@@ -1108,7 +1110,7 @@ const currentProfilePicUrl = profileData.profilePicture
                <button
                         onClick={handleProfileUpdate}
                         disabled={loading}
-                    className="mt-4 px-4 py-2 bg-gradient-to-r from-purple-500 to-[#167468] text-white rounded hover:opacity-95 disabled:opacity-50 transition-colors"
+                    className="mt-4 px-4 py-2 bg-gradient-to-r from-purple-500 to-[#167468] text-white rounded hover:opacity-95 disabled:opacity-50 transition-colors text-sm sm:text-base w-full sm:w-auto"
                     >
                         {loading ? 'Saving...' : 'Save other Information'}
                     </button>
@@ -1124,7 +1126,7 @@ const currentProfilePicUrl = profileData.profilePicture
             </PageSection>
 
             {/* Dashboard Cards (Mocked Data) */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6">
                   <DashboardCard icon={<BookOpenIcon />} title="Enrolled Courses" value={courses.enrolled.length} color="bg-teal-500" />
                   <DashboardCard icon={<TrophyIcon />} title="Certifications" value={certifications.length} color="bg-green-500" />
                   <DashboardCard icon={<CodeIcon />} title="Projects" value={profileData.projects.length} color="bg-blue-500" />
@@ -1132,7 +1134,7 @@ const currentProfilePicUrl = profileData.profilePicture
 
             {/* Courses Section (Mocked Data) */}
             <PageSection title="My Courses">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
                 <div>
                   <h3 className="text-xl font-semibold mb-3 text-white">Currently Pursuing</h3>
                   <div className="space-y-4">
@@ -1161,7 +1163,7 @@ const currentProfilePicUrl = profileData.profilePicture
               <div className="mb-4">
                 {!showNewProjectForm ? (
                   <button
-                    className="px-4 py-2 bg-gradient-to-r from-purple-500 to-[#167468] text-white rounded hover:opacity-95"
+                    className="px-4 py-2 bg-gradient-to-r from-purple-500 to-[#167468] text-white rounded hover:opacity-95 text-sm sm:text-base w-full sm:w-auto"
                     onClick={() => setShowNewProjectForm(true)}
                   >
                     Add New Project
@@ -1201,8 +1203,8 @@ const currentProfilePicUrl = profileData.profilePicture
 
               {/* Non-blocking delete confirmation modal */}
               {deleteConfirmId && (
-                <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-30 z-50">
-                  <div className="bg-slate-950 border border-white/10 rounded-2xl p-6 shadow-lg w-full max-w-md">
+                <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-30 z-50 px-4">
+                  <div className="bg-slate-950 border border-white/10 rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-lg w-full max-w-md">
                     <h3 className="text-lg font-semibold mb-3 text-white">Confirm Delete</h3>
                     <p className="text-sm text-gray-300 mb-4">Are you sure you want to delete this project? This action cannot be undone.</p>
                     <div className="flex justify-end gap-3">
@@ -1244,10 +1246,10 @@ const currentProfilePicUrl = profileData.profilePicture
           </div>
 
           {/* Sidebar Section (Kept as is, Mocked Data) */}
-          <div className="lg:col-span-1 space-y-8">
+          <div className="lg:col-span-1 space-y-4 sm:space-y-6 lg:space-y-8">
             {/* User Activity (Mocked) */}
             <PageSection title="My Activity">
-              <div className="bg-white/5 border border-white/10 backdrop-blur p-6 rounded-2xl shadow-lg space-y-4">
+              <div className="bg-white/5 border border-white/10 backdrop-blur p-4 sm:p-5 lg:p-6 rounded-xl sm:rounded-2xl shadow-lg space-y-3 sm:space-y-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center">
                     <BookOpenIcon className="text-xl text-teal-500 mr-3" />
@@ -1283,7 +1285,7 @@ const currentProfilePicUrl = profileData.profilePicture
 
             {/* Notifications (Mocked) */}
             <PageSection title="Notifications">
-              <div className="bg-white/5 border border-white/10 backdrop-blur p-6 rounded-2xl shadow-lg">
+              <div className="bg-white/5 border border-white/10 backdrop-blur p-4 sm:p-5 lg:p-6 rounded-xl sm:rounded-2xl shadow-lg">
                 {notifications.length > 0 ? (
                   notifications.map(notification => <NotificationItem key={notification.id} notification={notification} />)
                 ) : (
@@ -1297,7 +1299,7 @@ const currentProfilePicUrl = profileData.profilePicture
 
             {/* Social & Community (Mocked) */}
             <PageSection title="Community">
-              <div className="bg-white/5 border border-white/10 backdrop-blur p-6 rounded-2xl shadow-lg space-y-4">
+              <div className="bg-white/5 border border-white/10 backdrop-blur p-4 sm:p-5 lg:p-6 rounded-xl sm:rounded-2xl shadow-lg space-y-4">
                 <div className="flex justify-around text-center">
                   <div>
                     <h3 className="text-3xl font-bold text-teal-300">{profileData.social?.followers || 0}</h3>
@@ -1327,20 +1329,20 @@ const currentProfilePicUrl = profileData.profilePicture
                 <hr className="border-white/10" />
                   {/* Incoming Friend Requests */}
                   <div className="mb-4">
-                    <h4 className="text-lg font-semibold text-white mb-3">Incoming Requests</h4>
+                    <h4 className="text-base sm:text-lg font-semibold text-white mb-3">Incoming Requests</h4>
                     {friendRequests.received.length > 0 ? (
                       friendRequests.received.map(u => (
-                        <div key={u._id} className="flex items-center justify-between p-3 border border-white/10 rounded-xl mb-2 bg-white/5">
+                        <div key={u._id} className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between p-3 border border-white/10 rounded-lg sm:rounded-xl mb-2 bg-white/5 gap-3">
                           <div className="flex items-center">
-                            <img src={normalizeImageSrc(u.profilePicture || '')} className="w-8 h-8 rounded-full mr-3" alt={u.username} />
-                            <div>
-                              <div className="font-medium text-white">{u.username}</div>
+                            <img src={normalizeImageSrc(u.profilePicture || '')} className="w-10 h-10 sm:w-8 sm:h-8 rounded-full mr-3 shrink-0" alt={u.username} />
+                            <div className="min-w-0">
+                              <div className="font-medium text-white text-sm sm:text-base truncate">{u.username}</div>
                               <div className="text-xs text-gray-500 dark:text-gray-400">{u.role}</div>
                             </div>
                           </div>
-                          <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-2 space-y-2 sm:space-y-0 w-full">
-                            <button onClick={() => handleAcceptRequest(u._id)} className="w-full sm:w-auto px-3 py-1 bg-gradient-to-r from-purple-500 to-[#167468] text-white rounded">Accept</button>
-                            <button onClick={() => handleDeclineRequest(u._id)} className="w-full sm:w-auto px-3 py-1 bg-white/10 border border-white/10 text-white rounded hover:bg-white/15">Decline</button>
+                          <div className="flex flex-row sm:flex-row items-center space-x-2 w-full sm:w-auto">
+                            <button onClick={() => handleAcceptRequest(u._id)} className="flex-1 sm:flex-none px-3 py-2 bg-gradient-to-r from-purple-500 to-[#167468] text-white rounded text-xs sm:text-sm">Accept</button>
+                            <button onClick={() => handleDeclineRequest(u._id)} className="flex-1 sm:flex-none px-3 py-2 bg-white/10 border border-white/10 text-white rounded hover:bg-white/15 text-xs sm:text-sm">Decline</button>
                           </div>
                         </div>
                       ))
@@ -1350,19 +1352,19 @@ const currentProfilePicUrl = profileData.profilePicture
                   </div>
                   {/* Outgoing (Sent) Friend Requests */}
                   <div className="mb-4">
-                    <h4 className="text-lg font-semibold text-white mb-3">Sent Requests</h4>
+                    <h4 className="text-base sm:text-lg font-semibold text-white mb-3">Sent Requests</h4>
                     {friendRequests.sent.length > 0 ? (
                       friendRequests.sent.map(u => (
-                        <div key={u._id} className="flex items-center justify-between p-3 border border-white/10 rounded-xl mb-2 bg-white/5">
+                        <div key={u._id} className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between p-3 border border-white/10 rounded-lg sm:rounded-xl mb-2 bg-white/5 gap-3">
                           <div className="flex items-center">
-                            <img src={normalizeImageSrc(u.profilePicture || '')} className="w-8 h-8 rounded-full mr-3" alt={u.username} />
-                            <div>
-                              <div className="font-medium text-white">{u.username}</div>
+                            <img src={normalizeImageSrc(u.profilePicture || '')} className="w-10 h-10 sm:w-8 sm:h-8 rounded-full mr-3 shrink-0" alt={u.username} />
+                            <div className="min-w-0">
+                              <div className="font-medium text-white text-sm sm:text-base truncate">{u.username}</div>
                               <div className="text-xs text-gray-500 dark:text-gray-400">{u.role}</div>
                             </div>
                           </div>
                           <div className="w-full sm:w-auto">
-                            <button onClick={() => handleDeclineRequest(u._id)} className="w-full sm:w-auto px-3 py-1 bg-red-500 text-white rounded">Cancel</button>
+                            <button onClick={() => handleDeclineRequest(u._id)} className="w-full sm:w-auto px-3 py-2 bg-red-500 text-white rounded text-xs sm:text-sm">Cancel</button>
                           </div>
                         </div>
                       ))
@@ -1372,8 +1374,8 @@ const currentProfilePicUrl = profileData.profilePicture
                   </div>
                   {/* Friend Connection Section (Kept as is) */}
                 <div>
-                  <h4 className="text-lg font-semibold text-white mb-3">Find and Connect</h4>
-                  <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-2 space-y-2 sm:space-y-0">
+                  <h4 className="text-base sm:text-lg font-semibold text-white mb-3">Find and Connect</h4>
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-2">
                     <input
                       type="text"
                       value={friendInput}
@@ -1398,11 +1400,11 @@ const currentProfilePicUrl = profileData.profilePicture
                         }
                       }}
                       placeholder="Enter username to add"
-                      className="flex-1 px-4 py-2 border border-white/10 rounded-full bg-white/5 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#167468] transition-shadow"
+                      className="flex-1 px-4 py-2 sm:py-3 border border-white/10 rounded-full bg-white/5 text-white text-sm sm:text-base placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#167468] transition-shadow"
                     />
                     <button
                       onClick={handleAddFriend}
-                      className="w-full sm:w-auto bg-gradient-to-r from-purple-500 to-[#167468] text-white p-2 rounded-full shadow-lg hover:opacity-95 transition-colors duration-200"
+                      className="w-full sm:w-auto bg-gradient-to-r from-purple-500 to-[#167468] text-white p-2 sm:p-3 rounded-full shadow-lg hover:opacity-95 transition-colors duration-200 shrink-0"
                     >
                       <UserPlusIcon />
                     </button>
@@ -1411,7 +1413,7 @@ const currentProfilePicUrl = profileData.profilePicture
                     <div className="relative mt-2">
                       {searching && <div className="text-sm text-gray-500 dark:text-gray-400">Searching...</div>}
                       {!searching && filteredUsers.length > 0 && (
-                        <div className="absolute z-20 w-full bg-slate-950 border border-white/10 rounded-xl shadow-lg max-h-56 overflow-auto">
+                        <div className="absolute z-20 w-full bg-slate-950 border border-white/10 rounded-lg sm:rounded-xl shadow-lg max-h-48 sm:max-h-56 overflow-auto">
                           {filteredUsers.map((u, idxMap) => {
                             const uname = u.username || '';
                             const q = friendInput.trim();
@@ -1421,7 +1423,7 @@ const currentProfilePicUrl = profileData.profilePicture
                             const isFriend = (profileData.social?.friends || []).some(f => String(f) === String(u._id) || String(f._id) === String(u._id));
                             const isFollowing = (profileData.social?.followingList || []).some(f => String(f) === String(u._id));
                               return (
-                              <div key={u._id} className={`w-full text-left px-3 py-2 flex items-center ${isHighlighted ? 'bg-white/10' : 'hover:bg-white/10'}`}>
+                              <div key={u._id} className={`w-full text-left px-3 py-2 flex flex-col sm:flex-row items-stretch sm:items-center gap-2 ${isHighlighted ? 'bg-white/10' : 'hover:bg-white/10'}`}>
                                 <button
                                   onClick={() => handleSelectSuggestion(u)}
                                   className="flex-1 text-left flex items-center"
