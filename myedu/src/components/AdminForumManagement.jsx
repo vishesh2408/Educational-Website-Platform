@@ -189,7 +189,7 @@ const AdminForumManagement = () => {
     };
 
     return (
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg">
+        <div className="bg-white p-6 rounded-xl shadow-lg">
             <Toast toast={toast} onClose={() => setToast(null)} />
             <h2 className="text-2xl font-semibold mb-4">Forum Premium Management</h2>
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

@@ -17,25 +17,25 @@ const API_BASE_URL = `${BASE_URL}/api`;
 const MessageBox = ({ type, text }) => {
     if (!text) return null;
     let Icon;
-    let baseClasses = 'flex items-center gap-2 p-4 rounded-lg mb-4 border';
+    let baseClasses = 'flex items-start gap-3 p-4 rounded-xl mb-4 border shadow-sm text-sm font-medium';
     let colorClasses = '';
     
     switch (type) {
-        case 'info': 
-            Icon = Info; 
-            colorClasses = 'bg-blue-50 border-blue-300 text-blue-700 dark:bg-blue-900/20 dark:border-blue-700 dark:text-blue-300'; 
+        case 'info':
+            Icon = Info;
+            colorClasses = 'bg-sky-50 border-sky-200 text-sky-800 dark:bg-sky-900/30 dark:border-sky-700/80 dark:text-sky-100';
             break;
-        case 'success': 
-            Icon = CheckCircle; 
-            colorClasses = 'bg-green-50 border-green-300 text-green-700 dark:bg-green-900/20 dark:border-green-700 dark:text-green-300'; 
+        case 'success':
+            Icon = CheckCircle;
+            colorClasses = 'bg-emerald-50 border-emerald-200 text-emerald-800 dark:bg-emerald-900/30 dark:border-emerald-700/80 dark:text-emerald-100';
             break;
-        case 'error': 
-            Icon = AlertCircle; 
-            colorClasses = 'bg-red-50 border-red-300 text-red-700 dark:bg-red-900/20 dark:border-red-700 dark:text-red-300'; 
+        case 'error':
+            Icon = AlertCircle;
+            colorClasses = 'bg-rose-50 border-rose-200 text-rose-800 dark:bg-rose-900/30 dark:border-rose-700/80 dark:text-rose-100';
             break;
-        default: 
-            Icon = Info; 
-            colorClasses = 'bg-blue-50 border-blue-300 text-blue-700 dark:bg-blue-900/20 dark:border-blue-700 dark:text-blue-300';
+        default:
+            Icon = Info;
+            colorClasses = 'bg-sky-50 border-sky-200 text-sky-800 dark:bg-sky-900/30 dark:border-sky-700/80 dark:text-sky-100';
     }
     return (
         <div className={`${baseClasses} ${colorClasses}`}>
@@ -50,19 +50,19 @@ const ConfirmationModal = ({ show, title, message, onConfirm, onCancel, confirmT
     if (!show) return null;
     return (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-            <div className="bg-white dark:bg-slate-800 rounded-lg shadow-xl max-w-sm w-full mx-4">
-                <div className="flex items-center justify-between border-b border-gray-200 dark:border-gray-700 p-6">
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{title}</h3>
-                    <button onClick={onCancel} className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300">
+            <div className="bg-white dark:bg-white rounded-lg shadow-xl max-w-sm w-full mx-4">
+                <div className="flex items-center justify-between border-b border-gray-200 dark:border-gray-200 p-6">
+                    <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
+                    <button onClick={onCancel} className="text-gray-500 hover:text-gray-700">
                         <X size={24} />
                     </button>
                 </div>
-                <p className="p-6 text-gray-700 dark:text-gray-300">{message}</p>
-                <div className="flex gap-3 p-6 border-t border-gray-200 dark:border-gray-700 justify-end">
-                    <button onClick={onCancel} className="px-4 py-2 rounded-lg bg-gray-200 text-gray-800 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600 transition-colors">
+                <p className="p-6 text-gray-700">{message}</p>
+                <div className="flex gap-3 p-6 border-t border-gray-200 dark:border-gray-200 justify-end">
+                    <button onClick={onCancel} className="px-4 py-2 rounded-lg bg-gray-200 text-gray-800 hover:bg-gray-300 transition-colors">
                         {cancelText}
                     </button>
-                    <button onClick={onConfirm} className={`px-4 py-2 rounded-lg text-white transition-colors ${confirmButtonClass === 'button-danger' ? 'bg-red-600 hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-800' : 'bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800'}`}>
+                    <button onClick={onConfirm} className={`px-4 py-2 rounded-lg text-white transition-colors ${confirmButtonClass === 'button-danger' ? 'bg-red-600 hover:bg-red-700' : 'bg-teal-600 hover:bg-teal-700'}`}>
                         {confirmText}
                     </button>
                 </div>
@@ -258,16 +258,16 @@ const SkillManagement = () => {
     };
 
     return (
-        <div className="p-6">
+        <div className="p-6 max-w-5xl mx-auto space-y-6">
             <MessageBox type={formMessage.type} text={formMessage.text} />
             
             {/* Add New Skill Section */}
             <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
                 <PlusCircle size={24} className="text-blue-600 dark:text-blue-400" /> Add New Skill
             </h3>
-            <form onSubmit={handleAddSkill} className="bg-white dark:bg-slate-800 rounded-lg shadow-md p-6 mb-8 border border-gray-200 dark:border-gray-700">
+            <form onSubmit={handleAddSkill} className="bg-white dark:bg-white rounded-lg shadow-md p-6 mb-8 border border-gray-200 dark:border-gray-200">
                 <div className="mb-4">
-                    <label htmlFor="newSkillTitle" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Title</label>
+                    <label htmlFor="newSkillTitle" className="block text-sm font-semibold text-slate-700 mb-2">Title</label>
                     <input 
                         type="text" 
                         id="newSkillTitle" 
@@ -275,11 +275,11 @@ const SkillManagement = () => {
                         value={newSkill.title} 
                         onChange={(e) => setNewSkill({ ...newSkill, title: e.target.value })} 
                         required 
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-white dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full px-4 py-2 border border-gray-300 dark:border-gray-200 rounded-lg bg-white dark:bg-white text-gray-900 dark:text-gray-900 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
                     />
                 </div>
                 <div className="mb-4">
-                    <label htmlFor="newSkillIcon" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Icon (e.g., URL to image or icon font class)</label>
+                    <label htmlFor="newSkillIcon" className="block text-sm font-semibold text-slate-700 mb-2">Icon (e.g., URL to image or icon font class)</label>
                     <input 
                         type="text" 
                         id="newSkillIcon" 
@@ -288,13 +288,13 @@ const SkillManagement = () => {
                         onChange={(e) => setNewSkill({ ...newSkill, icon: e.target.value })} 
                         required 
                         placeholder="e.g., https://img.icons8.com/..., fab fa-js"
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-white dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full px-4 py-2 border border-gray-300 dark:border-gray-200 rounded-lg bg-white dark:bg-white text-gray-900 dark:text-gray-900 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
                     />
                 </div>
                 <button 
                     type="submit" 
                     disabled={isLoading} 
-                    className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-semibold py-2 px-4 rounded-lg transition-colors flex items-center justify-center gap-2"
+                    className="w-full bg-teal-600 hover:bg-teal-700 disabled:bg-gray-400 text-white font-semibold py-2 px-4 rounded-lg transition-colors flex items-center justify-center gap-2"
                 >
                     {isLoading ? 'Adding...' : <><PlusCircle size={20} /> Add Skill</>}
                 </button>
@@ -302,29 +302,29 @@ const SkillManagement = () => {
 
             {/* Existing Skills Section */}
             <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-                <Info size={24} className="text-green-600 dark:text-green-400" /> Existing Skills
+                <Info size={24} className="text-teal-600" /> Existing Skills
             </h3>
             {isLoading ? (
                 <p className="text-center text-gray-500 dark:text-gray-400">Loading skills...</p>
             ) : skills.length === 0 ? (
-                <div className="flex items-center gap-2 p-4 rounded-lg bg-blue-50 border border-blue-300 text-blue-700 dark:bg-blue-900/20 dark:border-blue-700 dark:text-blue-300">
+                <div className="flex items-start gap-3 p-4 rounded-xl border shadow-sm bg-sky-50 border-sky-200 text-sky-800 dark:bg-sky-900/30 dark:border-sky-700/80 dark:text-sky-100">
                     <Info size={20} />
                     No skills found. Add a new skill above!
                 </div>
             ) : (
-                <div className="overflow-x-auto bg-white dark:bg-slate-800 rounded-lg shadow-md border border-gray-200 dark:border-gray-700">
+                <div className="overflow-x-auto bg-white dark:bg-white rounded-lg shadow-md border border-gray-200 dark:border-gray-200">
                     <table className="w-full">
-                        <thead className="bg-gray-100 dark:bg-slate-700 border-b border-gray-200 dark:border-gray-600">
+                        <thead className="bg-gray-50 border-b border-gray-200">
                             <tr>
-                                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900 dark:text-white">Title</th>
-                                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900 dark:text-white">Icon</th>
-                                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900 dark:text-white">Actions</th>
+                                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Title</th>
+                                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Icon</th>
+                                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
                             {skills.map((skill) => (
-                                <tr key={skill._id} className="border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors">
-                                    <td className="px-6 py-4 text-gray-900 dark:text-white">{skill.title}</td>
+                                <tr key={skill._id} className="border-b border-gray-200 dark:border-gray-200 hover:bg-gray-50 transition-colors">
+                                    <td className="px-6 py-4 text-gray-900">{skill.title}</td>
                                     <td className="px-6 py-4">
                                         {skill.icon.startsWith('http') ?
                                             <img src={skill.icon} alt={skill.title} className="w-8 h-8 object-contain" onError={(e) => e.target.style.display = 'none'} /> :
@@ -357,16 +357,16 @@ const SkillManagement = () => {
             {/* Edit Modal */}
             {isEditModalOpen && editingSkill && (
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-                    <div className="bg-white dark:bg-slate-800 rounded-lg shadow-xl max-w-md w-full mx-4">
-                        <div className="flex items-center justify-between border-b border-gray-200 dark:border-gray-700 p-6">
-                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Edit Skill</h3>
-                            <button onClick={() => setIsEditModalOpen(false)} className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300">
+                    <div className="bg-white dark:bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
+                        <div className="flex items-center justify-between border-b border-gray-200 dark:border-gray-200 p-6">
+                            <h3 className="text-lg font-semibold text-gray-900">Edit Skill</h3>
+                            <button onClick={() => setIsEditModalOpen(false)} className="text-gray-500 hover:text-gray-700">
                                 <X size={24} />
                             </button>
                         </div>
                         <form onSubmit={handleUpdateSkill} className="p-6">
                             <div className="mb-4">
-                                <label htmlFor="editSkillTitle" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Title</label>
+                                <label htmlFor="editSkillTitle" className="block text-sm font-medium text-gray-700 mb-2">Title</label>
                                 <input 
                                     type="text" 
                                     id="editSkillTitle" 
@@ -374,11 +374,11 @@ const SkillManagement = () => {
                                     value={editingSkill.title} 
                                     onChange={handleEditChange} 
                                     required 
-                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-white dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 />
                             </div>
                             <div className="mb-6">
-                                <label htmlFor="editSkillIcon" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Icon</label>
+                                <label htmlFor="editSkillIcon" className="block text-sm font-medium text-gray-700 mb-2">Icon</label>
                                 <input 
                                     type="text" 
                                     id="editSkillIcon" 
@@ -386,21 +386,21 @@ const SkillManagement = () => {
                                     value={editingSkill.icon} 
                                     onChange={handleEditChange} 
                                     required 
-                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-white dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 />
                             </div>
                             <div className="flex gap-3 justify-end">
                                 <button 
                                     type="button" 
                                     onClick={() => setIsEditModalOpen(false)} 
-                                    className="px-4 py-2 rounded-lg bg-gray-200 text-gray-800 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600 transition-colors"
+                                    className="px-4 py-2 rounded-lg bg-gray-200 text-gray-800 hover:bg-gray-300 transition-colors"
                                 >
                                     Cancel
                                 </button>
                                 <button 
                                     type="submit" 
                                     disabled={isLoading} 
-                                    className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white transition-colors"
+                                    className="px-4 py-2 rounded-lg bg-teal-600 hover:bg-teal-700 disabled:bg-gray-400 text-white transition-colors"
                                 >
                                     {isLoading ? 'Updating...' : 'Update Skill'}
                                 </button>
