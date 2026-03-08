@@ -7,7 +7,7 @@ export const ProtectedRoute = ({ children }) => {
   const { currentUser, isLoadingUser } = useAuth();
 
   if (isLoadingUser) {
-    return <div className="text-center mt-10 text-lg">Checking authentication...</div>;
+    return null;
   }
 
   if (!currentUser) {
@@ -22,7 +22,7 @@ export const AdminRoute = ({ children }) => {
   const { currentUser, isLoadingUser } = useAuth();
 
   if (isLoadingUser) {
-    return <div className="text-center mt-10 text-lg">Checking authentication...</div>;
+    return null;
   }
 
   if (!currentUser) {
@@ -42,7 +42,7 @@ export const UserRoute = ({ children }) => {
   const { currentUser, isLoadingUser } = useAuth();
 
   if (isLoadingUser) {
-    return <div className="text-center mt-10 text-lg">Checking authentication...</div>;
+    return null;
   }
 
   if (!currentUser) {

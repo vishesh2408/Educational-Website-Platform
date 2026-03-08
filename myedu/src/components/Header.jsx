@@ -13,6 +13,7 @@ import {
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { useMenu } from '../contexts/MenuContext';
+import LearnBentIcon from '../contexts/LearnBentIcon';
 // Assuming Header.css is now empty or renamed since we're using Tailwind
 // import './Header.css'; 
 
@@ -63,8 +64,8 @@ const Header = () => {
   };
 
   const NavLink = ({ to, children }) => (
-    <Link 
-      to={to} 
+    <Link
+      to={to}
       className="flex items-center gap-2 py-2 px-3 text-sm font-medium text-gray-300 hover:text-white transition-colors relative group"
       onClick={handleMobileClick}
     >
@@ -74,8 +75,8 @@ const Header = () => {
   );
 
   const MobileNavLink = ({ to, children }) => (
-    <Link 
-      to={to} 
+    <Link
+      to={to}
       className="flex items-center gap-3 w-full py-2 px-4 text-base font-medium rounded-md text-gray-200 hover:bg-white/10 transition duration-200"
       onClick={handleMobileClick}
     >
@@ -94,18 +95,15 @@ const Header = () => {
   return (
     <motion.header
       initial={false}
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 bg-slate-950 backdrop-blur-lg ${
-        isScrolled ? 'shadow-lg border-b border-white/5' : ''
-      }`}
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 bg-slate-950 backdrop-blur-lg ${isScrolled ? 'shadow-lg border-b border-white/5' : ''
+        }`}
     >
       <nav className="flex h-16 items-center justify-between w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 gap-4">
-        
+
         {/* Logo and Desktop Nav */}
         <div className="flex items-center gap-6">
           <Link to="/user/dashboard" className="flex items-center gap-2 cursor-pointer" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
-            <div className="bg-gradient-to-br from-purple-500 to-[#167468] p-2 rounded-lg">
-              <GraduationCap className="w-5 h-5 text-white" />
-            </div>
+            <LearnBentIcon size={32} />
             <span className="text-white font-bold text-xl whitespace-nowrap">LearnBent</span>
           </Link>
 
@@ -125,7 +123,7 @@ const Header = () => {
 
         {/* Desktop Actions (Search, Theme, Account/Auth) */}
         <div className="hidden items-center gap-3 lg:flex">
-          
+
           {/* Search Bar (More rounded, cleaner focus state) */}
           <div className="relative">
             <input
@@ -140,8 +138,8 @@ const Header = () => {
           </div>
 
           {/* Theme Toggle Button (Modernized hover) */}
-          <button 
-            onClick={toggleTheme} 
+          <button
+            onClick={toggleTheme}
             className="p-2 rounded-full text-white transition duration-200 hover:bg-white/10"
             title="Toggle Theme"
           >
@@ -151,15 +149,15 @@ const Header = () => {
           {/* Account/Auth Section */}
           {currentUser ? (
             <div className="relative" ref={accountRef}>
-              <button 
-                onClick={() => setIsAccountMenuOpen(!isAccountMenuOpen)} 
+              <button
+                onClick={() => setIsAccountMenuOpen(!isAccountMenuOpen)}
                 className="flex items-center gap-2 p-2 rounded-full text-white transition duration-200 hover:bg-white/10"
               >
                 <User size={20} />
                 <span className="text-sm font-semibold whitespace-nowrap">{currentUser.username.split(' ')[0]}</span>
                 <ChevronDown size={16} className={`ml-1 transition-transform ${isAccountMenuOpen ? 'rotate-180' : 'rotate-0'}`} />
               </button>
-              
+
               {/* Account Dropdown Menu (Improved shadow, cleaner item styles) */}
               {isAccountMenuOpen && (
                 <div className="absolute right-0 mt-2 w-52 bg-slate-950/95 rounded-xl shadow-2xl py-1 z-50 border border-white/10 backdrop-blur">
@@ -178,15 +176,17 @@ const Header = () => {
             </Link>
           )}
 
-          <motion.button
-            type="button"
-            className="bg-gradient-to-r from-purple-500 to-[#167468] text-white px-5 py-2 rounded-lg hover:shadow-lg hover:shadow-[#167468]/40 transition-all font-medium whitespace-nowrap shrink-0"
-            whileHover={{ scale: 1.03 }}
-            whileTap={{ scale: 0.98 }}
-            onClick={handleGetStarted}
-          >
-            Get Started
-          </motion.button>
+          {!currentUser && (
+            <motion.button
+              type="button"
+              className="bg-gradient-to-r from-purple-500 to-[#167468] text-white px-5 py-2 rounded-lg hover:shadow-lg hover:shadow-[#167468]/40 transition-all font-medium whitespace-nowrap shrink-0"
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={handleGetStarted}
+            >
+              Get Started
+            </motion.button>
+          )}
         </div>
 
         {/* Mobile Menu Toggle (Visible on large screens and down) */}
@@ -241,13 +241,15 @@ const Header = () => {
             </div>
 
             <div className="py-4 px-4">
-              <button
-                type="button"
-                onClick={() => { handleGetStarted(); handleMobileClick(); }}
-                className="w-full bg-gradient-to-r from-purple-500 to-[#167468] text-white px-6 py-3 rounded-lg font-medium"
-              >
-                Get Started
-              </button>
+              {!currentUser && (
+                <button
+                  type="button"
+                  onClick={() => { handleGetStarted(); handleMobileClick(); }}
+                  className="w-full bg-gradient-to-r from-purple-500 to-[#167468] text-white px-6 py-3 rounded-lg font-medium mb-4"
+                >
+                  Get Started
+                </button>
+              )}
 
               {currentUser ? (
                 <>

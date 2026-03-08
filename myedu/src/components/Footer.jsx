@@ -52,6 +52,7 @@
 import React, { useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
 import { MapPin } from 'lucide-react';
+import LearnBentIcon from '../contexts/LearnBentIcon';
 
 const BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:3001';
 const API_BASE_URL = `${BASE_URL}/api`;
@@ -114,6 +115,7 @@ const Footer = () => {
           {/* Brand (logo/motto/location stay the same) */}
           <div className="lg:col-span-2">
             <motion.div className="flex items-center gap-2 mb-6" whileHover={{ scale: 1.03 }}>
+              <LearnBentIcon size={32} />
               <span className="text-white font-bold text-xl">LearnBent</span>
             </motion.div>
 
@@ -206,13 +208,12 @@ const Footer = () => {
 
           {newsletterStatus.state !== 'idle' && (
             <p
-              className={`mt-3 text-sm ${
-                newsletterStatus.state === 'success'
+              className={`mt-3 text-sm ${newsletterStatus.state === 'success'
                   ? 'text-emerald-300'
                   : newsletterStatus.state === 'error'
                     ? 'text-red-300'
                     : 'text-gray-400'
-              }`}
+                }`}
             >
               {newsletterStatus.message}
             </p>

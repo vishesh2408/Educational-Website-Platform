@@ -9,6 +9,8 @@ const jwt = require('jsonwebtoken');
 const rateLimit = require('express-rate-limit'); // NEW: For brute-force protection
 const { body, validationResult } = require('express-validator');
 const cookieParser = require('cookie-parser');
+const { OAuth2Client } = require('google-auth-library');
+const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 // const { loginLimiter } = require('../middleware/rateLimiters'); // NEW: Rate limiter middleware
 
 // Brute Force Protection for Login
@@ -158,6 +160,59 @@ router.post('/login',
         console.error(err.message);
         // NEW: Better production error handling
         res.status(500).send('Server error');
+    }
+});
+
+// Google Login/Signup
+router.post('/google', async (req, res) => {
+    const { credential } = req.body;
+    try {
+        const ticket = await client.verifyIdToken({
+            idToken: credential,
+            audience: process.env.GOOGLE_CLIENT_ID,
+        });
+        const payload = ticket.getPayload();
+        const { sub: googleId, email, name, picture } = payload;
+
+        let user = await User.findOne({ 
+            $or: [
+                { googleId: googleId },
+                { email: email }
+            ]
+        });
+
+        if (user) {
+            // Update googleId if user was previously a local user
+            if (!user.googleId) {
+                user.googleId = googleId;
+                await user.save();
+            }
+        } else {
+            // Generate a unique username
+            let baseUsername = name.replace(/\s+/g, '').toLowerCase();
+            let username = baseUsername;
+            let counter = 1;
+            while (await User.findOne({ username })) {
+                username = `${baseUsername}${Math.floor(Math.random() * 10000)}` || `${baseUsername}${counter++}`;
+            }
+
+            user = new User({
+                username,
+                email,
+                googleId,
+                profilePicture: picture,
+                role: 'user'
+            });
+            await user.save();
+        }
+
+        const authPayload = { user: { id: user.id, username: user.username, email: user.email, role: user.role } };
+        setAuthCookie(res, authPayload);
+
+        res.status(200).json({ msg: 'Google login successful', user: authPayload.user });
+    } catch (err) {
+        console.error('[AUTH] Google auth error:', err.message);
+        res.status(401).json({ msg: 'Google authentication failed' });
     }
 });
 

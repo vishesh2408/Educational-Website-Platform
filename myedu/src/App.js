@@ -2,8 +2,8 @@
 
 import React, { useState, useEffect, Suspense, lazy } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
-import { GraduationCap } from 'lucide-react';
-const HomePage = lazy(() => import('./components/HomePage'));
+import LearnBentIcon from './contexts/LearnBentIcon';
+import HomePage from './components/HomePage';
 const ContestsPage = lazy(() => import('./components/ContestsPage'));
 const ForumPage = lazy(() => import('./components/ForumPage'));
 const QuizzesPage = lazy(() => import('./components/QuizzesPage'));
@@ -11,10 +11,10 @@ const CoursesPage = lazy(() => import('./components/CoursesPage'));
 const CourseDetail = lazy(() => import('./components/CourseDetail'));
 const TopicView = lazy(() => import('./components/TopicView'));
 const AdminDashboard = lazy(() => import('./components/AdminDashboard'));
-const AuthPage = lazy(() => import('./components/AuthPage'));
+import AuthPage from './components/AuthPage';
 const Profile = lazy(() => import('./components/Profile'));
 const PageSection = lazy(() => import('./components/PageSection'));
-const UserDashboard = lazy(() => import('./components/UserDashboard'));
+import UserDashboard from './components/UserDashboard';
 import { useAuth } from './contexts/AuthContext';
 import { useTheme } from './contexts/ThemeContext';
 import { ProtectedRoute, AdminRoute, UserRoute } from './components/ProtectedRoute';
@@ -25,13 +25,11 @@ const SubscriptionsPage = lazy(() => import('./components/SubscriptionsPage'));
 
 function FullScreenLoader() {
   return (
-    <div className="min-h-screen w-full bg-slate-950 flex flex-col items-center justify-center px-6">
+    <div className="fixed inset-0 z-[9999] backdrop-blur-md flex flex-col items-center justify-center px-6">
       <div className="flex flex-col items-center justify-center">
         {/* Logo (same style as navbar) */}
         <div className="flex items-center gap-3 mb-8">
-          <div className="bg-gradient-to-br from-purple-500 to-[#167468] p-4 rounded-xl">
-            <GraduationCap className="w-8 h-8 text-white" />
-          </div>
+          <LearnBentIcon size={64} className="drop-shadow-[0_0_20px_rgba(168,85,247,0.4)]" />
           <span className="text-white font-bold text-3xl">LearnBent</span>
         </div>
 
@@ -60,12 +58,9 @@ export default function App() {
     }
   }, []);
 
-  if (isLoadingUser) {
-    return <FullScreenLoader />;
-  }
-
   return (
-    <div className={`${theme}-theme`}>
+    <div className={`${theme}-theme relative min-h-screen`}>
+      {isLoadingUser && <FullScreenLoader />}
       <Suspense fallback={<FullScreenLoader />}>
         <Routes>
         {/* Default Redirect */}

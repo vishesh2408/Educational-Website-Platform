@@ -3,9 +3,11 @@
 
 import React, { useState, useEffect } from 'react';
 import { UserPlus, LogIn, AlertCircle, CheckCircle, Info, Sun, Moon, Mail, Lock } from 'lucide-react';
+import { GoogleLogin } from '@react-oauth/google';
 import { useAuth } from '../contexts/AuthContext';
 import { useModal } from '../contexts/ModalContext';
 import { useTheme } from '../contexts/ThemeContext';
+import LearnBentIcon from '../contexts/LearnBentIcon';
 
 // --- API BASE ---
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:3001';
@@ -125,16 +127,46 @@ const AuthPage = () => {
     } finally { setIsLoading(false); }
   };
 
+  // --- GOOGLE AUTH HANDLER ---
+  const handleGoogleSuccess = async (credentialResponse) => {
+    setMessage({ type: '', text: '' });
+    setIsLoading(true);
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/auth/google`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ credential: credentialResponse.credential }),
+        credentials: 'include',
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setMessage({ type: 'success', text: 'Google login successful!' });
+        login(data.user);
+      } else {
+        setMessage({ type: 'error', text: data.msg || 'Google login failed.' });
+      }
+    } catch (err) {
+      console.error(err);
+      setMessage({ type: 'error', text: 'Google network error.' });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleGoogleError = () => {
+    setMessage({ type: 'error', text: 'Google authentication failed.' });
+  };
+
   // --- FORGOT PASSWORD (Send OTP) ---
   const handleForgotPassword = async (e) => {
     e.preventDefault();
     setMessage({ type: '', text: '' });
     setIsLoading(true);
     try {
-        if (!email) {
-      setMessage({ type: 'error', text: 'Please enter your email.' });
-      return;
-    }
+      if (!email) {
+        setMessage({ type: 'error', text: 'Please enter your email.' });
+        return;
+      }
       const res = await fetch(`${API_BASE_URL}/api/auth/forgot-password-otp`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -151,14 +183,14 @@ const AuthPage = () => {
 
         // Switch view safely after a short delay
         setTimeout(() => {
-        setView('otp');
-        setOtp('');         // reset OTP input
-        setIsLoading(false); // re-enable button for OTP submission
+          setView('otp');
+          setOtp('');         // reset OTP input
+          setIsLoading(false); // re-enable button for OTP submission
         }, 1000);
-        } else {
+      } else {
         setMessage({ type: 'error', text: data.message || 'Failed to send OTP.' });
       }
-      
+
     } catch (err) {
       console.error(err);
       setMessage({ type: 'error', text: 'Network error. Please try again later.' });
@@ -229,6 +261,23 @@ const AuthPage = () => {
             <button type="submit" disabled={isLoading} className={`${buttonClasses} bg-color-primary text-white hover:bg-color-primary-dark`}>
               {isLoading ? 'Logging In...' : <><LogIn size={20} /> Login</>}
             </button>
+            <div className="flex items-center gap-4 my-4">
+              <div className="h-px bg-gray-200 dark:bg-gray-700 flex-1"></div>
+              <span className="text-gray-400 text-sm">Or continue with</span>
+              <div className="h-px bg-gray-200 dark:bg-gray-700 flex-1"></div>
+            </div>
+            <div className="flex justify-center">
+              <GoogleLogin
+                onSuccess={handleGoogleSuccess}
+                onError={handleGoogleError}
+                useOneTap
+                theme={theme === 'dark' ? 'filled_black' : 'outline'}
+                shape="pill"
+                size="large"
+                text="signin_with"
+                width="100%"
+              />
+            </div>
           </form>
         );
 
@@ -250,6 +299,23 @@ const AuthPage = () => {
             <button type="submit" disabled={isLoading} className={`${buttonClasses} bg-color-primary text-white hover:bg-color-primary-dark`}>
               {isLoading ? 'Signing Up...' : <><UserPlus size={20} /> Sign Up</>}
             </button>
+            <div className="flex items-center gap-4 my-4">
+              <div className="h-px bg-gray-200 dark:bg-gray-700 flex-1"></div>
+              <span className="text-gray-400 text-sm">Or continue with</span>
+              <div className="h-px bg-gray-200 dark:bg-gray-700 flex-1"></div>
+            </div>
+            <div className="flex justify-center">
+              <GoogleLogin
+                onSuccess={handleGoogleSuccess}
+                onError={handleGoogleError}
+                useOneTap
+                theme={theme === 'dark' ? 'filled_black' : 'outline'}
+                shape="pill"
+                size="large"
+                text="signup_with"
+                width="100%"
+              />
+            </div>
           </form>
         );
 
@@ -318,16 +384,18 @@ const AuthPage = () => {
               {theme === 'dark' ? <Sun size={24} /> : <Moon size={24} />}
             </button>
           </div>
-
-          <h2 className="text-3xl font-extrabold text-gray-900 dark:text-white mb-8 flex items-center gap-3">
-            {view === 'signup' ? <UserPlus size={32} className="text-color-primary" /> :
-             view === 'forgot' || view === 'otp' ? <Mail size={32} className="text-color-primary" /> :
-             <LogIn size={32} className="text-color-primary" />}
-            {view === 'signup' ? 'Create Account' :
-             view === 'forgot' ? 'Forgot Password' :
-             view === 'otp' ? 'Reset Password' :
-             'Sign In'}
-          </h2>
+          <div className="flex flex-col items-center justify-center mb-8">
+            <LearnBentIcon size={64} className="mb-4 drop-shadow-xl" />
+            <h2 className="text-3xl font-extrabold text-gray-900 dark:text-white flex items-center gap-3">
+              {view === 'signup' ? <UserPlus size={32} className="text-color-primary" /> :
+                view === 'forgot' || view === 'otp' ? <Mail size={32} className="text-color-primary" /> :
+                  <LogIn size={32} className="text-color-primary" />}
+              {view === 'signup' ? 'Create Account' :
+                view === 'forgot' ? 'Forgot Password' :
+                  view === 'otp' ? 'Reset Password' :
+                    'Sign In'}
+            </h2>
+          </div>
 
           <div className="mb-6 min-h-12">
             <MessageBox type={message.type} text={message.text} />

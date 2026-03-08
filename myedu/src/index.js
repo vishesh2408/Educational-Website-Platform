@@ -8,6 +8,7 @@ import { ThemeProvider } from './contexts/ThemeContext';
 import { ModalProvider } from './contexts/ModalContext';
 import { ToastProvider } from './contexts/ToastContext';
 import { MenuProvider } from './contexts/MenuContext';
+import { GoogleOAuthProvider } from '@react-oauth/google';
 import './index.css';
 
 
@@ -20,7 +21,9 @@ ReactDOM.createRoot(document.getElementById('root')).render(
           <ToastProvider>
             <MenuProvider>
               <AuthProvider>
-                <App />
+                <GoogleOAuthProvider clientId={process.env.REACT_APP_GOOGLE_CLIENT_ID}>
+                  <App />
+                </GoogleOAuthProvider>
               </AuthProvider>
             </MenuProvider>
           </ToastProvider>

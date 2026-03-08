@@ -32,7 +32,7 @@ const SidebarLink = ({ icon, label, active, onClick }) => (
 );
 
 const AdminDashboard = () => {
-    const { currentUser, logout } = useAuth();
+    const { currentUser, isLoadingUser, logout } = useAuth();
     const navigate = useNavigate();
     const location = useLocation();
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -41,6 +41,10 @@ const AdminDashboard = () => {
         setToast({ message, type });
         setTimeout(() => setToast(null), timeout);
     };
+
+    if (isLoadingUser) {
+        return <div className="admin-dashboard-container min-h-screen bg-[#f4f7fe]"></div>;
+    }
 
     if (!currentUser || currentUser.role !== 'admin') {
         return <Navigate to="/auth" replace />;

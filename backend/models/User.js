@@ -46,7 +46,8 @@ const ActivityLogSchema = new mongoose.Schema({
 const userSchema = new mongoose.Schema({
     username: { type: String, required: true, unique: true, trim: true },
     email: { type: String, required: true, unique: true, trim: true, lowercase: true },
-    password: { type: String, required: true },
+    password: { type: String, required: function() { return !this.googleId; } },
+    googleId: { type: String, unique: true, sparse: true },
     role: { type: String, enum: ['user', 'staff', 'admin'], default: 'user' },
     createdAt: { type: Date, default: Date.now },
     // New fields for user-specific data tracking (for Courses and Quizzes)
