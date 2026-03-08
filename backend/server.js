@@ -54,6 +54,7 @@ const adminUploadsRoutes = require('./routes/adminUploadsRoutes');
 dotenv.config();
 
 const app = express();
+app.set('trust proxy', 1); // Trust first proxy (Render/Vercel) for secure cookies
 
 app.use(helmet()); // NEW: Sets various HTTP headers for security
 // Configure CORS to allow credentials (for cookies) from the frontend

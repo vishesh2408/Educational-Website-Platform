@@ -35,7 +35,7 @@ export const AuthProvider = ({ children }) => {
     }
     setCurrentUser(null);
     // clear cached summary on logout
-    try { localStorage.removeItem(USER_SUMMARY_CACHE_KEY); } catch (e) {}
+    try { localStorage.removeItem(USER_SUMMARY_CACHE_KEY); } catch (e) { }
     navigate('/');
     showToast('You have been successfully logged out.', 'info');
   }, [navigate, showToast]);
@@ -74,7 +74,7 @@ export const AuthProvider = ({ children }) => {
         if (parsed && parsed.expiresAt && parsed.expiresAt > Date.now() && parsed.data) {
           setCurrentUser(parsed.data);
         } else {
-          try { localStorage.removeItem(USER_SUMMARY_CACHE_KEY); } catch (e) {}
+          try { localStorage.removeItem(USER_SUMMARY_CACHE_KEY); } catch (e) { }
         }
       }
     } catch (e) {
@@ -89,76 +89,79 @@ export const AuthProvider = ({ children }) => {
         return;
       }
       try {
-          // Do a lightweight session check first (204 on success) to avoid fetching full user on expired sessions
-          const sessionRes = await fetch(`${API_BASE_URL}/auth/session`, {
+        // Do a lightweight session check first (204 on success) to avoid fetching full user on expired sessions
+        const sessionRes = await fetch(`${API_BASE_URL}/auth/session`, {
+          method: 'GET',
+          credentials: 'include',
+        });
+
+        if (sessionRes.ok) {
+          // Session is valid — fetch full user profile
+          const response = await fetch(`${API_BASE_URL}/auth/user`, {
             method: 'GET',
+            headers: { 'Content-Type': 'application/json' },
             credentials: 'include',
           });
-
-          if (sessionRes.ok) {
-            // Session is valid — fetch full user profile
-            const response = await fetch(`${API_BASE_URL}/auth/user`, {
-              method: 'GET',
-              headers: { 'Content-Type': 'application/json' },
-              credentials: 'include',
-            });
-            if (response.ok) {
-              const userData = await response.json();
-              setCurrentUser(userData);
-              // update cached summary
-              try {
-                const summary = { id: userData.id || userData._id, username: userData.username, role: userData.role, profilePicture: userData.profilePicture };
-                const payload = { data: summary, expiresAt: Date.now() + USER_SUMMARY_TTL_MS };
-                localStorage.setItem(USER_SUMMARY_CACHE_KEY, JSON.stringify(payload));
-              } catch (e) {}
-            } else {
-              // Unexpected non-OK after session success — log a warning and clear stored user
-              console.warn('Authenticated, but fetching user failed:', response.status);
-              setCurrentUser(null);
-              try { localStorage.removeItem(USER_SUMMARY_CACHE_KEY); } catch (e) {}
-            }
+          if (response.ok) {
+            const userData = await response.json();
+            setCurrentUser(userData);
+            // update cached summary
+            try {
+              const summary = { id: userData.id || userData._id, username: userData.username, role: userData.role, profilePicture: userData.profilePicture };
+              const payload = { data: summary, expiresAt: Date.now() + USER_SUMMARY_TTL_MS };
+              localStorage.setItem(USER_SUMMARY_CACHE_KEY, JSON.stringify(payload));
+            } catch (e) { }
           } else {
-            // Session check failed (expired, invalid, or endpoint missing)
-            if (sessionRes.status === 401) {
-              setCurrentUser(null);
-              try { localStorage.removeItem(USER_SUMMARY_CACHE_KEY); } catch (e) {}
-              try { showToast('Your session has expired. Please sign in again.', 'info'); } catch (e) {}
-            } else if (sessionRes.status === 404) {
-              // Endpoint not available on this server version — try a one-time fallback to /auth/user
-              try {
-                const fallback = await fetch(`${API_BASE_URL}/auth/user`, {
-                  method: 'GET',
-                  headers: { 'Content-Type': 'application/json' },
-                  credentials: 'include',
-                });
-                if (fallback.ok) {
-                  const userData = await fallback.json();
-                  setCurrentUser(userData);
-                  // update cached summary
-                  try {
-                    const summary = { id: userData.id || userData._id, username: userData.username, role: userData.role, profilePicture: userData.profilePicture };
-                    const payload = { data: summary, expiresAt: Date.now() + USER_SUMMARY_TTL_MS };
-                    localStorage.setItem(USER_SUMMARY_CACHE_KEY, JSON.stringify(payload));
-                  } catch (e) {}
-                } else {
-                  sessionEndpointMissing = true;
-                  console.warn('Session endpoint not found (404). Skipping future session checks.');
-                }
-              } catch (e) {
+            // Unexpected non-OK after session success — log a warning and clear stored user
+            console.warn('Authenticated, but fetching user failed:', response.status);
+            setCurrentUser(null);
+            try { localStorage.removeItem(USER_SUMMARY_CACHE_KEY); } catch (e) { }
+          }
+        } else {
+          // Session check failed (expired, invalid, or endpoint missing)
+          if (sessionRes.status === 401) {
+            const hadCachedUser = !!localStorage.getItem(USER_SUMMARY_CACHE_KEY);
+            setCurrentUser(null);
+            try { localStorage.removeItem(USER_SUMMARY_CACHE_KEY); } catch (e) { }
+            if (hadCachedUser) {
+              try { showToast('Your session has expired. Please sign in again.', 'info'); } catch (e) { }
+            }
+          } else if (sessionRes.status === 404) {
+            // Endpoint not available on this server version — try a one-time fallback to /auth/user
+            try {
+              const fallback = await fetch(`${API_BASE_URL}/auth/user`, {
+                method: 'GET',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+              });
+              if (fallback.ok) {
+                const userData = await fallback.json();
+                setCurrentUser(userData);
+                // update cached summary
+                try {
+                  const summary = { id: userData.id || userData._id, username: userData.username, role: userData.role, profilePicture: userData.profilePicture };
+                  const payload = { data: summary, expiresAt: Date.now() + USER_SUMMARY_TTL_MS };
+                  localStorage.setItem(USER_SUMMARY_CACHE_KEY, JSON.stringify(payload));
+                } catch (e) { }
+              } else {
                 sessionEndpointMissing = true;
                 console.warn('Session endpoint not found (404). Skipping future session checks.');
               }
-            } else {
-              console.warn('Session check returned:', sessionRes.status);
+            } catch (e) {
+              sessionEndpointMissing = true;
+              console.warn('Session endpoint not found (404). Skipping future session checks.');
             }
+          } else {
+            console.warn('Session check returned:', sessionRes.status);
           }
-        } catch (error) {
-          console.error('Network error during token validation:', error);
-          setCurrentUser(null);
-          try { localStorage.removeItem(USER_SUMMARY_CACHE_KEY); } catch (e) {}
-          try { showToast('Could not connect to the server. Please try again later.', 'error'); } catch (e) {}
         }
-      
+      } catch (error) {
+        console.error('Network error during token validation:', error);
+        setCurrentUser(null);
+        try { localStorage.removeItem(USER_SUMMARY_CACHE_KEY); } catch (e) { }
+        try { showToast('Could not connect to the server. Please try again later.', 'error'); } catch (e) { }
+      }
+
       setIsLoadingUser(false);
     };
 

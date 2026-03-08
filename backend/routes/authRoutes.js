@@ -23,14 +23,14 @@ const loginLimiter = rateLimit({
 });
 
 const setAuthCookie = (res, payload) => {
-    const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '1h' }); // Keep 1h expiry
+    const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '1h' });
+    const isProd = process.env.NODE_ENV === 'production';
     
-    // NEW: Set HTTP-only cookie instead of returning token in response body
     res.cookie('token', token, {
-        httpOnly: true, // Prevents client-side JavaScript access (XSS defense)
-        secure: process.env.NODE_ENV === 'production', // NEW: Only send over HTTPS in production
-        sameSite: 'Strict', // NEW: CSRF defense
-        maxAge: 3600000, // 1 hour in milliseconds
+        httpOnly: true,
+        secure: isProd,
+        sameSite: isProd ? 'None' : 'Lax',
+        maxAge: 3600000,
     });
 }
 
@@ -273,11 +273,11 @@ router.get('/session', requireAuth, (req, res) => {
 
 // NEW: Logout Route (for token revocation)
 router.post('/logout', (req, res) => {
-    // Clears the token cookie on the client side
+    const isProd = process.env.NODE_ENV === 'production';
     res.clearCookie('token', { 
         httpOnly: true, 
-        secure: process.env.NODE_ENV === 'production', 
-        sameSite: 'Strict' 
+        secure: isProd, 
+        sameSite: isProd ? 'None' : 'Lax' 
     });
     res.status(200).json({ msg: 'Logged out successfully' });
 });
@@ -324,10 +324,11 @@ router.post('/forgot-password-otp', async (req, res) => {
         });
 
         // Set HttpOnly cookie
+        const isProd = process.env.NODE_ENV === 'production';
         res.cookie('otp_token', otpToken, {
             httpOnly: true,
-            sameSite: 'Strict',
-            secure: process.env.NODE_ENV === 'production',
+            secure: isProd,
+            sameSite: isProd ? 'None' : 'Lax',
             maxAge: 5 * 60 * 1000,
         });
 
