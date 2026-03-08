@@ -230,16 +230,16 @@ const AuthPage = () => {
   };
 
   // --- COMMON CLASSES ---
-  const inputClasses = "w-full p-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-color-primary focus:border-color-primary transition duration-300 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-50 text-base font-normal";
-  const labelClasses = "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1";
-  const buttonClasses = "w-full flex items-center justify-center gap-2 px-4 py-2 rounded-xl font-bold text-lg transition duration-300 shadow-lg hover:shadow-xl disabled:opacity-60 disabled:cursor-not-allowed transform hover:scale-[1.01]";
+  const inputClasses = "w-full p-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-color-primary focus:border-color-primary transition duration-300 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-50 text-base font-normal";
+  const labelClasses = "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-0.5";
+  const buttonClasses = "w-full flex items-center justify-center gap-2 px-4 py-1.5 rounded-xl font-bold text-lg transition duration-300 shadow-md hover:shadow-lg disabled:opacity-60 disabled:cursor-not-allowed transform hover:scale-[1.01]";
 
   // --- FORM RENDER ---
   const renderForm = () => {
     switch (view) {
       case 'login':
         return (
-          <form onSubmit={handleLoginSubmit} className="space-y-4">
+          <form onSubmit={handleLoginSubmit} className="space-y-3">
             <div>
               <label className={labelClasses}>Email</label>
               <input type="email" value={email} onChange={e => setEmail(e.target.value)} required className={inputClasses} />
@@ -283,7 +283,7 @@ const AuthPage = () => {
 
       case 'signup':
         return (
-          <form onSubmit={handleSignupSubmit} className="space-y-4">
+          <form onSubmit={handleSignupSubmit} className="space-y-3">
             <div>
               <label className={labelClasses}>Username</label>
               <input type="text" value={username} onChange={e => setUsername(e.target.value)} required className={inputClasses} />
@@ -321,7 +321,7 @@ const AuthPage = () => {
 
       case 'forgot':
         return (
-          <form onSubmit={handleForgotPassword} className="space-y-4">
+          <form onSubmit={handleForgotPassword} className="space-y-3">
             <div>
               <label className={labelClasses}>Enter your email to receive OTP</label>
               <input type="email" value={email} onChange={e => setEmail(e.target.value)} required className={inputClasses} />
@@ -338,7 +338,7 @@ const AuthPage = () => {
       case 'otp':
       case 'reset':
         return (
-          <form onSubmit={handleResetPassword} className="space-y-4">
+          <form onSubmit={handleResetPassword} className="space-y-3">
             <div>
               <label className={labelClasses}>Enter OTP</label>
               <input type="text" value={otp} onChange={e => setOtp(e.target.value)} required className={inputClasses} />
@@ -378,42 +378,45 @@ const AuthPage = () => {
         </div>
 
         {/* RIGHT AUTH */}
-        <div className="w-full lg:w-1/2 p-6 sm:p-8">
+        <div className="w-full lg:w-1/2 p-5 sm:p-7 flex flex-col justify-center">
           <div className="text-right mb-4">
             <button onClick={toggleTheme} className="p-2 rounded-full text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition duration-200">
               {theme === 'dark' ? <Sun size={24} /> : <Moon size={24} />}
             </button>
           </div>
-          <div className="flex flex-col items-center justify-center mb-4">
-            <LearnBentIcon size={48} className="mb-2 drop-shadow-xl" />
-            <h2 className="text-3xl font-extrabold text-gray-900 dark:text-white flex items-center gap-3">
-              {view === 'signup' ? <UserPlus size={32} className="text-color-primary" /> :
-                view === 'forgot' || view === 'otp' ? <Mail size={32} className="text-color-primary" /> :
-                  <LogIn size={32} className="text-color-primary" />}
-              {view === 'signup' ? 'Create Account' :
-                view === 'forgot' ? 'Forgot Password' :
-                  view === 'otp' ? 'Reset Password' :
-                    'Sign In'}
-            </h2>
+
+          <div className="w-full max-w-sm mx-auto">
+            <div className="flex flex-col items-center justify-center mb-3">
+              <LearnBentIcon size={44} className="mb-1.5 drop-shadow-xl" />
+              <h2 className="text-2xl font-extrabold text-gray-900 dark:text-white flex items-center gap-2">
+                {view === 'signup' ? <UserPlus size={28} className="text-color-primary" /> :
+                  view === 'forgot' || view === 'otp' ? <Mail size={28} className="text-color-primary" /> :
+                    <LogIn size={28} className="text-color-primary" />}
+                {view === 'signup' ? 'Create Account' :
+                  view === 'forgot' ? 'Forgot Password' :
+                    view === 'otp' ? 'Reset Password' :
+                      'Sign In'}
+              </h2>
+            </div>
+
+            <div className="mb-4 min-h-12">
+              <MessageBox type={message.type} text={message.text} />
+            </div>
+
+            {renderForm()}
+
+            {(view === 'login' || view === 'signup') && (
+              <p className="mt-4 text-center text-sm text-gray-600 dark:text-gray-400">
+                {view === 'login' ? "Don't have an account?" : "Already have an account?"}
+                <button
+                  onClick={() => { setView(view === 'login' ? 'signup' : 'login'); setMessage({ type: '', text: '' }); }}
+                  className="ml-2 text-color-primary font-bold hover:text-color-primary-dark transition duration-200 focus:outline-none"
+                >
+                  {view === 'login' ? 'Sign Up' : 'Login'}
+                </button>
+              </p>
+            )}
           </div>
-
-          <div className="mb-6 min-h-12">
-            <MessageBox type={message.type} text={message.text} />
-          </div>
-
-          {renderForm()}
-
-          {(view === 'login' || view === 'signup') && (
-            <p className="mt-4 text-center text-sm text-gray-600 dark:text-gray-400">
-              {view === 'login' ? "Don't have an account?" : "Already have an account?"}
-              <button
-                onClick={() => { setView(view === 'login' ? 'signup' : 'login'); setMessage({ type: '', text: '' }); }}
-                className="ml-2 text-color-primary font-bold hover:text-color-primary-dark transition duration-200 focus:outline-none"
-              >
-                {view === 'login' ? 'Sign Up' : 'Login'}
-              </button>
-            </p>
-          )}
         </div>
       </div>
     </div>
