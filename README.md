@@ -2,6 +2,7 @@
 
 MyEdu is a full-stack educational platform designed to provide a seamless learning experience. It includes a backend built with Node.js and Express, and a frontend developed using React and TailwindCSS.
 
+### 🌐 Live Demo: [educational-website-platform-g5c5-gx7v1ioe3.vercel.app](https://educational-website-platform-g5c5-gx7v1ioe3.vercel.app)
 ---
 
 ## Table of Contents
@@ -103,6 +104,10 @@ MyEdu is a full-stack educational platform designed to provide a seamless learni
 
 ## Usage
 
+### Live Version:
+Visit the deployed application at: [https://educational-website-platform-g5c5-gx7v1ioe3.vercel.app](https://educational-website-platform-g5c5-gx7v1ioe3.vercel.app)
+
+### Local Development:
 1. Open your browser and navigate to:
    - Frontend: `http://localhost:3000`
    - Backend: `http://localhost:5000`
@@ -231,7 +236,7 @@ MyEdu is a comprehensive educational platform designed to enhance the learning e
 ### Deployment
 
 - The backend server is deployed on a Node.js environment.
-- The frontend is built and deployed using modern tools like Vercel or Netlify.
+- The frontend is built and deployed on Vercel: [https://educational-website-platform-g5c5-gx7v1ioe3.vercel.app](https://educational-website-platform-g5c5-gx7v1ioe3.vercel.app)
 - MongoDB Atlas is used for cloud-based database hosting.
 
 ### Use Cases
