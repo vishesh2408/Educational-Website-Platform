@@ -1,0 +1,52 @@
+.user-carousel-card {
+  position: relative;
+}
+.carousel-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.carousel-track {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  scroll-behavior: smooth;
+  padding: 8px 4px;
+  width: 100%;
+}
+.carousel-item {
+  flex: 0 0 220px; /* card width */
+}
+.carousel-nav {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.85);
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 150ms ease, transform 120ms ease;
+}
+.carousel-nav:hover {
+  background: rgba(255, 255, 255, 0.1);
+  transform: translateY(-1px);
+}
+.carousel-nav.left { margin-left: 4px }
+.carousel-nav.right { margin-right: 4px }
+
+/* hide native scrollbar on modern browsers for aesthetics */
+.carousel-track::-webkit-scrollbar { height:8px }
+.carousel-track::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.16); border-radius:8px }
+.carousel-track::-webkit-scrollbar-track { background: rgba(255,255,255,0.06); border-radius: 8px }
+
+@media (max-width: 640px) {
+  .carousel-item { flex: 0 0 80%; }
+  .carousel-nav { width:44px; height:44px }
+}
+
+@media (max-width: 1024px) {
+  .carousel-item { flex: 0 0 180px; }
+}
