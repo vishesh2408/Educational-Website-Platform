@@ -59,7 +59,6 @@ app.set('trust proxy', 1); // Trust first proxy (Render/Vercel) for secure cooki
 app.use(helmet()); // NEW: Sets various HTTP headers for security
 // Configure CORS to allow credentials (for cookies) from the frontend
 const allowedOrigins = [
-    'http://localhost:3000',
     'http://localhost:5173',
     'https://educational-website-platform.vercel.app',
     'https://educational-website-platform.onrender.com',
