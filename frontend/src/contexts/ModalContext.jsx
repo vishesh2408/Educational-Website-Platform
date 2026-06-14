@@ -7,8 +7,8 @@ const ModalContext = createContext(null);
 export const ModalProvider = ({ children }) => {
   const [modalContent, setModalContent] = useState(null);
 
-  const openModal = useCallback((title, message) => {
-    setModalContent({ title, message });
+  const openModal = useCallback((title, message, options = {}) => {
+    setModalContent({ title, message, ...options });
   }, []);
 
   const closeModal = useCallback(() => {
@@ -25,6 +25,9 @@ export const ModalProvider = ({ children }) => {
         title={modalContent?.title}
         message={modalContent?.message}
         onClose={closeModal}
+        content={modalContent?.content}
+        hideFooter={modalContent?.hideFooter}
+        isSuccess={modalContent?.isSuccess}
       />
     </ModalContext.Provider>
   );

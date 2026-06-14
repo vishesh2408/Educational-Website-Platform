@@ -3,7 +3,7 @@
   const mongoose = require('mongoose');
   const bcrypt = require('bcryptjs');
   const base = process.env.BACKEND_URI || 'http://localhost:3001';
-  const dbUri = process.env.MONGO_URI || 'mongodb://localhost:27017/myedu';
+  let dbUri = process.env.MONGO_URI || 'mongodb://localhost:27017/myedu';
 
   // Helper to extract cookie like earlier test
   function extractTokenCookie(res){
@@ -36,7 +36,7 @@
       console.warn('Could not call debug endpoint, falling back to MONGO_URI/env dbUri');
     }
 
-    await mongoose.connect(dbUri, { useNewUrlParser: true, useUnifiedTopology: true });
+    await mongoose.connect(dbUri);
     // Ensure models are registered with mongoose by requiring the model files
     require('../models/User');
     const User = mongoose.model('User');

@@ -7,6 +7,7 @@ const Course = require('../models/Course');
 const Track = require('../models/Track');
 const User = require('../models/User');
 const UserProgress = require('../models/UserProgress');
+const Tutorial = require('../models/Tutorial');
 // Routes below are expressed relative to the API base (server mounts this router at '/api')
 
 
@@ -109,6 +110,29 @@ router.get('/user/subscription/status', async (req, res) => {
                 user.subscription.status = 'expired';
                 await user.save();
             }
+        }
+
+        // Check if the user is granted free access in any active SubscriptionPlan
+        const SubscriptionPlan = require('../models/SubscriptionPlan');
+        const grantedPlan = await SubscriptionPlan.findOne({
+            'freeFor.users': userId,
+            active: true
+        });
+
+        if (grantedPlan) {
+            return res.json({
+                subscription: {
+                    plan: grantedPlan.planType,
+                    status: 'active',
+                    startDate: user.subscription?.startDate || new Date(),
+                    endDate: new Date(Date.now() + 100 * 365 * 24 * 60 * 60 * 1000), // far future
+                    billingPeriod: 'yearly',
+                    autoRenew: false,
+                    grantedByAdmin: true,
+                    grantedPlanId: grantedPlan._id,
+                    isForumPremium: grantedPlan.isForumPremium
+                }
+            });
         }
 
         res.json({ subscription: user.subscription || { plan: 'free', status: 'active' } });
@@ -286,6 +310,44 @@ router.get('/public/courses/:id', async (req, res) => {
     } catch (err) {
         console.error(err.message);
         if (err.kind === 'ObjectId') return res.status(400).json({ msg: 'Invalid course id' });
+        res.status(500).send('Server Error');
+    }
+});
+
+// @route   GET /public/tutorials
+// @desc    Get all tutorials (public)
+// @access  Public
+router.get('/public/tutorials', async (req, res) => {
+    try {
+        const tutorials = await Tutorial.find().populate({ 
+            path: 'modules',
+            populate: {
+                path: 'topics',
+                model: 'TutorialTopic'
+            }
+        }).sort({ createdAt: -1 });
+        res.json(tutorials);
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send('Server Error');
+    }
+});
+
+// @route   GET /public/tutorials/:id
+// @desc    Get single tutorial by id with modules and topics
+// @access  Public
+router.get('/public/tutorials/:id', async (req, res) => {
+    console.log('Received request: GET /api/public/tutorials/:id ->', req.params.id);
+    try {
+        const tutorial = await Tutorial.findById(req.params.id).populate({
+            path: 'modules',
+            populate: { path: 'topics', model: 'TutorialTopic' }
+        });
+        if (!tutorial) return res.status(404).json({ msg: 'Tutorial not found' });
+        res.json(tutorial);
+    } catch (err) {
+        console.error(err.message);
+        if (err.kind === 'ObjectId') return res.status(400).json({ msg: 'Invalid tutorial id' });
         res.status(500).send('Server Error');
     }
 });

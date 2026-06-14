@@ -181,14 +181,19 @@ const NoteManagement = () => {
     const [notesLoadingMore, setNotesLoadingMore] = useState(false);
     const [newNote, setNewNote] = useState({ title: '', subject: '', content: '', imageUrl: '' });
     const [coursesList, setCoursesList] = useState([]);
+    const [tutorialsList, setTutorialsList] = useState([]);
     const [selectedCourseId, setSelectedCourseId] = useState('');
+    const [selectedTutorialId, setSelectedTutorialId] = useState('');
     const [selectedModuleId, setSelectedModuleId] = useState('');
     const [selectedTopicId, setSelectedTopicId] = useState('');
+    const [attachType, setAttachType] = useState(''); // 'course', 'tutorial', or ''
     const [editingNote, setEditingNote] = useState(null);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [editSelectedCourseId, setEditSelectedCourseId] = useState('');
+    const [editSelectedTutorialId, setEditSelectedTutorialId] = useState('');
     const [editSelectedModuleId, setEditSelectedModuleId] = useState('');
     const [editSelectedTopicId, setEditSelectedTopicId] = useState('');
+    const [editAttachType, setEditAttachType] = useState(''); // 'course', 'tutorial', or ''
     const [formMessage, setFormMessage] = useState({ type: '', text: '' });
     const [isDeleting, setIsDeleting] = useState(false);
     const [noteToDelete, setNoteToDelete] = useState(null);
@@ -208,6 +213,61 @@ const NoteManagement = () => {
     const [highlightVersionIndex, setHighlightVersionIndex] = useState(null);
     const [highlightNoteId, setHighlightNoteId] = useState(null);
     const versionRefs = useRef([]);
+    const handleAttachTypeChange = (type) => {
+        setAttachType(type);
+        setSelectedCourseId('');
+        setSelectedTutorialId('');
+        setSelectedModuleId('');
+        setSelectedTopicId('');
+    };
+
+    const handleModuleChange = (moduleId) => {
+        setSelectedModuleId(moduleId);
+        if (!moduleId) {
+            setSelectedTopicId('');
+            return;
+        }
+        if (typeCheckIsCourse(attachType)) {
+            const course = coursesList.find(c => c._id === selectedCourseId);
+            const mod = course ? (course.modules || []).find(m => m._id === moduleId) : null;
+            const firstTopic = mod && mod.topics && mod.topics[0] ? mod.topics[0]._id : '';
+            setSelectedTopicId(firstTopic);
+        } else {
+            const tutorial = tutorialsList.find(t => t._id === selectedTutorialId);
+            const mod = tutorial ? (tutorial.modules || []).find(m => m._id === moduleId) : null;
+            const firstTopic = mod && mod.topics && mod.topics[0] ? mod.topics[0]._id : '';
+            setSelectedTopicId(firstTopic);
+        }
+    };
+
+    const handleEditAttachTypeChange = (type) => {
+        setEditAttachType(type);
+        setEditSelectedCourseId('');
+        setEditSelectedTutorialId('');
+        setEditSelectedModuleId('');
+        setEditSelectedTopicId('');
+    };
+
+    const handleEditModuleChange = (moduleId) => {
+        setEditSelectedModuleId(moduleId);
+        if (!moduleId) {
+            setEditSelectedTopicId('');
+            return;
+        }
+        if (typeCheckIsCourse(editAttachType)) {
+            const course = coursesList.find(c => c._id === editSelectedCourseId);
+            const mod = course ? (course.modules || []).find(m => m._id === moduleId) : null;
+            const firstTopic = mod && mod.topics && mod.topics[0] ? mod.topics[0]._id : '';
+            setEditSelectedTopicId(firstTopic);
+        } else {
+            const tutorial = tutorialsList.find(t => t._id === editSelectedTutorialId);
+            const mod = tutorial ? (tutorial.modules || []).find(m => m._id === moduleId) : null;
+            const firstTopic = mod && mod.topics && mod.topics[0] ? mod.topics[0]._id : '';
+            setEditSelectedTopicId(firstTopic);
+        }
+    };
+
+    const typeCheckIsCourse = (t) => t === 'course';
 
 
     const authFetchOptions = {
@@ -262,9 +322,24 @@ const NoteManagement = () => {
         }
     }, []);
 
+    // Fetch admin tutorials (populated with modules and topics)
+    const fetchAdminTutorials = useCallback(async () => {
+        try {
+            const res = await fetch(`${API_BASE_URL}/admin/tutorials`, { ...authFetchOptions, method: 'GET' });
+            if (res.ok) {
+                const data = await res.json();
+                setTutorialsList(data || []);
+            } else {
+                console.warn('Failed to fetch admin tutorials for notes selector');
+            }
+        } catch (err) {
+            console.error('Error fetching admin tutorials:', err);
+        }
+    }, []);
+
 
     useEffect(() => { fetchNotes(1, false); }, [fetchNotes]);
-    useEffect(() => { fetchAdminCourses(); }, [fetchAdminCourses]);
+    useEffect(() => { fetchAdminCourses(); fetchAdminTutorials(); }, [fetchAdminCourses, fetchAdminTutorials]);
 
     const fetchSanitizedPreview = async (html) => {
         try {
@@ -304,6 +379,11 @@ const NoteManagement = () => {
                 setNotes([...notes, data]);
                 setNewNote({ title: '', subject: '', content: '', imageUrl: '' });
                 setContent('');
+                setSelectedCourseId('');
+                setSelectedTutorialId('');
+                setSelectedModuleId('');
+                setSelectedTopicId('');
+                setAttachType('');
                 setFormMessage({ type: 'success', text: 'Note added successfully!' });
             }
             
@@ -385,8 +465,10 @@ const NoteManagement = () => {
                     for (const topic of mod.topics) {
                         if (String(topic._id) === String(note.topicId)) {
                             setEditSelectedCourseId(course._id);
+                            setEditSelectedTutorialId('');
                             setEditSelectedModuleId(mod._id);
                             setEditSelectedTopicId(topic._id);
+                            setEditAttachType('course');
                             found = true; break;
                         }
                     }
@@ -395,28 +477,67 @@ const NoteManagement = () => {
                 if (found) break;
             }
             if (!found) {
+                for (const tutorial of tutorialsList || []) {
+                    if (!tutorial.modules) continue;
+                    for (const mod of tutorial.modules) {
+                        if (!mod.topics) continue;
+                        for (const topic of mod.topics) {
+                            if (String(topic._id) === String(note.topicId)) {
+                                setEditSelectedTutorialId(tutorial._id);
+                                setEditSelectedCourseId('');
+                                setEditSelectedModuleId(mod._id);
+                                setEditSelectedTopicId(topic._id);
+                                setEditAttachType('tutorial');
+                                found = true; break;
+                            }
+                        }
+                        if (found) break;
+                    }
+                    if (found) break;
+                }
+            }
+            if (!found) {
                 // fallback to heuristic detection
                 const detected = autoDetectTopicForNote(note.content);
                 if (detected) {
-                    setEditSelectedCourseId(detected.courseId);
+                    if (detected.courseId) {
+                        setEditSelectedCourseId(detected.courseId);
+                        setEditSelectedTutorialId('');
+                        setEditAttachType('course');
+                    } else if (detected.tutorialId) {
+                        setEditSelectedTutorialId(detected.tutorialId);
+                        setEditSelectedCourseId('');
+                        setEditAttachType('tutorial');
+                    }
                     setEditSelectedModuleId(detected.moduleId);
                     setEditSelectedTopicId(detected.topicId);
                 } else {
-                    setEditSelectedCourseId(''); setEditSelectedModuleId(''); setEditSelectedTopicId('');
+                    setEditSelectedCourseId(''); setEditSelectedTutorialId(''); setEditSelectedModuleId(''); setEditSelectedTopicId('');
+                    setEditAttachType('');
                 }
             }
         } else {
             // Try to auto-detect attached topic based on content
             const detected = autoDetectTopicForNote(note.content);
             if (detected) {
-                setEditSelectedCourseId(detected.courseId);
+                if (detected.courseId) {
+                    setEditSelectedCourseId(detected.courseId);
+                    setEditSelectedTutorialId('');
+                    setEditAttachType('course');
+                } else if (detected.tutorialId) {
+                    setEditSelectedTutorialId(detected.tutorialId);
+                    setEditSelectedCourseId('');
+                    setEditAttachType('tutorial');
+                }
                 setEditSelectedModuleId(detected.moduleId);
                 setEditSelectedTopicId(detected.topicId);
             } else {
                 // reset edit selectors; admin can choose where to attach
                 setEditSelectedCourseId('');
+                setEditSelectedTutorialId('');
                 setEditSelectedModuleId('');
                 setEditSelectedTopicId('');
+                setEditAttachType('');
             }
         }
         setIsEditModalOpen(true);
@@ -444,7 +565,49 @@ const NoteManagement = () => {
                 }
             }
         }
+        for (const tutorial of tutorialsList || []) {
+            if (!tutorial.modules) continue;
+            for (const mod of tutorial.modules) {
+                if (!mod.topics) continue;
+                for (const topic of mod.topics) {
+                    const tNotes = (Array.isArray(topic.articles)
+                        ? topic.articles.map(a => (a && a.content) ? String(a.content) : '').join('\n\n')
+                        : '')
+                        .replace(/\s+/g, ' ')
+                        .trim();
+                    if (!tNotes) continue;
+                    // Exact match or substring match (use short snippet)
+                    if (tNotes === normalized) return { tutorialId: tutorial._id, moduleId: mod._id, topicId: topic._id };
+                    const snippet = normalized.slice(0, 200);
+                    if (tNotes.includes(snippet) || snippet.includes(tNotes.slice(0,200))) return { tutorialId: tutorial._id, moduleId: mod._id, topicId: topic._id };
+                }
+            }
+        }
         return null;
+    };
+    const handleImageFileChange = (e, target) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        if (!file.type.startsWith('image/')) {
+            setFormMessage({ type: 'error', text: 'Please select an image file.' });
+            return;
+        }
+
+        if (file.size > 4 * 1024 * 1024) {
+            setFormMessage({ type: 'error', text: 'Image file size should be less than 4MB.' });
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onloadend = () => {
+            if (target === 'new') {
+                setNewNote(prev => ({ ...prev, imageUrl: reader.result }));
+            } else if (target === 'edit') {
+                setEditingNote(prev => ({ ...prev, imageUrl: reader.result }));
+            }
+        };
+        reader.readAsDataURL(file);
     };
     const handleEditChange = (e) => { const { name, value } = e.target; setEditingNote(prev => ({ ...prev, [name]: value })); };
     const handleContentChange = (next) => { setContent(next); };
@@ -730,23 +893,56 @@ const NoteManagement = () => {
             <form onSubmit={handleAddNote} className="admin-form-container">
                             <div className="form-group"><label htmlFor="newNoteTitle" className="form-label">Title</label><input type="text" id="newNoteTitle" name="title" value={newNote.title} onChange={(e) => setNewNote({ ...newNote, title: e.target.value })} required className="form-input" /></div>
                             <div className="form-group"><label className="form-label">Attach to (optional)</label>
-                                <div className="flex gap-2">
-                                    <select value={selectedCourseId} onChange={(e)=>{ setSelectedCourseId(e.target.value); setSelectedModuleId(''); setSelectedTopicId(''); }} className="form-input">
-                                        <option value="">Select course</option>
-                                        {coursesList.map(c => (<option key={c._id} value={c._id}>{c.title}</option>))}
-                                    </select>
-                                    <select value={selectedModuleId} onChange={(e)=>{ setSelectedModuleId(e.target.value); setSelectedTopicId(''); }} className="form-input">
-                                        <option value="">Select module</option>
-                                        {(coursesList.find(c=>c._id===selectedCourseId)?.modules || []).map(m => (<option key={m._id} value={m._id}>{m.title}</option>))}
-                                    </select>
-                                    <select value={selectedTopicId} onChange={(e)=>setSelectedTopicId(e.target.value)} className="form-input">
-                                        <option value="">Select topic</option>
-                                        {(() => {
-                                            const course = coursesList.find(c=>c._id===selectedCourseId);
-                                            const mod = course ? (course.modules || []).find(mm=>mm._id===selectedModuleId) : null;
-                                            return (mod?.topics || []).map(t => (<option key={t._id} value={t._id}>{t.title}</option>));
-                                        })()}
-                                    </select>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    {/* Row 1 Left: Select Course or Tutorial */}
+                                    <div>
+                                        <select value={attachType} onChange={(e)=>handleAttachTypeChange(e.target.value)} className="form-input w-full">
+                                            <option value="">Select Course or Tutorial</option>
+                                            <option value="course">Course</option>
+                                            <option value="tutorial">Tutorial</option>
+                                        </select>
+                                    </div>
+
+                                    {/* Row 1 Right: Select Course or Tutorial Item */}
+                                    <div>
+                                        {attachType === 'course' ? (
+                                            <select value={selectedCourseId} onChange={(e)=>{ setSelectedCourseId(e.target.value); setSelectedTutorialId(''); setSelectedModuleId(''); setSelectedTopicId(''); }} className="form-input w-full">
+                                                <option value="">Select Course</option>
+                                                {coursesList.map(c => (<option key={c._id} value={c._id}>{c.title}</option>))}
+                                            </select>
+                                        ) : attachType === 'tutorial' ? (
+                                            <select value={selectedTutorialId} onChange={(e)=>{ setSelectedTutorialId(e.target.value); setSelectedCourseId(''); setSelectedModuleId(''); setSelectedTopicId(''); }} className="form-input w-full">
+                                                <option value="">Select Tutorial</option>
+                                                {tutorialsList.map(t => (<option key={t._id} value={t._id}>{t.title}</option>))}
+                                            </select>
+                                        ) : (
+                                            <select disabled className="form-input w-full cursor-not-allowed opacity-50">
+                                                <option value="">Select Item</option>
+                                            </select>
+                                        )}
+                                    </div>
+
+                                    {/* Row 2 Left: Select Module */}
+                                    <div>
+                                        {attachType === 'course' && selectedCourseId ? (
+                                            <select value={selectedModuleId} onChange={(e)=>handleModuleChange(e.target.value)} className="form-input w-full">
+                                                <option value="">Select Course Module</option>
+                                                {(coursesList.find(c=>c._id===selectedCourseId)?.modules || []).map(m => (<option key={m._id} value={m._id}>{m.title}</option>))}
+                                            </select>
+                                        ) : attachType === 'tutorial' && selectedTutorialId ? (
+                                            <select value={selectedModuleId} onChange={(e)=>handleModuleChange(e.target.value)} className="form-input w-full">
+                                                <option value="">Select Tutorial Module</option>
+                                                {(tutorialsList.find(t=>t._id===selectedTutorialId)?.modules || []).map(m => (<option key={m._id} value={m._id}>{m.title}</option>))}
+                                            </select>
+                                        ) : (
+                                            <select disabled className="form-input w-full cursor-not-allowed opacity-50">
+                                                <option value="">Select Module</option>
+                                            </select>
+                                        )}
+                                    </div>
+
+                                    {/* Row 2 Right: Empty Spacer */}
+                                    <div></div>
                                 </div>
                             </div>
                             <div className="form-group"><label htmlFor="newNoteSubject" className="form-label">Subject</label><input type="text" id="newNoteSubject" name="subject" value={newNote.subject} onChange={(e) => setNewNote({ ...newNote, subject: e.target.value })} className="form-input" /></div>
@@ -757,7 +953,48 @@ const NoteManagement = () => {
                                     <span className="text-sm text-gray-400">Use Add Note to save</span>
                                 </div>
                             </div>
-                            <div className="form-group"><label htmlFor="newNoteImageUrl" className="form-label">Image URL (Optional)</label><input type="text" id="newNoteImageUrl" name="imageUrl" value={newNote.imageUrl} onChange={(e) => setNewNote({ ...newNote, imageUrl: e.target.value })} className="form-input" placeholder="https://example.com/note-image.jpg" /></div>
+                            <div className="form-group">
+                                <label className="form-label">Note Image (Optional)</label>
+                                <div className="flex flex-col gap-2">
+                                    <input 
+                                        type="file" 
+                                        accept="image/*" 
+                                        onChange={(e) => handleImageFileChange(e, 'new')} 
+                                        className="form-input text-sm" 
+                                    />
+                                    <div className="text-center text-xs text-gray-400 font-semibold">— OR —</div>
+                                    <input 
+                                        type="text" 
+                                        id="newNoteImageUrl" 
+                                        name="imageUrl" 
+                                        value={newNote.imageUrl.startsWith('data:image/') ? '' : newNote.imageUrl} 
+                                        onChange={(e) => setNewNote({ ...newNote, imageUrl: e.target.value })} 
+                                        className="form-input" 
+                                        placeholder="Enter Image URL (e.g. https://example.com/image.jpg)" 
+                                    />
+                                </div>
+                                {newNote.imageUrl && (
+                                    <div className="mt-2 flex items-center gap-3 bg-gray-50 dark:bg-slate-900 p-2 rounded border border-dashed border-gray-300 dark:border-gray-700">
+                                        <img 
+                                            src={newNote.imageUrl} 
+                                            alt="Preview" 
+                                            className="w-16 h-16 object-cover rounded border" 
+                                        />
+                                        <div className="flex-1 min-w-0">
+                                            <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                                                {newNote.imageUrl.startsWith('data:image/') ? 'Uploaded Base64 Image' : newNote.imageUrl}
+                                            </p>
+                                            <button 
+                                                type="button" 
+                                                onClick={() => setNewNote(prev => ({ ...prev, imageUrl: '' }))} 
+                                                className="text-xs text-red-650 dark:text-red-400 hover:underline font-bold mt-1"
+                                            >
+                                                Remove Image
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
                             <button type="submit" disabled={isLoading} className="form-submit-button">{isLoading ? 'Adding...' : <><PlusCircle size={20} className="icon-mr" /> Add Note</>}</button>
                         </form>
 
@@ -816,26 +1053,100 @@ const NoteManagement = () => {
                                 </div>
                             </div>
                             <div className="form-group"><label className="form-label">Attach to (optional)</label>
-                                <div className="flex gap-2">
-                                    <select value={editSelectedCourseId} onChange={(e)=>{ setEditSelectedCourseId(e.target.value); setEditSelectedModuleId(''); setEditSelectedTopicId(''); }} className="form-input">
-                                        <option value="">Select course</option>
-                                        {coursesList.map(c => (<option key={c._id} value={c._id}>{c.title}</option>))}
-                                    </select>
-                                    <select value={editSelectedModuleId} onChange={(e)=>{ setEditSelectedModuleId(e.target.value); setEditSelectedTopicId(''); }} className="form-input">
-                                        <option value="">Select module</option>
-                                        {(coursesList.find(c=>c._id===editSelectedCourseId)?.modules || []).map(m => (<option key={m._id} value={m._id}>{m.title}</option>))}
-                                    </select>
-                                    <select value={editSelectedTopicId} onChange={(e)=>setEditSelectedTopicId(e.target.value)} className="form-input">
-                                        <option value="">Select topic</option>
-                                        {(() => {
-                                            const course = coursesList.find(c=>c._id===editSelectedCourseId);
-                                            const mod = course ? (course.modules || []).find(mm=>mm._id===editSelectedModuleId) : null;
-                                            return (mod?.topics || []).map(t => (<option key={t._id} value={t._id}>{t.title}</option>));
-                                        })()}
-                                    </select>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    {/* Row 1 Left: Select Course or Tutorial */}
+                                    <div>
+                                        <select value={editAttachType} onChange={(e)=>handleEditAttachTypeChange(e.target.value)} className="form-input w-full">
+                                            <option value="">Select Course or Tutorial</option>
+                                            <option value="course">Course</option>
+                                            <option value="tutorial">Tutorial</option>
+                                        </select>
+                                    </div>
+
+                                    {/* Row 1 Right: Select Course or Tutorial Item */}
+                                    <div>
+                                        {editAttachType === 'course' ? (
+                                            <select value={editSelectedCourseId} onChange={(e)=>{ setEditSelectedCourseId(e.target.value); setEditSelectedTutorialId(''); setEditSelectedModuleId(''); setEditSelectedTopicId(''); }} className="form-input w-full">
+                                                <option value="">Select Course</option>
+                                                {coursesList.map(c => (<option key={c._id} value={c._id}>{c.title}</option>))}
+                                            </select>
+                                        ) : editAttachType === 'tutorial' ? (
+                                            <select value={editSelectedTutorialId} onChange={(e)=>{ setEditSelectedTutorialId(e.target.value); setEditSelectedCourseId(''); setEditSelectedModuleId(''); setEditSelectedTopicId(''); }} className="form-input w-full">
+                                                <option value="">Select Tutorial</option>
+                                                {tutorialsList.map(t => (<option key={t._id} value={t._id}>{t.title}</option>))}
+                                            </select>
+                                        ) : (
+                                            <select disabled className="form-input w-full cursor-not-allowed opacity-50">
+                                                <option value="">Select Item</option>
+                                            </select>
+                                        )}
+                                    </div>
+
+                                    {/* Row 2 Left: Select Module */}
+                                    <div>
+                                        {editAttachType === 'course' && editSelectedCourseId ? (
+                                            <select value={editSelectedModuleId} onChange={(e)=>handleEditModuleChange(e.target.value)} className="form-input w-full">
+                                                <option value="">Select Course Module</option>
+                                                {(coursesList.find(c=>c._id===editSelectedCourseId)?.modules || []).map(m => (<option key={m._id} value={m._id}>{m.title}</option>))}
+                                            </select>
+                                        ) : editAttachType === 'tutorial' && editSelectedTutorialId ? (
+                                            <select value={editSelectedModuleId} onChange={(e)=>handleEditModuleChange(e.target.value)} className="form-input w-full">
+                                                <option value="">Select Tutorial Module</option>
+                                                {(tutorialsList.find(t=>t._id===editSelectedTutorialId)?.modules || []).map(m => (<option key={m._id} value={m._id}>{m.title}</option>))}
+                                            </select>
+                                        ) : (
+                                            <select disabled className="form-input w-full cursor-not-allowed opacity-50">
+                                                <option value="">Select Module</option>
+                                            </select>
+                                        )}
+                                    </div>
+
+                                    {/* Row 2 Right: Empty Spacer */}
+                                    <div></div>
                                 </div>
                             </div>
-                            <div className="form-group"><label htmlFor="editNoteImageUrl" className="form-label">Image URL (Optional)</label><input type="text" id="editNoteImageUrl" name="imageUrl" value={editingNote.imageUrl || ''} onChange={handleEditChange} className="form-input" /></div>
+                            <div className="form-group">
+                                <label className="form-label">Note Image (Optional)</label>
+                                <div className="flex flex-col gap-2">
+                                    <input 
+                                        type="file" 
+                                        accept="image/*" 
+                                        onChange={(e) => handleImageFileChange(e, 'edit')} 
+                                        className="form-input text-sm" 
+                                    />
+                                    <div className="text-center text-xs text-gray-400 font-semibold">— OR —</div>
+                                    <input 
+                                        type="text" 
+                                        id="editNoteImageUrl" 
+                                        name="imageUrl" 
+                                        value={editingNote.imageUrl && editingNote.imageUrl.startsWith('data:image/') ? '' : (editingNote.imageUrl || '')} 
+                                        onChange={handleEditChange} 
+                                        className="form-input" 
+                                        placeholder="Enter Image URL (e.g. https://example.com/image.jpg)"
+                                    />
+                                </div>
+                                {editingNote.imageUrl && (
+                                    <div className="mt-2 flex items-center gap-3 bg-gray-50 dark:bg-slate-900 p-2 rounded border border-dashed border-gray-300 dark:border-gray-700">
+                                        <img 
+                                            src={editingNote.imageUrl} 
+                                            alt="Preview" 
+                                            className="w-16 h-16 object-cover rounded border" 
+                                        />
+                                        <div className="flex-1 min-w-0">
+                                            <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                                                {editingNote.imageUrl.startsWith('data:image/') ? 'Uploaded Base64 Image' : editingNote.imageUrl}
+                                            </p>
+                                            <button 
+                                                type="button" 
+                                                onClick={() => setEditingNote(prev => ({ ...prev, imageUrl: '' }))} 
+                                                className="text-xs text-red-650 dark:text-red-400 hover:underline font-bold mt-1"
+                                            >
+                                                Remove Image
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
                             
                             <div className="modal-actions-footer">
                                 <button type="button" onClick={() => setIsEditModalOpen(false)} className="modal-button-base modal-button-cancel">Cancel</button>

@@ -156,7 +156,7 @@ async function main() {
 
   console.log(`[migrateNotesHtmlToMarkdown] mode=${args.apply ? 'APPLY' : 'DRY-RUN'} limit=${args.limit || 'none'}`);
 
-  await mongoose.connect(uri, { useNewUrlParser: true, useUnifiedTopology: true });
+  await mongoose.connect(uri);
   console.log('Connected to MongoDB');
 
   const turndown = createTurndown();

@@ -225,6 +225,19 @@ router.get('/user/following', authMiddleware, async (req, res) => {
     }
 });
 
+// List users who are following the current user
+router.get('/user/followers', authMiddleware, async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const user = await User.findById(userId).select('social.followersList').populate('social.followersList', 'username profilePicture role');
+        const followers = (user && user.social && user.social.followersList) ? user.social.followersList : [];
+        res.json(followers.map(u => ({ id: u._id, username: u.username, profilePicture: u.profilePicture, role: u.role })));
+    } catch (err) {
+        console.error('Error fetching followers list:', err.message);
+        res.status(500).send('Server Error');
+    }
+});
+
 // List friend-requests (sent and received) with basic user info
 router.get('/user/friend-requests', authMiddleware, async (req, res) => {
     try {

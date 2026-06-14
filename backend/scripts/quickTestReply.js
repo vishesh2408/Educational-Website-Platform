@@ -13,10 +13,7 @@ async function main(){
   const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/myedu';
   const JWT_SECRET = process.env.JWT_SECRET || 'changeme';
 
-  await mongoose.connect(MONGO_URI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  });
+  await mongoose.connect(MONGO_URI);
   console.log('Connected to DB for quickTestReply');
 
   // Create or find staff user

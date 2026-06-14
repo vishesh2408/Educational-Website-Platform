@@ -24,6 +24,9 @@ const { RunnableSequence } = require('@langchain/core/runnables');
 const Topic = require('./models/Topic');
 const Module = require('./models/Module');
 const Course = require('./models/Course');
+const Tutorial = require('./models/Tutorial');
+const TutorialModule = require('./models/TutorialModule');
+const TutorialTopic = require('./models/TutorialTopic');
 const User = require('./models/User');
 const Notification = require('./models/Notification');
 const Contest = require('./models/Contest');
@@ -35,6 +38,9 @@ const Track = require('./models/Track');
 const Note = require('./models/Note');
 const QuizAttempt = require('./models/QuizAttempt');
 const UserProgress = require('./models/UserProgress');
+const SubscriptionPlan = require('./models/SubscriptionPlan');
+const Order = require('./models/Order');
+const { seedSubscriptionPlans } = require('./utils/seeder');
 
 
 const authRoutes = require('./routes/authRoutes');
@@ -46,12 +52,14 @@ const ContestRoutes = require('./routes/ContestRoutes');
 const GeneratequizeRoutes = require('./routes/GeneratequizeRoutes');
 const SocialRoutes = require('./routes/SocialRoutes');
 const ForumRoutes = require('./routes/ForumRoutes');
+const PaymentRoutes = require('./routes/PaymentRoutes');
+const supportTicketRoutes = require('./routes/supportTicketRoutes');
 
 const adminRoutes = require('./routes/adminRoutes');
 const adminUploadsRoutes = require('./routes/adminUploadsRoutes');
 
 // Load environment variables from .env file
-dotenv.config();
+dotenv.config({ path: path.join(__dirname, '.env') });
 
 const app = express();
 app.set('trust proxy', 1); // Trust first proxy (Render/Vercel) for secure cookies
@@ -90,6 +98,16 @@ app.use(cors({
 
 app.use(cookieParser()); // NEW: Parse cookies from incoming requests
 
+// Capture raw request body for webhook HMAC signature verification.
+// express.json() parses the body, and JSON.stringify(parsed) can produce
+// different byte ordering than the original payload, breaking HMAC checks.
+// This middleware stores the original raw buffer on req.rawBody.
+app.use('/api/payment', express.json({
+    verify: (req, res, buf) => {
+        req.rawBody = buf;
+    }
+}));
+
 // // Brute Force Protection for Login
 // const loginLimiter = rateLimit({
 //   windowMs: 15 * 60 * 1000, // 15 minutes
@@ -99,7 +117,8 @@ app.use(cookieParser()); // NEW: Parse cookies from incoming requests
 //   legacyHeaders: false,
 // });
 
-app.use(express.json()); // Body parser for JSON
+app.use(express.json({ limit: '5mb' })); // Body parser for JSON
+app.use(express.urlencoded({ limit: '5mb', extended: true }));
 
 
 // Simple configurable logger
@@ -120,12 +139,11 @@ app.use('/api', (req, res, next) => {
     next();
 });
 
-// MongoDB Connection
-mongoose.connect(process.env.MONGO_URI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
+mongoose.connect(process.env.MONGO_URI)
+.then(() => {
+    console.log('MongoDB connected successfully');
+    seedSubscriptionPlans();
 })
-.then(() => console.log('MongoDB connected successfully'))
 .catch(err => console.error('MongoDB connection error:', err));
 
 // --- Database Schemas ---
@@ -220,11 +238,14 @@ app.use('/api/auth/logout', authRoutes);
 // Course Population Fix: Deep population of Modules and Topics
 const adminRouteFactory = require('./routes/adminRoutes');
 app.use('/api/admin/courses', authMiddleware, adminMiddleware, adminRouteFactory.createCrudRoutes(Course, 'courses', [{ path: 'modules', populate: { path: 'topics' } }]));
+app.use('/api/admin/tutorials', authMiddleware, adminMiddleware, adminRouteFactory.createCrudRoutes(Tutorial, 'tutorials', [{ path: 'modules', populate: { path: 'topics' } }]));
 // Module Population Fix: Populate Topics on Module requests
 app.use('/api/admin/modules', authMiddleware, adminMiddleware, adminRouteFactory.createCrudRoutes(Module, 'modules', ['topics']));
+app.use('/api/admin/tutorial-modules', authMiddleware, adminMiddleware, adminRouteFactory.createCrudRoutes(TutorialModule, 'tutorial-modules', ['topics']));
 
 // Topic Population: Populate nested Quiz IDs on Topic articles
 app.use('/api/admin/topics', authMiddleware, adminMiddleware, adminRouteFactory.createCrudRoutes(Topic, 'topics', ['articles.quizId']));
+app.use('/api/admin/tutorial-topics', authMiddleware, adminMiddleware, adminRouteFactory.createCrudRoutes(TutorialTopic, 'tutorial-topics', ['articles.quizId']));
 
 // keep the rest as it is
 app.use('/api/admin/contests', authMiddleware, adminMiddleware, adminRouteFactory.createCrudRoutes(Contest, 'contests'));
@@ -243,6 +264,7 @@ app.use('/api/admin/tracks', authMiddleware, adminMiddleware, adminRouteFactory.
 app.use('/api/admin/notes', authMiddleware, adminMiddleware, adminRouteFactory.createCrudRoutes(Note, 'notes'));
 // Admin CRUD for Users
 app.use('/api/admin/users', authMiddleware, adminMiddleware, adminRouteFactory.createCrudRoutes(User, 'users'));
+app.use('/api/admin/subscription-plans', authMiddleware, adminMiddleware, adminRouteFactory.createCrudRoutes(SubscriptionPlan, 'subscription-plans', ['freeFor.users']));
 
 // Admin utilities (sanitize preview, etc.)
 app.use('/api/admin/util', authMiddleware, adminMiddleware, adminRouteFactory.adminUtilitiesRouter());
@@ -255,8 +277,11 @@ app.use('/api/admin/uploads', authMiddleware, adminMiddleware, adminUploadsRoute
 const adminRoutesFactory = require('./routes/adminRoutes');
 
 app.use('/api/admin/courses', authMiddleware, adminMiddleware, adminRoutesFactory.createCrudRoutes(Course, 'courses', [{ path: 'modules', populate: { path: 'topics' } }]));
+app.use('/api/admin/tutorials', authMiddleware, adminMiddleware, adminRoutesFactory.createCrudRoutes(Tutorial, 'tutorials', [{ path: 'modules', populate: { path: 'topics' } }]));
 app.use('/api/admin/modules', authMiddleware, adminMiddleware, adminRoutesFactory.createCrudRoutes(Module, 'modules', ['topics']));
+app.use('/api/admin/tutorial-modules', authMiddleware, adminMiddleware, adminRoutesFactory.createCrudRoutes(TutorialModule, 'tutorial-modules', ['topics']));
 app.use('/api/admin/topics', authMiddleware, adminMiddleware, adminRoutesFactory.createCrudRoutes(Topic, 'topics', ['articles.quizId']));
+app.use('/api/admin/tutorial-topics', authMiddleware, adminMiddleware, adminRoutesFactory.createCrudRoutes(TutorialTopic, 'tutorial-topics', ['articles.quizId']));
 app.use('/api/admin/contests', authMiddleware, adminMiddleware, adminRoutesFactory.createCrudRoutes(Contest, 'contests'));
 app.use('/api/admin/forum-posts', authMiddleware, adminMiddleware, adminRoutesFactory.createCrudRoutes(ForumPost, 'forum-posts'));
 // Forum premium admin endpoints are handled separately in routes/forummanagement
@@ -265,6 +290,118 @@ app.use('/api/admin/skills', authMiddleware, adminMiddleware, adminRoutesFactory
 app.use('/api/admin/tracks', authMiddleware, adminMiddleware, adminRoutesFactory.createCrudRoutes(Track, 'tracks'));
 app.use('/api/admin/notes', authMiddleware, adminMiddleware, adminRoutesFactory.createCrudRoutes(Note, 'notes'));
 app.use('/api/admin/users', authMiddleware, adminMiddleware, adminRoutesFactory.createCrudRoutes(User, 'users'));
+app.use('/api/admin/subscription-plans', authMiddleware, adminMiddleware, adminRoutesFactory.createCrudRoutes(SubscriptionPlan, 'subscription-plans', ['freeFor.users']));
+
+// Admin: grant free access to a subscription plan
+app.post('/api/admin/subscription-plans/grant-free', authMiddleware, adminMiddleware, async (req, res) => {
+    try {
+        const { planId, userIdOrEmail } = req.body;
+        if (!planId || !userIdOrEmail) {
+            return res.status(400).json({ msg: 'planId and userIdOrEmail are required' });
+        }
+
+        const plan = await SubscriptionPlan.findById(planId);
+        if (!plan) return res.status(404).json({ msg: 'Subscription plan not found' });
+
+        let user = null;
+        if (mongoose.Types.ObjectId.isValid(userIdOrEmail)) {
+            user = await User.findById(userIdOrEmail);
+        }
+        if (!user) {
+            user = await User.findOne({ email: userIdOrEmail });
+        }
+        if (!user) {
+            return res.status(404).json({ msg: 'User not found' });
+        }
+
+        if (!plan.freeFor) {
+            plan.freeFor = { users: [] };
+        }
+        if (!plan.freeFor.users.map(String).includes(String(user._id))) {
+            plan.freeFor.users.push(user._id);
+            await plan.save();
+        }
+
+        const updatedPlan = await SubscriptionPlan.findById(planId).populate('freeFor.users', 'username email');
+        res.json({ msg: 'Free access granted successfully', plan: updatedPlan });
+    } catch (err) {
+        console.error('Error granting free access:', err.message);
+        res.status(500).send('Server Error');
+    }
+});
+
+// Admin: revoke free access from a subscription plan
+app.post('/api/admin/subscription-plans/revoke-free', authMiddleware, adminMiddleware, async (req, res) => {
+    try {
+        const { planId, userId } = req.body;
+        if (!planId || !userId) {
+            return res.status(400).json({ msg: 'planId and userId are required' });
+        }
+
+        const plan = await SubscriptionPlan.findById(planId);
+        if (!plan) return res.status(404).json({ msg: 'Subscription plan not found' });
+
+        if (plan.freeFor && plan.freeFor.users) {
+            plan.freeFor.users = plan.freeFor.users.filter(u => u.toString() !== userId.toString());
+            await plan.save();
+        }
+
+        const updatedPlan = await SubscriptionPlan.findById(planId).populate('freeFor.users', 'username email');
+        res.json({ msg: 'Free access revoked successfully', plan: updatedPlan });
+    } catch (err) {
+        console.error('Error revoking free access:', err.message);
+        res.status(500).send('Server Error');
+    }
+});
+
+// Admin: fetch payments (order history) list
+app.get('/api/admin/payments', authMiddleware, adminMiddleware, async (req, res) => {
+    try {
+        const orders = await Order.find()
+            .populate('userId', 'username email')
+            .populate('planId', 'name planType isForumPremium')
+            .sort({ createdAt: -1 });
+        res.json(orders);
+    } catch (err) {
+        console.error('Error fetching payments for admin:', err.message);
+        res.status(500).send('Server Error');
+    }
+});
+
+// Admin: update payment (order detail)
+app.put('/api/admin/payments/:id', authMiddleware, adminMiddleware, async (req, res) => {
+    try {
+        const { amount, status, billingPeriod, endDate } = req.body;
+        const updatedOrder = await Order.findByIdAndUpdate(
+            req.params.id,
+            { amount, status, billingPeriod, endDate: endDate ? new Date(endDate) : null },
+            { new: true }
+        ).populate('userId', 'username email')
+         .populate('planId', 'name planType isForumPremium');
+
+        if (!updatedOrder) {
+            return res.status(404).json({ msg: 'Order not found' });
+        }
+        res.json(updatedOrder);
+    } catch (err) {
+        console.error('Error updating payment for admin:', err.message);
+        res.status(500).send('Server Error');
+    }
+});
+
+// Admin: delete payment (order detail)
+app.delete('/api/admin/payments/:id', authMiddleware, adminMiddleware, async (req, res) => {
+    try {
+        const order = await Order.findByIdAndDelete(req.params.id);
+        if (!order) {
+            return res.status(404).json({ msg: 'Order not found' });
+        }
+        res.json({ msg: 'Order deleted successfully', id: req.params.id });
+    } catch (err) {
+        console.error('Error deleting payment for admin:', err.message);
+        res.status(500).send('Server Error');
+    }
+});
 
 // lightweight ping route for quick health checks
 app.get('/api/ping', (req, res) => {
@@ -482,83 +619,7 @@ app.get('/api/public/skills', async (req, res) => {
     }
 });
 
-// @route   GET /api/public/pricing-plans
-// @desc    Get available pricing plans
-// @access  Public
-app.get('/api/public/pricing-plans', async (req, res) => {
-    try {
-        // Count courses for each plan feature
-        const totalCourses = await Course.countDocuments();
-        const paidCourses = await Course.countDocuments({ type: 'paid' });
-        const freeCourses = await Course.countDocuments({ type: 'free' });
 
-        const plans = [
-            {
-                name: 'Starter',
-                description: 'Perfect for beginners getting started',
-                monthlyPrice: 29,
-                yearlyPrice: 290,
-                courseAccess: Math.min(50, freeCourses),
-                totalCourses: totalCourses,
-                features: [
-                    `Access to ${Math.min(50, freeCourses)}+ courses`,
-                    'Basic project templates',
-                    'Community forum access',
-                    'Email support',
-                    'Certificate of completion',
-                    'Mobile app access'
-                ],
-                isPopular: false,
-                planType: 'starter'
-            },
-            {
-                name: 'Professional',
-                description: 'Most popular for serious learners',
-                monthlyPrice: 59,
-                yearlyPrice: 590,
-                courseAccess: Math.floor(paidCourses * 0.6),
-                totalCourses: totalCourses,
-                features: [
-                    `Access to ${Math.floor(paidCourses * 0.6)}+ courses`,
-                    'Advanced project templates',
-                    'Priority community support',
-                    'Live Q&A sessions',
-                    'Verified certificates',
-                    'Career guidance',
-                    'Coding challenges',
-                    'GitHub integration'
-                ],
-                isPopular: true,
-                planType: 'professional'
-            },
-            {
-                name: 'Enterprise',
-                description: 'For teams and organizations',
-                monthlyPrice: 99,
-                yearlyPrice: 990,
-                courseAccess: totalCourses,
-                totalCourses: totalCourses,
-                features: [
-                    'Access to all courses',
-                    'Custom learning paths',
-                    'Team management',
-                    'Advanced analytics',
-                    'Dedicated support',
-                    'Custom integrations',
-                    'White-label options',
-                    'API access'
-                ],
-                isPopular: false,
-                planType: 'enterprise'
-            }
-        ];
-
-        res.json(plans);
-    } catch (err) {
-        console.error('Error fetching pricing plans:', err.message);
-        res.status(500).send('Server Error');
-    }
-});
 
 // @route   POST /api/user/subscription/subscribe
 // @desc    Subscribe user to a plan
@@ -644,6 +705,8 @@ app.use('/api', QuizeRoutes);
 
 // Forum routes (public + authenticated)
 app.use('/api', ForumRoutes);
+app.use('/api', PaymentRoutes);
+app.use('/api', supportTicketRoutes);
 
 
 

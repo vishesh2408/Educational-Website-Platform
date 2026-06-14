@@ -65,13 +65,13 @@ const ConfirmationModal = ({ show, title, message, onConfirm, onCancel, confirmT
 const ForumPostManagement = () => {
     // ✅ Get auth data from context instead of props
     const { currentUser, logout } = useAuth();
-    //const adminToken = currentUser?.token;
     const handleLogout = logout;
 
     const [posts, setPosts] = useState([]);
     const [newPost, setNewPost] = useState({ title: '', content: '', category: 'discussion', tags: '', imageUrl: '' });
     const [editingPost, setEditingPost] = useState(null);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [formMessage, setFormMessage] = useState({ type: '', text: '' });
     const [isDeleting, setIsDeleting] = useState(false);
     const [postToDelete, setPostToDelete] = useState(null);
@@ -192,10 +192,11 @@ const ForumPostManagement = () => {
                 fetchForumPosts();
                 setNewPost({ title: '', content: '', category: 'discussion', tags: '', imageUrl: '' });
                 setFormMessage({ type: 'success', text: 'Post added successfully!' });
+                setIsAddModalOpen(false);
             } else {
                 setFormMessage({ type: 'error', text: data.msg || 'Failed to add post.' });
-                //if (response.status === 401 || response.status === 403) handleLogout();
             }
+
         } catch (error) {
             console.error(`Error adding post:`, error);
             setFormMessage({ type: 'error', text: `Network error or server unavailable. Failed to add post.` });
@@ -416,41 +417,68 @@ const ForumPostManagement = () => {
     return (
         <>
             <MessageBox type={formMessage.type} text={formMessage.text} />
-            <h3 className="admin-section-title">
-                <PlusCircle size={20} /> Add New Forum Post / Reply
-            </h3>
-            <form onSubmit={handleAddPost} className="form-container">
-                <div className="form-group">
-                    <label htmlFor="newPostTitle" className="form-label">Title (for new posts)</label>
-                    <input type="text" id="newPostTitle" name="title" value={newPost.title} onChange={(e) => setNewPost({ ...newPost, title: e.target.value })} className="form-input" />
-                </div>
-                <div className="form-group">
-                    <label htmlFor="newPostContent" className="form-label">Content</label>
-                    <textarea id="newPostContent" name="content" value={newPost.content} onChange={(e) => setNewPost({ ...newPost, content: e.target.value })} rows="5" required className="form-textarea"></textarea>
-                </div>
-                <div className="admin-form-grid">
-                    <div className="form-group">
-                        <label htmlFor="newPostCategory" className="form-label">Category (for new posts)</label>
-                        <select id="newPostCategory" name="category" value={newPost.category} onChange={(e) => setNewPost({ ...newPost, category: e.target.value })} className="form-select">
-                            <option value="discussion">Discussion</option>
-                            <option value="question">Question</option>
-                            <option value="bug">Bug</option>
-                            <option value="feature">Feature</option>
-                        </select>
-                    </div>
-                    <div className="form-group">
-                        <label htmlFor="newPostTags" className="form-label">Tags (comma-separated)</label>
-                        <input type="text" id="newPostTags" name="tags" value={newPost.tags} onChange={(e) => setNewPost({ ...newPost, tags: e.target.value })} className="form-input" />
-                    </div>
-                </div>
-                <div className="form-group">
-                    <label htmlFor="newPostImageUrl" className="form-label">Image URL (Optional)</label>
-                    <input type="text" id="newPostImageUrl" name="imageUrl" value={newPost.imageUrl} onChange={(e) => setNewPost({ ...newPost, imageUrl: e.target.value })} className="form-input" placeholder="https://example.com/image.jpg" />
-                </div>
-                <button type="submit" disabled={isLoading || isUploadingImage} className="form-submit-button">
-                    {isLoading || isUploadingImage ? 'Processing...' : <><PlusCircle size={20} className="icon-mr" /> Add Post</>}
+            <div className="flex justify-between items-center mb-6 pb-2 border-b border-gray-200 dark:border-gray-700">
+                <h2 className="text-2xl font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+                    <MessageSquare size={24} /> Forum Post Management
+                </h2>
+                <button onClick={() => {
+                    setNewPost({ title: '', content: '', category: 'discussion', tags: '', imageUrl: '' });
+                    setIsAddModalOpen(true);
+                }} className="px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white rounded font-medium transition-colors cursor-pointer border-none flex items-center gap-1.5 shadow-sm text-sm">
+                    <PlusCircle size={18} /> Add New Forum Post
                 </button>
-            </form>
+            </div>
+
+            {isAddModalOpen && (
+                <div className="modal-overlay">
+                    <div className="modal-content" style={{ maxWidth: '750px' }}>
+                        <div className="modal-header">
+                            <h3 className="modal-title flex items-center gap-2">
+                                <PlusCircle className="text-teal-600" size={20} />
+                                <span>Add New Forum Post / Reply</span>
+                            </h3>
+                            <button onClick={() => setIsAddModalOpen(false)} className="modal-close-button border-none bg-none p-1 rounded-full cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700">
+                                <X size={20} />
+                            </button>
+                        </div>
+                        <form onSubmit={handleAddPost}>
+                            <div className="form-group">
+                                <label htmlFor="newPostTitle" className="form-label">Title (for new posts)</label>
+                                <input type="text" id="newPostTitle" name="title" value={newPost.title} onChange={(e) => setNewPost({ ...newPost, title: e.target.value })} className="form-input" />
+                            </div>
+                            <div className="form-group">
+                                <label htmlFor="newPostContent" className="form-label">Content</label>
+                                <textarea id="newPostContent" name="content" value={newPost.content} onChange={(e) => setNewPost({ ...newPost, content: e.target.value })} rows="5" required className="form-textarea"></textarea>
+                            </div>
+                            <div className="admin-form-grid">
+                                <div className="form-group">
+                                    <label htmlFor="newPostCategory" className="form-label">Category (for new posts)</label>
+                                    <select id="newPostCategory" name="category" value={newPost.category} onChange={(e) => setNewPost({ ...newPost, category: e.target.value })} className="form-select">
+                                        <option value="discussion">Discussion</option>
+                                        <option value="question">Question</option>
+                                        <option value="bug">Bug</option>
+                                        <option value="feature">Feature</option>
+                                    </select>
+                                </div>
+                                <div className="form-group">
+                                    <label htmlFor="newPostTags" className="form-label">Tags (comma-separated)</label>
+                                    <input type="text" id="newPostTags" name="tags" value={newPost.tags} onChange={(e) => setNewPost({ ...newPost, tags: e.target.value })} className="form-input" />
+                                </div>
+                            </div>
+                            <div className="form-group">
+                                <label htmlFor="newPostImageUrl" className="form-label">Image URL (Optional)</label>
+                                <input type="text" id="newPostImageUrl" name="imageUrl" value={newPost.imageUrl} onChange={(e) => setNewPost({ ...newPost, imageUrl: e.target.value })} className="form-input" placeholder="https://example.com/image.jpg" />
+                            </div>
+                            <div className="modal-actions mt-4 pt-3 border-t border-gray-150 dark:border-gray-700">
+                                <button type="button" onClick={() => setIsAddModalOpen(false)} className="button-base button-cancel border-none cursor-pointer">Cancel</button>
+                                <button type="submit" disabled={isLoading || isUploadingImage} className="button-base button-primary bg-teal-600 hover:bg-teal-700 text-white border-none cursor-pointer flex items-center gap-1.5 font-semibold">
+                                    {isLoading || isUploadingImage ? 'Processing...' : <><PlusCircle size={18} /> Add Post</>}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
 
             <h3 className="admin-section-title">
                 <Info size={20} /> Existing Forum Posts & Replies
@@ -458,7 +486,7 @@ const ForumPostManagement = () => {
             {isLoading ? (
                 <p className="text-center text-gray-500 dark:text-gray-400">Loading forum posts...</p>
             ) : posts.length === 0 ? (
-                <p className="message-info">No forum posts found. Add a new one above!</p>
+                <p className="message-info">No forum posts found. Click "Add New Forum Post" to create one!</p>
             ) : (
                 <div className="table-container">
                     <table className="data-table">
@@ -481,7 +509,7 @@ const ForumPostManagement = () => {
             )}
             {isEditModalOpen && editingPost && (
                 <div className="modal-overlay">
-                    <div className="modal-content">
+                    <div className="modal-content" style={{ maxWidth: '750px' }}>
                         <div className="modal-header">
                             <h3 className="modal-title">Edit Forum Post / Reply</h3>
                             <button onClick={() => setIsEditModalOpen(false)} className="modal-close-button">

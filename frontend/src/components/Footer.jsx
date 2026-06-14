@@ -51,8 +51,11 @@
 
 import React, { useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
-import { MapPin } from 'lucide-react';
+import { MapPin, Mail } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import LearnBentIcon from '../contexts/LearnBentIcon';
+
+const MotionLink = motion.create ? motion.create(Link) : motion(Link);
 
 const BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:3001';
 const API_BASE_URL = `${BASE_URL}/api`;
@@ -99,73 +102,114 @@ const Footer = () => {
     Resources: ['Contact', 'Blog', 'FAQs', 'Support'],
   };
 
+  const footerLinkPaths = {
+    'All Courses': '/user/dashboard/courses',
+    'Quizzes': '/user/dashboard/quizzes',
+    'Contact': '/user/dashboard/settings?tab=help&scroll=contact',
+    'Blog': '/user/dashboard/settings?tab=blog',
+    'FAQs': '/user/dashboard/settings?tab=help&scroll=faqs',
+    'Support': '/user/dashboard/settings?tab=help&scroll=support',
+  };
+
   // Keep the same social links/icons you already had
   const socialIcons = [
     { title: 'Facebook', href: '#', icon: <i className="fab fa-facebook-f" /> },
-    { title: 'Instagram', href: '#', icon: <i className="fab fa-instagram" /> },
-    { title: 'LinkedIn', href: '#', icon: <i className="fab fa-linkedin-in" /> },
-    { title: 'GitHub', href: '#', icon: <i className="fab fa-github" /> },
+    { title: 'Instagram', href: 'https://www.instagram.com/codebent__/', icon: <i className="fab fa-instagram" /> },
+    { title: 'LinkedIn', href: 'https://linkedin.com/in/vishesh-yadav-/', icon: <i className="fab fa-linkedin-in" /> },
+    { title: 'GitHub', href: 'https://github.com/vishesh2408/', icon: <i className="fab fa-github" /> },
     { title: 'YouTube', href: '#', icon: <i className="fab fa-youtube" /> },
   ];
 
   return (
-    <footer className="relative border-t border-white/10 bg-slate-950">
+    <footer className="relative border-t border-gray-200 dark:border-white/10 bg-white dark:bg-slate-950 transition-colors duration-300 text-gray-900 dark:text-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-12 mb-12">
           {/* Brand (logo/motto/location stay the same) */}
           <div className="lg:col-span-2">
             <motion.div className="flex items-center gap-2 mb-6" whileHover={{ scale: 1.03 }}>
               <LearnBentIcon size={32} />
-              <span className="text-white font-bold text-xl">LearnBent</span>
+              <span className="text-gray-900 dark:text-white font-bold text-xl">LearnBent</span>
             </motion.div>
 
-            <p className="text-gray-400 mb-8 max-w-sm leading-relaxed">
+            <p className="text-gray-500 dark:text-gray-400 mb-8 max-w-sm leading-relaxed">
               Your partner in acquiring new skills and advancing your career through quality online education.
             </p>
 
             <div className="space-y-4">
-              <div className="flex items-center gap-3 text-gray-400 hover:text-white transition-colors cursor-default">
+              <div className="flex items-center gap-3 text-gray-500 dark:text-gray-400 hover:text-gray-905 dark:hover:text-white transition-colors cursor-default">
                 <MapPin className="w-4 h-4 text-[#167468]" />
                 <span className="text-sm">Sovereign Corporate Tower, Noida, UP, India</span>
               </div>
+              <a
+                href="mailto:visheshyadav62@gmail.com"
+                className="flex items-center gap-3 text-gray-500 dark:text-gray-400 hover:text-gray-905 dark:hover:text-white transition-colors"
+              >
+                <Mail className="w-4 h-4 text-[#167468]" />
+                <span className="text-sm">visheshyadav62@gmail.com</span>
+              </a>
             </div>
           </div>
 
           {/* Links */}
           {Object.entries(footerLinks).map(([category, links]) => (
             <div key={category}>
-              <h3 className="text-white font-bold mb-6">{category}</h3>
+              <h3 className="text-gray-905 dark:text-white font-bold mb-6">{category}</h3>
               <ul className="space-y-4">
-                {links.map((link) => (
-                  <li key={link}>
-                    <motion.a
-                      href="#"
-                      className="text-gray-400 hover:text-white transition-colors text-sm"
-                      whileHover={{ x: 5 }}
-                    >
-                      {link}
-                    </motion.a>
-                  </li>
-                ))}
+                {links.map((link) => {
+                  const targetPath = footerLinkPaths[link];
+                  return (
+                    <li key={link}>
+                      {targetPath ? (
+                        <MotionLink
+                          to={targetPath}
+                          onClick={() => {
+                            window.scrollTo({ top: 0, behavior: 'instant' });
+                            document.documentElement.scrollTo({ top: 0, behavior: 'instant' });
+                            document.body.scrollTo({ top: 0, behavior: 'instant' });
+                          }}
+                          className="text-gray-500 dark:text-gray-400 hover:text-gray-905 dark:hover:text-white transition-colors text-sm"
+                          whileHover={{ x: 5 }}
+                        >
+                          {link}
+                        </MotionLink>
+                      ) : (
+                        <motion.a
+                          href="#"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            window.scrollTo({ top: 0, behavior: 'smooth' });
+                          }}
+                          className="text-gray-500 dark:text-gray-400 hover:text-gray-905 dark:hover:text-white transition-colors text-sm"
+                          whileHover={{ x: 5 }}
+                        >
+                          {link}
+                        </motion.a>
+                      )}
+                    </li>
+                  );
+                })}
               </ul>
             </div>
           ))}
 
           {/* Connect */}
+          {/* We connect social icons with theme-aware borders and bg */}
           <div>
-            <h3 className="text-white font-bold mb-6">Connect</h3>
+            <h3 className="text-gray-950 dark:text-white font-bold mb-6">Connect</h3>
             <div className="flex items-center gap-4 flex-wrap">
               {socialIcons.map((social) => (
                 <motion.a
                   key={social.title}
                   href={social.href}
                   title={social.title}
-                  className="w-10 h-10 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg flex items-center justify-center text-gray-400 hover:text-white transition-all shadow-sm"
+                  target={social.href !== '#' ? '_blank' : undefined}
+                  rel={social.href !== '#' ? 'noopener noreferrer' : undefined}
+                  className="w-10 h-10 bg-gray-50 hover:bg-gray-100 dark:bg-white/5 dark:hover:bg-white/10 border border-gray-200 dark:border-white/10 rounded-lg flex items-center justify-center text-gray-500 dark:text-gray-450 hover:text-gray-905 dark:hover:text-white transition-all shadow-sm"
                   whileHover={{ scale: 1.1, rotate: 5 }}
                   whileTap={{ scale: 0.9 }}
                   aria-label={social.title}
                 >
-                  <span className="text-white">{social.icon}</span>
+                  <span className="text-gray-700 dark:text-white">{social.icon}</span>
                 </motion.a>
               ))}
             </div>
@@ -173,11 +217,11 @@ const Footer = () => {
         </div>
 
         {/* Newsletter */}
-        <div className="bg-white/5 backdrop-blur-lg rounded-2xl p-8 border border-white/10 mb-12 shadow-inner">
+        <div className="bg-gray-50 dark:bg-white/5 backdrop-blur-lg rounded-2xl p-8 border border-gray-200 dark:border-white/10 mb-12 shadow-inner">
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
             <div className="text-center md:text-left">
-              <h3 className="text-white text-xl font-bold mb-2">Subscribe to Our Newsletter</h3>
-              <p className="text-gray-400 text-sm">Get the latest updates, course discounts and learning resources</p>
+              <h3 className="text-gray-950 dark:text-white text-xl font-bold mb-2">Subscribe to Our Newsletter</h3>
+              <p className="text-gray-500 dark:text-gray-400 text-sm">Get the latest updates, course discounts and learning resources</p>
             </div>
             <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 w-full md:w-auto">
               <input
@@ -191,7 +235,7 @@ const Footer = () => {
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') submitNewsletter();
                 }}
-                className="bg-white/10 border border-white/20 rounded-lg px-4 py-2.5 sm:py-3 text-sm sm:text-base text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#167468] w-full sm:flex-1 md:w-80 transition-all"
+                className="bg-white dark:bg-white/10 border border-gray-300 dark:border-white/20 rounded-lg px-4 py-2.5 sm:py-3 text-sm sm:text-base text-gray-950 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#167468] w-full sm:flex-1 md:w-80 transition-all"
               />
               <motion.button
                 type="button"
@@ -209,10 +253,10 @@ const Footer = () => {
           {newsletterStatus.state !== 'idle' && (
             <p
               className={`mt-3 text-sm ${newsletterStatus.state === 'success'
-                  ? 'text-emerald-300'
+                  ? 'text-emerald-600 dark:text-emerald-300'
                   : newsletterStatus.state === 'error'
-                    ? 'text-red-300'
-                    : 'text-gray-400'
+                    ? 'text-red-600 dark:text-red-300'
+                    : 'text-gray-500 dark:text-gray-400'
                 }`}
             >
               {newsletterStatus.message}
@@ -221,8 +265,8 @@ const Footer = () => {
         </div>
 
         {/* Bottom Bar */}
-        <div className="flex flex-col md:flex-row items-center justify-between gap-6 pt-8 border-t border-white/10">
-          <p className="text-gray-500 text-sm text-center md:text-left">
+        <div className="flex flex-col md:flex-row items-center justify-between gap-6 pt-8 border-t border-gray-200 dark:border-white/10">
+          <p className="text-gray-500 dark:text-gray-400 text-sm text-center md:text-left">
             © {new Date().getFullYear()} LearnBent. All Rights Reserved. Designed with{' '}
             <i className="fas fa-heart text-red-500 mx-1" />.
           </p>

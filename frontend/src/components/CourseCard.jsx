@@ -35,7 +35,7 @@ const CourseCard = ({ course, onClick }) => {
       onClick={handleClick}
       whileHover={{ y: -4 }}
       transition={{ type: 'spring', stiffness: 260, damping: 20 }}
-      className="group cursor-pointer rounded-2xl border border-white/10 bg-white/5 backdrop-blur overflow-hidden"
+      className="group cursor-pointer rounded-2xl border border-gray-200 dark:border-white/10 bg-white dark:bg-white/5 backdrop-blur overflow-hidden shadow-sm dark:shadow-none transition-colors duration-300"
     >
       {/* Media */}
       <div className="relative aspect-video overflow-hidden">
@@ -69,15 +69,15 @@ const CourseCard = ({ course, onClick }) => {
       {/* Content */}
       <div className="p-6">
         {course?.title ? (
-          <h3 className="text-xl font-bold text-white mb-2 line-clamp-2">{course.title}</h3>
+          <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2 line-clamp-2">{course.title}</h3>
         ) : null}
 
         {course?.description ? (
-          <p className="text-gray-300 text-sm mb-5 line-clamp-2">{course.description}</p>
+          <p className="text-gray-600 dark:text-gray-300 text-sm mb-5 line-clamp-2">{course.description}</p>
         ) : null}
 
         {hasMeta ? (
-          <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-gray-300 mb-6">
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-gray-500 dark:text-gray-300 mb-6">
             {course?.duration ? (
               <span className="inline-flex items-center gap-2">
                 <Clock className="w-4 h-4 text-[#167468]" />
@@ -101,7 +101,7 @@ const CourseCard = ({ course, onClick }) => {
 
         <div className="flex items-center justify-between gap-4">
           {showPrice ? (
-            <span className="text-white font-bold">{formattedPrice}</span>
+            <span className="text-gray-900 dark:text-white font-bold">{formattedPrice}</span>
           ) : (
             <span />
           )}

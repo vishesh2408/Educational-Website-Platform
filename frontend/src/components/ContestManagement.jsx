@@ -1,4 +1,4 @@
-// src/components/ContestManagement.js
+// src/components/ContestManagement.jsx
 import React, { useState, useEffect, useCallback } from 'react';
 import { PlusCircle, Edit, Trash2, X, AlertCircle, CheckCircle, Info } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
@@ -52,7 +52,6 @@ const ConfirmationModal = ({ show, title, message, onConfirm, onCancel, confirmT
 
 const ContestManagement = () => {
     const { currentUser, logout } = useAuth();
-    // const adminToken = currentUser?.token;
     const [contests, setContests] = useState([]);
     const [newContest, setNewContest] = useState({
         title: '', category: 'Programming', status: 'Upcoming', startTime: '', endTime: '',
@@ -60,6 +59,7 @@ const ContestManagement = () => {
     });
     const [editingContest, setEditingContest] = useState(null);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [formMessage, setFormMessage] = useState({ type: '', text: '' });
     const [isDeleting, setIsDeleting] = useState(false);
     const [contestToDelete, setContestToDelete] = useState(null);
@@ -67,36 +67,27 @@ const ContestManagement = () => {
 
     const { openModal } = useModal();
 
-    // Define standard options to send cookies
     const fetchOptions = {
-        method: 'GET', // Will be overridden in specific calls
+        method: 'GET', 
         headers: { 'Content-Type': 'application/json' },
-        credentials: 'include', // 🎯 FIX: Tell the browser to send the HTTP-only cookie
+        credentials: 'include', 
     };
 
     const fetchContests = useCallback(async () => {
         setIsLoading(true);
         setFormMessage({ type: '', text: '' });
-
-        // if (!adminToken) {
-        //     setFormMessage({ type: 'error', text: 'Authentication token missing.' });
-        //     setIsLoading(false);
-        //     return;
-        // }
         try {
-            // const response = await fetch(`${API_BASE_URL}/admin/contests`, { 
-            //     headers: { 'x-auth-token': adminToken } });
             const response = await fetch(`${API_BASE_URL}/api/admin/contests`, {
                 ...fetchOptions,
                 method: 'GET',
             });
 
             if (response.status === 401 || response.status === 403) {
-            setFormMessage({ type: 'error', text: 'Authentication failed. Please log in again.' });
-            logout(); // Clears session and redirects
-            setIsLoading(false);
-            return;
-           }
+                setFormMessage({ type: 'error', text: 'Authentication failed. Please log in again.' });
+                logout(); 
+                setIsLoading(false);
+                return;
+            }
 
             const data = await response.json();
 
@@ -105,20 +96,14 @@ const ContestManagement = () => {
                 throw new Error(data.msg || 'Fetch failed');
             }
 
-            // if (response.ok) {
-                const parsedData = data.map(contest => ({
-                    ...contest,
-                    startTime: contest.startTime ? new Date(contest.startTime) : null,
-                    endTime: contest.endTime ? new Date(contest.endTime) : null,
-                }));
-                
-                setContests(parsedData);
-                setFormMessage({ type: 'success', text: 'Contests loaded successfully!' });
-           
-            // else {
-            //     setFormMessage({ type: 'error', text: data.msg || 'Failed to fetch contests.' });
-            //     if (response.status === 401 || response.status === 403) logout();
-            // }
+            const parsedData = data.map(contest => ({
+                ...contest,
+                startTime: contest.startTime ? new Date(contest.startTime) : null,
+                endTime: contest.endTime ? new Date(contest.endTime) : null,
+            }));
+            
+            setContests(parsedData);
+            setFormMessage({ type: 'success', text: 'Contests loaded successfully!' });
         } catch (error) {
             console.error('Error fetching contests:', error);
             if (!formMessage.text.includes('Authentication failed')) {
@@ -134,17 +119,9 @@ const ContestManagement = () => {
     }, [fetchContests]);
 
     const handleAddContest = async (e) => {
-
         e.preventDefault();
         setFormMessage({ type: '', text: '' });
         setIsLoading(true);
-
-        // if (!adminToken) {
-        //     setFormMessage({ type: 'error', text: 'Authentication token missing.' });
-        //     setIsLoading(false);
-        //     return;
-        // }
-
         
         try {
             const contestData = {
@@ -153,7 +130,12 @@ const ContestManagement = () => {
                 endTime: newContest.endTime ? new Date(newContest.endTime).toISOString() : null,
                 participants: parseInt(newContest.participants) || 0,
             };
-            const response = await fetch(`${API_BASE_URL}/api/admin/contests`, { method: 'POST', headers: { 'Content-Type': 'application/json'}, body: JSON.stringify(contestData), credentials: 'include' });
+            const response = await fetch(`${API_BASE_URL}/api/admin/contests`, { 
+                method: 'POST', 
+                headers: { 'Content-Type': 'application/json'}, 
+                body: JSON.stringify(contestData), 
+                credentials: 'include' 
+            });
 
             if (response.status === 401 || response.status === 403) {
                  setFormMessage({ type: 'error', text: 'Authentication failed. Please log in again.' });
@@ -168,14 +150,9 @@ const ContestManagement = () => {
                 setContests([...contests, { ...data, startTime: data.startTime ? new Date(data.startTime) : null, endTime: data.endTime ? new Date(data.endTime) : null }]);
                 setNewContest({ title: '', category: 'Programming', status: 'Upcoming', startTime: '', endTime: '', participants: 0, prize: '$0', description: '', difficulty: 'Easy', isFeatured: false, winner: '' });
                 setFormMessage({ type: 'success', text: 'Contest added successfully!' });
-            } 
-            
-            else {
-                // setFormMessage({ type: 'error', text: data.msg || 'Failed to add contest.' });
-                // if (response.status === 401 || response.status === 403) logout();
-
-                const errorData = await response.json(); // Handle validation errors from express-validator
-                const errorMsg = errorData.errors ? errorData.errors.map(e => e.msg).join('. ') : (errorData.msg || 'Failed to add contest.');
+                setIsAddModalOpen(false); // Close Modal on success
+            } else {
+                const errorMsg = data.errors ? data.errors.map(e => e.msg).join('. ') : (data.msg || 'Failed to add contest.');
                 setFormMessage({ type: 'error', text: errorMsg });
             }
         } catch (error) {
@@ -200,11 +177,6 @@ const ContestManagement = () => {
         e.preventDefault();
         setFormMessage({ type: '', text: '' });
         setIsLoading(true);
-        // if (!adminToken || !editingContest?._id) {
-        //     setFormMessage({ type: 'error', text: 'Authentication token or contest ID missing.' });
-        //     setIsLoading(false);
-        //     return;
-        // }
 
         try {
             const contestData = { ...editingContest, startTime: editingContest.startTime ? new Date(editingContest.startTime).toISOString() : null, endTime: editingContest.endTime ? new Date(editingContest.endTime).toISOString() : null };
@@ -218,7 +190,6 @@ const ContestManagement = () => {
                  return;
             }
 
-
             const data = await response.json();
             if (response.ok) {
                 setContests(contests.map(c => (c._id === data._id ? { ...data, startTime: data.startTime ? new Date(data.startTime) : null, endTime: data.endTime ? new Date(data.endTime) : null } : c)));
@@ -226,11 +197,7 @@ const ContestManagement = () => {
                 setEditingContest(null);
                 setFormMessage({ type: 'success', text: 'Contest updated successfully!' });
             } else {
-                // setFormMessage({ type: 'error', text: data.msg || 'Failed to update contest.' });
-                // if (response.status === 401 || response.status === 403) logout();
-
-                const errorData = await response.json();
-                const errorMsg = errorData.msg || 'Failed to update contest.';
+                const errorMsg = data.msg || 'Failed to update contest.';
                 setFormMessage({ type: 'error', text: errorMsg });
             }
         } catch (error) {
@@ -249,15 +216,10 @@ const ContestManagement = () => {
     const handleDeleteContest = async () => {
         setFormMessage({ type: '', text: '' });
         setIsLoading(true);
-        // if (!adminToken || !contestToDelete) {
-        //     setFormMessage({ type: 'error', text: 'Authentication token or contest ID missing for deletion.' });
-        //     setIsLoading(false);
-        //     return;
-        // }
         try {
-            const response = await fetch(`${API_BASE_URL}/api/admin/contests/${contestToDelete}`, { method: 'DELETE',
+            const response = await fetch(`${API_BASE_URL}/api/admin/contests/${contestToDelete}`, { 
+                method: 'DELETE',
                 credentials: 'include',
-                // headers: { 'x-auth-token': adminToken } 
             });
            
             if (response.status === 401 || response.status === 403) {
@@ -268,16 +230,12 @@ const ContestManagement = () => {
                  return;
             }
 
-
-
-
             const data = await response.json();
             if (response.ok) {
                 setContests(contests.filter(c => c._id !== contestToDelete));
                 setFormMessage({ type: 'success', text: data.msg || 'Contest deleted successfully!' });
             } else {
                 setFormMessage({ type: 'error', text: data.msg || 'Failed to delete contest.' });
-                if (response.status === 401 || response.status === 403) logout();
             }
         } catch (error) {
             console.error('Error deleting contest:', error);
@@ -292,26 +250,25 @@ const ContestManagement = () => {
     return (
         <>
             <MessageBox type={formMessage.type} text={formMessage.text} />
-            <h3 className="admin-section-title"><PlusCircle size={20} /> Add New Contest</h3>
-            <form onSubmit={handleAddContest} className="admin-form-container">
-                <div className="form-group"><label htmlFor="newContestTitle" className="form-label">Title</label><input type="text" id="newContestTitle" name="title" value={newContest.title} onChange={(e) => setNewContest({ ...newContest, title: e.target.value })} required className="form-input" /></div>
-                <div className="form-group"><label htmlFor="newContestDescription" className="form-label">Description</label><textarea id="newContestDescription" name="description" value={newContest.description} onChange={(e) => setNewContest({ ...newContest, description: e.target.value })} rows="3" required className="form-textarea"></textarea></div>
-                <div className="form-group"><label htmlFor="newContestCategory" className="form-label">Category</label><input type="text" id="newContestCategory" name="category" value={newContest.category} onChange={(e) => setNewContest({ ...newContest, category: e.target.value })} required className="form-input" /></div>
-                <div className="form-group"><label htmlFor="newContestDifficulty" className="form-label">Difficulty</label><select id="newContestDifficulty" name="difficulty" value={newContest.difficulty} onChange={(e) => setNewContest({ ...newContest, difficulty: e.target.value })} className="form-select"><option value="Easy">Easy</option><option value="Medium">Medium</option><option value="Hard">Hard</option></select></div>
-                <div className="form-group"><label htmlFor="newContestStatus" className="form-label">Status</label><select id="newContestStatus" name="status" value={newContest.status} onChange={(e) => setNewContest({ ...newContest, status: e.target.value })} className="form-select"><option value="Upcoming">Upcoming</option><option value="Live">Live</option><option value="Past">Past</option></select></div>
-                <div className="form-group"><label htmlFor="newContestStartTime" className="form-label">Start Time</label><input type="datetime-local" id="newContestStartTime" name="startTime" value={newContest.startTime} onChange={(e) => setNewContest({ ...newContest, startTime: e.target.value })} className="form-input" /></div>
-                <div className="form-group"><label htmlFor="newContestEndTime" className="form-label">End Time</label><input type="datetime-local" id="newContestEndTime" name="endTime" value={newContest.endTime} onChange={(e) => setNewContest({ ...newContest, endTime: e.target.value })} className="form-input" /></div>
-                <div className="form-group"><label htmlFor="newContestParticipants" className="form-label">Participants</label><input type="number" id="newContestParticipants" name="participants" value={newContest.participants} onChange={(e) => setNewContest({ ...newContest, participants: parseInt(e.target.value) || 0 })} className="form-input" /></div>
-                <div className="form-group"><label htmlFor="newContestPrize" className="form-label">Prize (e.g., $5,000)</label><input type="text" id="newContestPrize" name="prize" value={newContest.prize} onChange={(e) => setNewContest({ ...newContest, prize: e.target.value })} className="form-input" /></div>
-                <div className="form-group flex items-center gap-2">
-                    <input type="checkbox" id="newContestFeatured" name="isFeatured" checked={newContest.isFeatured} onChange={(e) => setNewContest({ ...newContest, isFeatured: e.target.checked })} className="form-checkbox" />
-                    <label htmlFor="newContestFeatured" className="form-label mb-0">Featured Contest</label>
-                </div>
-                {newContest.status === 'Past' && (<div className="form-group"><label htmlFor="newContestWinner" className="form-label">Winner (for Past contests)</label><input type="text" id="newContestWinner" name="winner" value={newContest.winner} onChange={(e) => setNewContest({ ...newContest, winner: e.target.value })} className="form-input" /></div>)}
-                <button type="submit" disabled={isLoading} className="form-submit-button">{isLoading ? 'Adding...' : <><PlusCircle size={20} className="icon-mr" /> Add Contest</>}</button>
-            </form>
-            <h3 className="admin-section-title"><Info size={20} /> Existing Contests</h3>
-            {isLoading ? (<p className="text-center text-gray-500 dark:text-gray-400">Loading contests...</p>) : contests.length === 0 ? (<p className="admin-message-info">No contests found. Add a new contest above!</p>) : (
+            
+            {/* Header Area with Modal Add Button */}
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+                <h3 className="admin-section-title mb-0 border-b-0 pb-0 flex items-center gap-2">
+                    <Info size={20} /> Existing Contests
+                </h3>
+                <button 
+                    onClick={() => setIsAddModalOpen(true)} 
+                    className="admin-button-primary flex items-center gap-2 self-start sm:self-auto"
+                >
+                    <PlusCircle size={18} /> Add New Contest
+                </button>
+            </div>
+
+            {isLoading && contests.length === 0 ? (
+                <p className="text-center text-gray-550 dark:text-gray-400 my-8">Loading contests...</p>
+            ) : contests.length === 0 ? (
+                <p className="admin-message-info my-6">No contests found. Click 'Add New Contest' to create one!</p>
+            ) : (
                 <div className="admin-table-container">
                     <table className="admin-table">
                         <thead className="admin-table-thead">
@@ -342,10 +299,95 @@ const ContestManagement = () => {
                     </table>
                 </div>
             )}
+
+            {/* ADD CONTEST MODAL */}
+            {isAddModalOpen && (
+                <div className="modal-overlay">
+                    <div className="modal-content-box">
+                        <div className="modal-header">
+                            <h3 className="modal-title flex items-center gap-2">
+                                <PlusCircle size={22} className="text-teal-500" /> Add New Contest
+                            </h3>
+                            <button onClick={() => setIsAddModalOpen(false)} className="modal-close-button">
+                                <X size={24} />
+                            </button>
+                        </div>
+                        <form onSubmit={handleAddContest}>
+                            <div className="form-group">
+                                <label htmlFor="newContestTitle" className="form-label">Title</label>
+                                <input type="text" id="newContestTitle" name="title" value={newContest.title} onChange={(e) => setNewContest({ ...newContest, title: e.target.value })} required className="form-input" />
+                            </div>
+                            <div className="form-group">
+                                <label htmlFor="newContestDescription" className="form-label">Description</label>
+                                <textarea id="newContestDescription" name="description" value={newContest.description} onChange={(e) => setNewContest({ ...newContest, description: e.target.value })} rows="3" required className="form-textarea"></textarea>
+                            </div>
+                            <div className="form-group">
+                                <label htmlFor="newContestCategory" className="form-label">Category</label>
+                                <input type="text" id="newContestCategory" name="category" value={newContest.category} onChange={(e) => setNewContest({ ...newContest, category: e.target.value })} required className="form-input" />
+                            </div>
+                            <div className="form-group">
+                                <label htmlFor="newContestDifficulty" className="form-label">Difficulty</label>
+                                <select id="newContestDifficulty" name="difficulty" value={newContest.difficulty} onChange={(e) => setNewContest({ ...newContest, difficulty: e.target.value })} className="form-select">
+                                    <option value="Easy">Easy</option>
+                                    <option value="Medium">Medium</option>
+                                    <option value="Hard">Hard</option>
+                                </select>
+                            </div>
+                            <div className="form-group">
+                                <label htmlFor="newContestStatus" className="form-label">Status</label>
+                                <select id="newContestStatus" name="status" value={newContest.status} onChange={(e) => setNewContest({ ...newContest, status: e.target.value })} className="form-select">
+                                    <option value="Upcoming">Upcoming</option>
+                                    <option value="Live">Live</option>
+                                    <option value="Past">Past</option>
+                                </select>
+                            </div>
+                            <div className="form-group">
+                                <label htmlFor="newContestStartTime" className="form-label">Start Time</label>
+                                <input type="datetime-local" id="newContestStartTime" name="startTime" value={newContest.startTime} onChange={(e) => setNewContest({ ...newContest, startTime: e.target.value })} className="form-input" />
+                            </div>
+                            <div className="form-group">
+                                <label htmlFor="newContestEndTime" className="form-label">End Time</label>
+                                <input type="datetime-local" id="newContestEndTime" name="endTime" value={newContest.endTime} onChange={(e) => setNewContest({ ...newContest, endTime: e.target.value })} className="form-input" />
+                            </div>
+                            <div className="form-group">
+                                <label htmlFor="newContestParticipants" className="form-label">Participants</label>
+                                <input type="number" id="newContestParticipants" name="participants" value={newContest.participants} onChange={(e) => setNewContest({ ...newContest, participants: parseInt(e.target.value) || 0 })} className="form-input" />
+                            </div>
+                            <div className="form-group">
+                                <label htmlFor="newContestPrize" className="form-label">Prize (e.g., $5,000)</label>
+                                <input type="text" id="newContestPrize" name="prize" value={newContest.prize} onChange={(e) => setNewContest({ ...newContest, prize: e.target.value })} className="form-input" />
+                            </div>
+                            <div className="form-group flex items-center gap-2">
+                                <input type="checkbox" id="newContestFeatured" name="isFeatured" checked={newContest.isFeatured} onChange={(e) => setNewContest({ ...newContest, isFeatured: e.target.checked })} className="form-checkbox" />
+                                <label htmlFor="newContestFeatured" className="form-label mb-0">Featured Contest</label>
+                            </div>
+                            {newContest.status === 'Past' && (
+                                <div className="form-group">
+                                    <label htmlFor="newContestWinner" className="form-label">Winner (for Past contests)</label>
+                                    <input type="text" id="newContestWinner" name="winner" value={newContest.winner} onChange={(e) => setNewContest({ ...newContest, winner: e.target.value })} className="form-input" />
+                                </div>
+                            )}
+                            <div className="modal-actions-footer">
+                                <button type="button" onClick={() => setIsAddModalOpen(false)} className="modal-button-base modal-button-cancel">Cancel</button>
+                                <button type="submit" disabled={isLoading} className="modal-button-base admin-button-primary">
+                                    {isLoading ? 'Adding...' : 'Add Contest'}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+
+            {/* EDIT CONTEST MODAL */}
             {isEditModalOpen && editingContest && (
                 <div className="modal-overlay">
                     <div className="modal-content-box">
-                        <div className="modal-header"><h3 className="modal-title">Edit Contest</h3><button onClick={() => setIsEditModalOpen(false)} className="modal-close-button"><X size={24} /></button></div>
+                        <div className="modal-header">
+                            <h3 className="modal-title">Edit Contest</h3>
+                            <button onClick={() => setIsEditModalOpen(false)} className="modal-close-button">
+                                <X size={24} />
+                            </button>
+                        </div>
                         <form onSubmit={handleUpdateContest}>
                             <div className="form-group"><label htmlFor="editContestTitle" className="form-label">Title</label><input type="text" id="editContestTitle" name="title" value={editingContest.title} onChange={handleEditChange} required className="form-input" /></div>
                             <div className="form-group"><label htmlFor="editContestDescription" className="form-label">Description</label><textarea id="editContestDescription" name="description" value={editingContest.description} onChange={handleEditChange} rows="3" required className="form-textarea"></textarea></div>

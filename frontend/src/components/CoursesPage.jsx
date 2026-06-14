@@ -127,7 +127,7 @@ const CourseCard = ({ course, onAction, isEnrolled, onLikeToggle, isLikedInitial
     return (
         <div
             onClick={handleCardClick}
-            className="group relative flex flex-col rounded-2xl overflow-hidden cursor-pointer bg-white/5 border border-white/10 backdrop-blur shadow-lg hover:shadow-xl transition-transform duration-300 transform hover:-translate-y-1"
+            className="group relative flex flex-col rounded-2xl overflow-hidden cursor-pointer bg-white dark:bg-white/5 border border-gray-300 dark:border-white/10 backdrop-blur shadow-lg hover:shadow-xl transition-transform duration-300 transform hover:-translate-y-1"
         >
             <div className="relative h-36 sm:h-40 overflow-hidden">
                 <img
@@ -142,12 +142,12 @@ const CourseCard = ({ course, onAction, isEnrolled, onLikeToggle, isLikedInitial
             </div>
             <div className="flex-1 p-4 flex flex-col justify-between">
                 <div>
-                    <h4 className="text-lg font-bold text-white mb-1.5">{course.title}</h4>
+                    <h4 className="text-lg font-bold text-gray-900 dark:text-white mb-1.5">{course.title}</h4>
                     <div className="flex items-center justify-between mb-2">
                         {renderStarRating(course.rating)}
                         <button
                             onClick={handleLikeClick}
-                            className={`p-1.5 rounded-full transition-colors duration-200 ${isLiked ? 'text-red-500 hover:bg-white/10' : 'text-white/50 hover:text-red-500 hover:bg-white/10'}`}
+                            className={`p-1.5 rounded-full transition-colors duration-200 ${isLiked ? 'text-red-500 hover:bg-gray-100 dark:hover:bg-white/10' : 'text-gray-400 dark:text-white/50 hover:text-red-500 hover:bg-gray-100 dark:hover:bg-white/10'}`}
                             aria-label={isLiked ? "Unlike course" : "Like course"}
                         >
                             <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
@@ -155,25 +155,25 @@ const CourseCard = ({ course, onAction, isEnrolled, onLikeToggle, isLikedInitial
                             </svg>
                         </button>
                     </div>
-                    <p className="text-gray-300 text-xs mb-3 line-clamp-2">{course.description}</p>
+                    <p className="text-gray-655 dark:text-gray-300 text-xs mb-3 line-clamp-2">{course.description}</p>
                 </div>
                 <div className="flex items-center justify-between mt-auto">
-                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-white/10 border border-white/10 text-white/80">
+                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-gray-100 dark:bg-white/10 border border-gray-200 dark:border-white/10 text-gray-700 dark:text-white/80">
                         {isPaid ? 'Paid' : 'Free'}
                     </span>
-                    <span className="text-lg font-extrabold text-teal-300">
+                    <span className="text-lg font-extrabold text-teal-600 dark:text-teal-300">
                         {course.price && `₹${course.price}`}
                     </span>
                 </div>
             </div>
             <div className="p-4 pt-0">
                 {isUpcoming ? (
-                    <button className="w-full py-2 px-3 text-sm rounded-xl font-bold bg-white/10 text-white/60 cursor-not-allowed transition-colors duration-200" disabled>
+                    <button className="w-full py-2 px-3 text-sm rounded-xl font-bold bg-gray-100 dark:bg-white/10 text-gray-400 dark:text-white/60 cursor-not-allowed transition-colors duration-200" disabled>
                         Coming Soon
                     </button>
                 ) : (
                     <button
-                        className={`w-full py-2 px-3 text-sm rounded-xl font-bold transition-all duration-300 ease-in-out transform ${isEnrolled ? 'bg-white/10 text-white/60 cursor-not-allowed' : 'bg-gradient-to-r from-purple-500 to-[#167468] text-white hover:opacity-95 active:scale-95'}`}
+                        className={`w-full py-2 px-3 text-sm rounded-xl font-bold transition-all duration-300 ease-in-out transform ${isEnrolled ? 'bg-gray-100 dark:bg-white/10 text-gray-400 dark:text-white/60 cursor-not-allowed' : 'bg-gradient-to-r from-purple-500 to-[#167468] text-white hover:opacity-95 active:scale-95'}`}
                         onClick={handleActionButtonClick}
                         disabled={isEnrolled}
                     >
@@ -438,7 +438,7 @@ const CoursesPage = ({ currentUser, openModal = () => {} }) => {
 
     if (isLoading) {
         return (
-            <main className="flex items-center justify-center min-h-[calc(100vh-7rem)] bg-slate-950">
+            <main className="flex items-center justify-center min-h-[calc(100vh-7rem)] bg-transparent text-gray-900 dark:text-white">
                 <div className="w-full max-w-6xl px-4">
                     <Skeleton variant="grid" count={6} />
                 </div>
@@ -448,45 +448,45 @@ const CoursesPage = ({ currentUser, openModal = () => {} }) => {
 
     if (error) {
         return (
-            <main className="flex items-center justify-center min-h-[calc(100vh-7rem)] bg-slate-950">
-                <p className="text-xl text-red-400">{error}</p>
+            <main className="flex items-center justify-center min-h-[calc(100vh-7rem)] bg-transparent text-gray-900 dark:text-white">
+                <p className="text-xl text-red-655 dark:text-red-400">{error}</p>
             </main>
         );
     }
 
     return (
         // The main container for the entire page; allow body background to show.
-        <div className="bg-slate-950 min-h-screen transition-colors duration-500">
-            <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div className="bg-transparent min-h-screen text-gray-900 dark:text-white transition-colors duration-500">
+            <main className="container mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-12">
                 
-                <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-center text-white mb-12">
-                    Our Computer Science Courses
-                    <span className="block w-24 h-2 bg-gradient-to-r from-purple-500 to-[#167468] mx-auto mt-4 rounded-full"></span>
-                </h1>
+                <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-center bg-gradient-to-r from-teal-600 via-emerald-500 to-indigo-600 dark:from-teal-400 dark:via-emerald-300 dark:to-indigo-400 bg-clip-text text-transparent mb-6">
+                     Our Computer Science Courses
+                     <span className="block w-24 h-2 bg-gradient-to-r from-teal-600 to-indigo-600 mx-auto mt-4 rounded-full"></span>
+                 </h1>
 
-                <div className="flex flex-col md:flex-row items-center justify-center mb-8 gap-4">
+                <div className="flex flex-col md:flex-row items-center justify-center mb-4 gap-4">
                   <input
                     type="text"
                     placeholder="Search for courses..."
-                    className="w-full max-w-lg p-3 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-[#167468] bg-white/5 border border-white/10 text-white placeholder-gray-400 transition-colors duration-200"
+                    className="w-full max-w-lg p-3 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-[#167468] bg-white dark:bg-white/5 border border-gray-300 dark:border-white/10 text-gray-955 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 transition-colors duration-200"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                 />
                     <div className="flex gap-2">
                         <button
-                            className={`px-4 py-2 rounded-xl font-semibold transition-all duration-300 ${filterType === 'all' ? 'bg-gradient-to-r from-purple-500 to-[#167468] text-white shadow-md' : 'bg-white/10 text-white/80 hover:bg-white/15 border border-white/10'}`}
+                            className={`px-4 py-2 rounded-xl font-semibold transition-all duration-300 ${filterType === 'all' ? 'bg-gradient-to-r from-purple-500 to-[#167468] text-white shadow-md' : 'bg-white dark:bg-white/10 text-gray-750 dark:text-white/80 hover:bg-gray-200 dark:hover:bg-white/15 border border-gray-300 dark:border-white/10'}`}
                             onClick={() => {setFilterType('all'); setShowEnrolledOnly(false); setShowLikedOnly(false);}}
                         >
                             All
                         </button>
                         <button
-                            className={`px-4 py-2 rounded-xl font-semibold transition-all duration-300 ${filterType === 'paid' ? 'bg-gradient-to-r from-purple-500 to-[#167468] text-white shadow-md' : 'bg-white/10 text-white/80 hover:bg-white/15 border border-white/10'}`}
+                            className={`px-4 py-2 rounded-xl font-semibold transition-all duration-300 ${filterType === 'paid' ? 'bg-gradient-to-r from-purple-500 to-[#167468] text-white shadow-md' : 'bg-white dark:bg-white/10 text-gray-750 dark:text-white/80 hover:bg-gray-200 dark:hover:bg-white/15 border border-gray-300 dark:border-white/10'}`}
                             onClick={() => {setFilterType('paid'); setShowEnrolledOnly(false); setShowLikedOnly(false);}}
                         >
                             Paid
                         </button>
                         <button
-                            className={`px-4 py-2 rounded-xl font-semibold transition-all duration-300 ${filterType === 'free' ? 'bg-gradient-to-r from-purple-500 to-[#167468] text-white shadow-md' : 'bg-white/10 text-white/80 hover:bg-white/15 border border-white/10'}`}
+                            className={`px-4 py-2 rounded-xl font-semibold transition-all duration-300 ${filterType === 'free' ? 'bg-gradient-to-r from-purple-500 to-[#167468] text-white shadow-md' : 'bg-white dark:bg-white/10 text-gray-750 dark:text-white/80 hover:bg-gray-200 dark:hover:bg-white/15 border border-gray-300 dark:border-white/10'}`}
                             onClick={() => {setFilterType('free'); setShowEnrolledOnly(false); setShowLikedOnly(false);}}
                         >
                             Free
@@ -495,16 +495,16 @@ const CoursesPage = ({ currentUser, openModal = () => {} }) => {
                 </div>
 
                 {currentUser && (
-                    <div className="flex items-center justify-center gap-8 mb-8 text-lg font-semibold text-white/80">
-                        <p>Enrolled: <span className="text-teal-300">{enrolledCourseIds.length}</span></p>
-                        <p>Liked: <span className="text-red-400">{likedCourseIds.length}</span></p>
+                    <div className="flex items-center justify-center gap-8 mb-4 text-lg font-semibold text-gray-900 dark:text-white/80">
+                        <p>Enrolled: <span className="text-teal-600 dark:text-teal-300">{enrolledCourseIds.length}</span></p>
+                        <p>Liked: <span className="text-indigo-600 dark:text-red-400">{likedCourseIds.length}</span></p>
                     </div>
                 )}
                 
-                <div className="flex flex-wrap justify-center gap-4 mb-12">
+                <div className="flex flex-wrap justify-center gap-4 mb-4">
                     {(showEnrolledOnly || showLikedOnly) && (
                         <button
-                            className="px-6 py-3 rounded-xl font-bold text-lg bg-white/10 border border-white/10 text-white hover:bg-white/15 transition-colors duration-300 shadow-lg"
+                            className="px-6 py-3 rounded-xl font-bold text-lg bg-white dark:bg-white/10 border border-gray-300 dark:border-white/10 text-gray-800 dark:text-white hover:bg-gray-50 dark:hover:bg-white/15 transition-colors duration-300 shadow-md dark:shadow-lg"
                             onClick={handleBackToAllCourses}
                         >
                             ← Back to All Courses
@@ -513,7 +513,7 @@ const CoursesPage = ({ currentUser, openModal = () => {} }) => {
                     {currentUser && (
                         <>
                             <button
-                                className={`px-6 py-3 rounded-xl font-bold text-lg transition-all duration-300 transform ${showEnrolledOnly ? 'bg-white/10 border border-white/10 text-white scale-105 shadow-xl' : 'bg-gradient-to-r from-purple-500 to-[#167468] text-white hover:opacity-95 active:scale-95'}`}
+                                className={`px-6 py-3 rounded-xl font-bold text-lg transition-all duration-300 transform ${showEnrolledOnly ? 'bg-white dark:bg-white/10 border border-gray-300 dark:border-white/10 text-gray-855 dark:text-white scale-105 shadow-md dark:shadow-xl' : 'bg-gradient-to-r from-purple-500 to-[#167468] text-white hover:opacity-95 active:scale-95'}`}
                                 onClick={() => {
                                     setShowEnrolledOnly(!showEnrolledOnly);
                                     setShowLikedOnly(false);
@@ -524,7 +524,7 @@ const CoursesPage = ({ currentUser, openModal = () => {} }) => {
                                 {showEnrolledOnly ? 'Show All Courses' : 'Show My Enrolled Courses'}
                             </button>
                             <button
-                                className={`px-6 py-3 rounded-xl font-bold text-lg transition-all duration-300 transform ${showLikedOnly ? 'bg-white/10 border border-white/10 text-white scale-105 shadow-xl' : 'bg-gradient-to-r from-purple-500 to-[#167468] text-white hover:opacity-95 active:scale-95'}`}
+                                className={`px-6 py-3 rounded-xl font-bold text-lg transition-all duration-300 transform ${showLikedOnly ? 'bg-white dark:bg-white/10 border border-gray-300 dark:border-white/10 text-gray-855 dark:text-white scale-105 shadow-md dark:shadow-xl' : 'bg-gradient-to-r from-purple-500 to-[#167468] text-white hover:opacity-95 active:scale-95'}`}
                                 onClick={() => {
                                     setShowLikedOnly(!showLikedOnly);
                                     setShowEnrolledOnly(false);
@@ -540,7 +540,7 @@ const CoursesPage = ({ currentUser, openModal = () => {} }) => {
 
                 {showEnrolledOnly && (
                     <section className="mb-12">
-                        <h2 className="text-3xl font-bold text-white border-b-4 border-white/10 pb-3 mb-6">My Enrolled Courses</h2>
+                        <h2 className="text-3xl font-bold text-gray-905 dark:text-white border-b-4 border-gray-200 dark:border-white/10 pb-3 mb-6">My Enrolled Courses</h2>
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                             {getFilteredAndSearchedCourses('running', true).length > 0 || getFilteredAndSearchedCourses('upcoming', true).length > 0 ? (
                                 <>
@@ -566,7 +566,7 @@ const CoursesPage = ({ currentUser, openModal = () => {} }) => {
                                     ))}
                                 </>
                             ) : (
-                                <p className="text-center text-gray-300 text-lg col-span-full">You have not enrolled in any courses yet.</p>
+                                <p className="text-center text-gray-650 dark:text-gray-300 text-lg col-span-full">You have not enrolled in any courses yet.</p>
                             )}
                         </div>
                     </section>
@@ -574,7 +574,7 @@ const CoursesPage = ({ currentUser, openModal = () => {} }) => {
 
                 {showLikedOnly && (
                     <section className="mb-12">
-                        <h2 className="text-3xl font-bold text-white border-b-4 border-white/10 pb-3 mb-6">My Liked Courses</h2>
+                        <h2 className="text-3xl font-bold text-gray-905 dark:text-white border-b-4 border-gray-200 dark:border-white/10 pb-3 mb-6">My Liked Courses</h2>
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                             {getFilteredAndSearchedCourses('running', false, true).length > 0 || getFilteredAndSearchedCourses('upcoming', false, true).length > 0 ? (
                                 <>
@@ -601,7 +601,7 @@ const CoursesPage = ({ currentUser, openModal = () => {} }) => {
                                 }
                                 </>
                             ) : (
-                                <p className="text-center text-gray-300 text-lg col-span-full">You have not liked any courses yet.</p>
+                                <p className="text-center text-gray-655 dark:text-gray-300 text-lg col-span-full">You have not liked any courses yet.</p>
                             )}
                         </div>
                     </section>
@@ -610,7 +610,7 @@ const CoursesPage = ({ currentUser, openModal = () => {} }) => {
                 {!showEnrolledOnly && !showLikedOnly && (
                     <>
                         <section className="mb-12">
-                            <h2 className="text-3xl font-bold text-white border-b-4 border-white/10 pb-3 mb-6">Running Courses</h2>
+                            <h2 className="text-3xl font-bold text-gray-905 dark:text-white border-b-4 border-gray-200 dark:border-white/10 pb-3 mb-6">Running Courses</h2>
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                                 {getFilteredAndSearchedCourses('running').length > 0 ? (
                                     getFilteredAndSearchedCourses('running').map(course => (
@@ -624,13 +624,13 @@ const CoursesPage = ({ currentUser, openModal = () => {} }) => {
                                         />
                                     ))
                                 ) : (
-                                    <p className="text-center text-gray-300 text-lg col-span-full">No running courses found matching your search and filter criteria.</p>
+                                    <p className="text-center text-gray-655 dark:text-gray-300 text-lg col-span-full">No running courses found matching your search and filter criteria.</p>
                                 )}
                             </div>
                         </section>
 
                         <section>
-                            <h2 className="text-3xl font-bold text-white border-b-4 border-white/10 pb-3 mb-6">Upcoming Courses</h2>
+                            <h2 className="text-3xl font-bold text-gray-905 dark:text-white border-b-4 border-gray-200 dark:border-white/10 pb-3 mb-6">Upcoming Courses</h2>
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                                 {getFilteredAndSearchedCourses('upcoming').length > 0 ? (
                                     getFilteredAndSearchedCourses('upcoming').map(course => (
@@ -644,7 +644,7 @@ const CoursesPage = ({ currentUser, openModal = () => {} }) => {
                                         />
                                     ))
                                 ) : (
-                                    <p className="text-center text-gray-300 text-lg col-span-full">No upcoming courses found matching your search and filter criteria.</p>
+                                    <p className="text-center text-gray-655 dark:text-gray-300 text-lg col-span-full">No upcoming courses found matching your search and filter criteria.</p>
                                 )}
                             </div>
                         </section>

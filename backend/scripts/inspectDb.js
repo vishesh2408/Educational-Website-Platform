@@ -7,7 +7,7 @@ dotenv.config();
 async function inspect() {
   const uri = process.env.MONGO_URI || 'mongodb://localhost:27017/myedu';
   console.log('Connecting to', uri);
-  await mongoose.connect(uri, { useNewUrlParser: true, useUnifiedTopology: true });
+  await mongoose.connect(uri);
   console.log('Connected');
 
   const collections = await mongoose.connection.db.listCollections().toArray();

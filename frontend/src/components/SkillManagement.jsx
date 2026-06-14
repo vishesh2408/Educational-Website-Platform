@@ -1,19 +1,11 @@
 // src/components/SkillManagement.jsx
 import React, { useState, useEffect } from 'react';
-import { CheckCircle, AlertCircle, X } from 'lucide-react';
-import { useAuth } from '../contexts/AuthContext'; // ✅ Import the useAuth hook
-
-import {
-    PlusCircle, Edit, Trash2, Info // Import necessary Lucide icons
-} from 'lucide-react';
-
-// Base URL for your backend API
-// const API_BASE_URL = 'http://localhost:3001/api';
+import { CheckCircle, AlertCircle, X, PlusCircle, Edit, Trash2, Info } from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext';
 
 const BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:3001';
 const API_BASE_URL = `${BASE_URL}/api`;
 
-// Reusable MessageBox Component (copied for self-containment)
 const MessageBox = ({ type, text }) => {
     if (!text) return null;
     let Icon;
@@ -45,24 +37,23 @@ const MessageBox = ({ type, text }) => {
     );
 };
 
-// Reusable ConfirmationModal Component (copied for self-containment)
-const ConfirmationModal = ({ show, title, message, onConfirm, onCancel, confirmText = 'Confirm', cancelText = 'Cancel', confirmButtonClass = 'button-danger' }) => {
+const ConfirmationModal = ({ show, title, message, onConfirm, onCancel, confirmText = 'Confirm', cancelText = 'Cancel', confirmButtonClass = 'admin-button-danger' }) => {
     if (!show) return null;
     return (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-            <div className="bg-white dark:bg-white rounded-lg shadow-xl max-w-sm w-full mx-4">
-                <div className="flex items-center justify-between border-b border-gray-200 dark:border-gray-200 p-6">
-                    <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
-                    <button onClick={onCancel} className="text-gray-500 hover:text-gray-700">
+        <div className="modal-overlay">
+            <div className="modal-content-box">
+                <div className="modal-header">
+                    <h3 className="modal-title">{title}</h3>
+                    <button onClick={onCancel} className="modal-close-button">
                         <X size={24} />
                     </button>
                 </div>
-                <p className="p-6 text-gray-700">{message}</p>
-                <div className="flex gap-3 p-6 border-t border-gray-200 dark:border-gray-200 justify-end">
-                    <button onClick={onCancel} className="px-4 py-2 rounded-lg bg-gray-200 text-gray-800 hover:bg-gray-300 transition-colors">
+                <p className="modal-message-text">{message}</p>
+                <div className="modal-actions-footer">
+                    <button onClick={onCancel} className="modal-button-base modal-button-cancel">
                         {cancelText}
                     </button>
-                    <button onClick={onConfirm} className={`px-4 py-2 rounded-lg text-white transition-colors ${confirmButtonClass === 'button-danger' ? 'bg-red-600 hover:bg-red-700' : 'bg-teal-600 hover:bg-teal-700'}`}>
+                    <button onClick={onConfirm} className={`modal-button-base ${confirmButtonClass}`}>
                         {confirmText}
                     </button>
                 </div>
@@ -71,13 +62,7 @@ const ConfirmationModal = ({ show, title, message, onConfirm, onCancel, confirmT
     );
 };
 
-
-/**
- * SkillManagement Component
- * Handles CRUD operations for skills.
- */
 const SkillManagement = () => {
-    // ✅ Get auth data from context instead of props
     const { currentUser, logout } = useAuth();
     const handleLogout = logout;
 
@@ -85,14 +70,35 @@ const SkillManagement = () => {
     const [newSkill, setNewSkill] = useState({ title: '', icon: '' });
     const [editingSkill, setEditingSkill] = useState(null);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [formMessage, setFormMessage] = useState({ type: '', text: '' });
     const [isDeleting, setIsDeleting] = useState(false);
     const [skillToDelete, setSkillToDelete] = useState(null);
     const [isLoading, setIsLoading] = useState(false);
 
+    const handleIconFileChange = (e, isEdit = false) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        if (file.size > 2 * 1024 * 1024) {
+            setFormMessage({ type: 'error', text: 'Image size should be less than 2MB' });
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onloadend = () => {
+            if (isEdit) {
+                setEditingSkill(prev => ({ ...prev, icon: reader.result }));
+            } else {
+                setNewSkill(prev => ({ ...prev, icon: reader.result }));
+            }
+        };
+        reader.readAsDataURL(file);
+    };
+
     useEffect(() => {
         fetchSkills();
-    }, [currentUser]); // ✅ Depend on currentUser instead of adminToken
+    }, [currentUser]);
 
     const fetchSkills = async () => {
         setIsLoading(true);
@@ -100,7 +106,7 @@ const SkillManagement = () => {
         try {
             const response = await fetch(`${API_BASE_URL}/admin/skills`, {
                 headers: { 'Content-Type': 'application/json' },
-                credentials: 'include', // ✅ Use cookie-based authentication
+                credentials: 'include',
             });
             const data = await response.json();
 
@@ -133,7 +139,7 @@ const SkillManagement = () => {
             const response = await fetch(`${API_BASE_URL}/admin/skills`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                credentials: 'include', // ✅ Use cookie-based authentication
+                credentials: 'include',
                 body: JSON.stringify(newSkill),
             });
             const data = await response.json();
@@ -147,8 +153,9 @@ const SkillManagement = () => {
 
             if (response.ok) {
                 setSkills([...skills, data]);
-                setNewSkill({ title: '', icon: '' }); // Reset form
+                setNewSkill({ title: '', icon: '' });
                 setFormMessage({ type: 'success', text: 'Skill added successfully!' });
+                setIsAddModalOpen(false); // Close Modal on success
             } else {
                 setFormMessage({ type: 'error', text: data.msg || 'Failed to add skill.' });
             }
@@ -183,7 +190,7 @@ const SkillManagement = () => {
             const response = await fetch(`${API_BASE_URL}/admin/skills/${editingSkill._id}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
-                credentials: 'include', // ✅ Use cookie-based authentication
+                credentials: 'include',
                 body: JSON.stringify(editingSkill),
             });
             const data = await response.json();
@@ -228,7 +235,7 @@ const SkillManagement = () => {
             const response = await fetch(`${API_BASE_URL}/admin/skills/${skillToDelete}`, {
                 method: 'DELETE',
                 headers: { 'Content-Type': 'application/json' },
-                credentials: 'include', // ✅ Use cookie-based authentication
+                credentials: 'include',
             });
             const data = await response.json();
 
@@ -258,91 +265,58 @@ const SkillManagement = () => {
     };
 
     return (
-        <div className="p-6 max-w-5xl mx-auto space-y-6">
+        <div className="p-1 md:p-3 space-y-6">
             <MessageBox type={formMessage.type} text={formMessage.text} />
             
-            {/* Add New Skill Section */}
-            <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-                <PlusCircle size={24} className="text-blue-600 dark:text-blue-400" /> Add New Skill
-            </h3>
-            <form onSubmit={handleAddSkill} className="bg-white dark:bg-white rounded-lg shadow-md p-6 mb-8 border border-gray-200 dark:border-gray-200">
-                <div className="mb-4">
-                    <label htmlFor="newSkillTitle" className="block text-sm font-semibold text-slate-700 mb-2">Title</label>
-                    <input 
-                        type="text" 
-                        id="newSkillTitle" 
-                        name="title" 
-                        value={newSkill.title} 
-                        onChange={(e) => setNewSkill({ ...newSkill, title: e.target.value })} 
-                        required 
-                        className="w-full px-4 py-2 border border-gray-300 dark:border-gray-200 rounded-lg bg-white dark:bg-white text-gray-900 dark:text-gray-900 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
-                    />
-                </div>
-                <div className="mb-4">
-                    <label htmlFor="newSkillIcon" className="block text-sm font-semibold text-slate-700 mb-2">Icon (e.g., URL to image or icon font class)</label>
-                    <input 
-                        type="text" 
-                        id="newSkillIcon" 
-                        name="icon" 
-                        value={newSkill.icon} 
-                        onChange={(e) => setNewSkill({ ...newSkill, icon: e.target.value })} 
-                        required 
-                        placeholder="e.g., https://img.icons8.com/..., fab fa-js"
-                        className="w-full px-4 py-2 border border-gray-300 dark:border-gray-200 rounded-lg bg-white dark:bg-white text-gray-900 dark:text-gray-900 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
-                    />
-                </div>
+            {/* Header section with Modal Trigger Button */}
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+                <h3 className="admin-section-title mb-0 border-b-0 pb-0 flex items-center gap-2">
+                    <Info size={20} /> Existing Skills
+                </h3>
                 <button 
-                    type="submit" 
-                    disabled={isLoading} 
-                    className="w-full bg-teal-600 hover:bg-teal-700 disabled:bg-gray-400 text-white font-semibold py-2 px-4 rounded-lg transition-colors flex items-center justify-center gap-2"
+                    onClick={() => setIsAddModalOpen(true)} 
+                    className="admin-button-primary flex items-center gap-2 self-start sm:self-auto"
                 >
-                    {isLoading ? 'Adding...' : <><PlusCircle size={20} /> Add Skill</>}
+                    <PlusCircle size={18} /> Add New Skill
                 </button>
-            </form>
+            </div>
 
-            {/* Existing Skills Section */}
-            <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-                <Info size={24} className="text-teal-600" /> Existing Skills
-            </h3>
-            {isLoading ? (
-                <p className="text-center text-gray-500 dark:text-gray-400">Loading skills...</p>
+            {isLoading && skills.length === 0 ? (
+                <p className="text-center text-gray-555 dark:text-gray-400">Loading skills...</p>
             ) : skills.length === 0 ? (
-                <div className="flex items-start gap-3 p-4 rounded-xl border shadow-sm bg-sky-50 border-sky-200 text-sky-800 dark:bg-sky-900/30 dark:border-sky-700/80 dark:text-sky-100">
-                    <Info size={20} />
-                    No skills found. Add a new skill above!
-                </div>
+                <p className="message-info">No skills found. Click 'Add New Skill' to create one!</p>
             ) : (
-                <div className="overflow-x-auto bg-white dark:bg-white rounded-lg shadow-md border border-gray-200 dark:border-gray-200">
-                    <table className="w-full">
-                        <thead className="bg-gray-50 border-b border-gray-200">
+                <div className="overflow-x-auto bg-white dark:bg-slate-900 rounded-xl shadow-xs border border-gray-150 dark:border-slate-800">
+                    <table className="admin-table">
+                        <thead className="admin-table-thead">
                             <tr>
-                                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Title</th>
-                                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Icon</th>
-                                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Actions</th>
+                                <th className="admin-table-th rounded-tl-lg">Title</th>
+                                <th className="admin-table-th">Icon</th>
+                                <th className="admin-table-th rounded-tr-lg">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
                             {skills.map((skill) => (
-                                <tr key={skill._id} className="border-b border-gray-200 dark:border-gray-200 hover:bg-gray-50 transition-colors">
-                                    <td className="px-6 py-4 text-gray-900">{skill.title}</td>
-                                    <td className="px-6 py-4">
-                                        {skill.icon.startsWith('http') ?
+                                <tr key={skill._id} className="admin-table-tr">
+                                    <td className="admin-table-td" data-label="Title">{skill.title}</td>
+                                    <td className="admin-table-td" data-label="Icon">
+                                        {skill.icon.startsWith('http') || skill.icon.startsWith('data:image/') ?
                                             <img src={skill.icon} alt={skill.title} className="w-8 h-8 object-contain" onError={(e) => e.target.style.display = 'none'} /> :
                                             <i className={`${skill.icon} text-xl`}></i>
                                         }
                                     </td>
-                                    <td className="px-6 py-4 flex gap-2">
+                                    <td className="admin-table-td admin-table-actions">
                                         <button 
                                             onClick={() => startEditingSkill(skill)} 
                                             title="Edit" 
-                                            className="p-2 bg-blue-100 text-blue-600 hover:bg-blue-200 dark:bg-blue-900/30 dark:text-blue-400 dark:hover:bg-blue-900/50 rounded-lg transition-colors"
+                                            className="admin-action-button edit-button"
                                         >
                                             <Edit size={18} />
                                         </button>
                                         <button 
                                             onClick={() => confirmDeleteSkill(skill._id)} 
                                             title="Delete" 
-                                            className="p-2 bg-red-100 text-red-600 hover:bg-red-200 dark:bg-red-900/30 dark:text-red-400 dark:hover:bg-red-900/50 rounded-lg transition-colors"
+                                            className="admin-action-button delete-button"
                                         >
                                             <Trash2 size={18} />
                                         </button>
@@ -354,19 +328,96 @@ const SkillManagement = () => {
                 </div>
             )}
 
-            {/* Edit Modal */}
-            {isEditModalOpen && editingSkill && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-                    <div className="bg-white dark:bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
-                        <div className="flex items-center justify-between border-b border-gray-200 dark:border-gray-200 p-6">
-                            <h3 className="text-lg font-semibold text-gray-900">Edit Skill</h3>
-                            <button onClick={() => setIsEditModalOpen(false)} className="text-gray-500 hover:text-gray-700">
+            {/* ADD SKILL MODAL */}
+            {isAddModalOpen && (
+                <div className="modal-overlay">
+                    <div className="modal-content-box">
+                        <div className="modal-header">
+                            <h3 className="modal-title flex items-center gap-2">
+                                <PlusCircle size={22} className="text-teal-500" /> Add New Skill
+                            </h3>
+                            <button onClick={() => setIsAddModalOpen(false)} className="modal-close-button">
                                 <X size={24} />
                             </button>
                         </div>
-                        <form onSubmit={handleUpdateSkill} className="p-6">
-                            <div className="mb-4">
-                                <label htmlFor="editSkillTitle" className="block text-sm font-medium text-gray-700 mb-2">Title</label>
+                        <form onSubmit={handleAddSkill}>
+                            <div className="form-group">
+                                <label htmlFor="newSkillTitle" className="form-label">Title</label>
+                                <input 
+                                    type="text" 
+                                    id="newSkillTitle" 
+                                    name="title" 
+                                    value={newSkill.title} 
+                                    onChange={(e) => setNewSkill({ ...newSkill, title: e.target.value })} 
+                                    required 
+                                    className="form-input"
+                                />
+                            </div>
+                            <div className="form-group">
+                                <label htmlFor="newSkillIcon" className="form-label">Icon (e.g., URL to image or icon font class)</label>
+                                <input 
+                                    type="text" 
+                                    id="newSkillIcon" 
+                                    name="icon" 
+                                    value={newSkill.icon.startsWith('data:image/') ? '' : newSkill.icon} 
+                                    onChange={(e) => setNewSkill({ ...newSkill, icon: e.target.value })} 
+                                    required={!newSkill.icon} 
+                                    placeholder="e.g., https://img.icons8.com/..., fab fa-js"
+                                    className="form-input"
+                                />
+                            </div>
+                            <div className="form-group">
+                                <label className="form-label">Or Upload Icon Image</label>
+                                <input 
+                                    type="file" 
+                                    accept="image/*" 
+                                    onChange={(e) => handleIconFileChange(e, false)} 
+                                    className="form-input"
+                                    style={{ padding: '0.35rem 0.5rem' }}
+                                />
+                                {newSkill.icon && newSkill.icon.startsWith('data:image/') && (
+                                    <div className="flex items-center gap-2 mt-2">
+                                        <span className="text-xs font-semibold text-green-600 dark:text-green-400">✓ Image Uploaded</span>
+                                        <button type="button" onClick={() => setNewSkill(prev => ({ ...prev, icon: '' }))} className="text-xs font-semibold text-red-500 hover:text-red-700 underline">
+                                            Clear File
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+                            <div className="modal-actions-footer">
+                                <button 
+                                    type="button" 
+                                    onClick={() => setIsAddModalOpen(false)} 
+                                    className="modal-button-base modal-button-cancel"
+                                >
+                                    Cancel
+                                </button>
+                                <button 
+                                    type="submit" 
+                                    disabled={isLoading} 
+                                    className="modal-button-base admin-button-primary"
+                                >
+                                    {isLoading ? 'Adding...' : 'Add Skill'}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+
+            {/* EDIT SKILL MODAL */}
+            {isEditModalOpen && editingSkill && (
+                <div className="modal-overlay">
+                    <div className="modal-content-box">
+                        <div className="modal-header">
+                            <h3 className="modal-title">Edit Skill</h3>
+                            <button onClick={() => setIsEditModalOpen(false)} className="modal-close-button">
+                                <X size={24} />
+                            </button>
+                        </div>
+                        <form onSubmit={handleUpdateSkill}>
+                            <div className="form-group">
+                                <label htmlFor="editSkillTitle" className="form-label">Title</label>
                                 <input 
                                     type="text" 
                                     id="editSkillTitle" 
@@ -374,33 +425,51 @@ const SkillManagement = () => {
                                     value={editingSkill.title} 
                                     onChange={handleEditChange} 
                                     required 
-                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    className="form-input"
                                 />
                             </div>
-                            <div className="mb-6">
-                                <label htmlFor="editSkillIcon" className="block text-sm font-medium text-gray-700 mb-2">Icon</label>
+                            <div className="form-group">
+                                <label htmlFor="editSkillIcon" className="form-label">Icon</label>
                                 <input 
                                     type="text" 
                                     id="editSkillIcon" 
                                     name="icon" 
-                                    value={editingSkill.icon} 
+                                    value={editingSkill.icon.startsWith('data:image/') ? '' : editingSkill.icon} 
                                     onChange={handleEditChange} 
-                                    required 
-                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    required={!editingSkill.icon} 
+                                    className="form-input"
                                 />
                             </div>
-                            <div className="flex gap-3 justify-end">
+                            <div className="form-group">
+                                <label className="form-label">Or Upload New Icon Image</label>
+                                <input 
+                                    type="file" 
+                                    accept="image/*" 
+                                    onChange={(e) => handleIconFileChange(e, true)} 
+                                    className="form-input"
+                                    style={{ padding: '0.35rem 0.5rem' }}
+                                />
+                                {editingSkill.icon && editingSkill.icon.startsWith('data:image/') && (
+                                    <div className="flex items-center gap-2 mt-2">
+                                        <span className="text-xs font-semibold text-green-600 dark:text-green-400">✓ Image Uploaded</span>
+                                        <button type="button" onClick={() => setEditingSkill(prev => ({ ...prev, icon: '' }))} className="text-xs font-semibold text-red-500 hover:text-red-700 underline">
+                                            Clear File
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+                            <div className="modal-actions-footer">
                                 <button 
                                     type="button" 
                                     onClick={() => setIsEditModalOpen(false)} 
-                                    className="px-4 py-2 rounded-lg bg-gray-200 text-gray-800 hover:bg-gray-300 transition-colors"
+                                    className="modal-button-base modal-button-cancel"
                                 >
                                     Cancel
                                 </button>
                                 <button 
                                     type="submit" 
                                     disabled={isLoading} 
-                                    className="px-4 py-2 rounded-lg bg-teal-600 hover:bg-teal-700 disabled:bg-gray-400 text-white transition-colors"
+                                    className="modal-button-base admin-button-primary"
                                 >
                                     {isLoading ? 'Updating...' : 'Update Skill'}
                                 </button>
@@ -410,7 +479,6 @@ const SkillManagement = () => {
                 </div>
             )}
 
-            {/* Delete Confirmation Modal */}
             <ConfirmationModal 
                 show={isDeleting} 
                 title="Confirm Deletion" 
@@ -423,15 +491,3 @@ const SkillManagement = () => {
 };
 
 export default SkillManagement;
-
-
-
-
-
-
-
-
-
-
-
-

@@ -29,6 +29,97 @@ function markdownToHtml(inputMarkdown) {
     }
 }
 
+function escapeSvgXml(str) {
+    return (str || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&apos;');
+}
+
+function generateDefaultQuizImage(title) {
+    const gradients = [
+        ['#1e3a8a', '#3b82f6', '#60a5fa'], // Blue theme
+        ['#064e3b', '#10b981', '#34d399'], // Emerald theme
+        ['#581c87', '#8b5cf6', '#a78bfa'], // Purple theme
+        ['#7c2d12', '#f97316', '#fb923c'], // Orange theme
+        ['#881337', '#f43f5e', '#fb7185'], // Rose theme
+        ['#0f766e', '#14b8a6', '#2dd4bf'], // Teal theme
+        ['#1e1b4b', '#4f46e5', '#818cf8'], // Indigo theme
+    ];
+    const selected = gradients[Math.floor(Math.random() * gradients.length)];
+    const id = 'grad_' + Math.random().toString(36).substring(2, 9);
+    
+    // Split text into lines if it's too long
+    const words = (title || 'Quiz').split(' ');
+    let lines = [];
+    let currentLine = '';
+    
+    words.forEach(word => {
+        if ((currentLine + ' ' + word).trim().length > 22) {
+            lines.push(currentLine.trim());
+            currentLine = word;
+        } else {
+            currentLine = (currentLine + ' ' + word).trim();
+        }
+    });
+    if (currentLine) {
+        lines.push(currentLine.trim());
+    }
+    
+    // limit to maximum of 2 lines for spacing
+    if (lines.length > 2) {
+        lines = [lines[0] + ' ' + lines[1], lines.slice(2).join(' ')];
+        if (lines[0].length > 25) lines[0] = lines[0].substring(0, 22) + '...';
+        if (lines[1].length > 25) lines[1] = lines[1].substring(0, 22) + '...';
+    }
+    
+    let textElements = '';
+    if (lines.length === 1) {
+        textElements = `<text x="50%" y="45%" dominant-baseline="middle" text-anchor="middle" font-family="'Outfit', 'Inter', 'Segoe UI', sans-serif" font-weight="900" font-size="44" fill="#ffffff" letter-spacing="1">${escapeSvgXml(lines[0])}</text>`;
+    } else {
+        textElements = `
+            <text x="50%" y="38%" dominant-baseline="middle" text-anchor="middle" font-family="'Outfit', 'Inter', 'Segoe UI', sans-serif" font-weight="900" font-size="40" fill="#ffffff" letter-spacing="1">${escapeSvgXml(lines[0])}</text>
+            <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-family="'Outfit', 'Inter', 'Segoe UI', sans-serif" font-weight="900" font-size="40" fill="#ffffff" letter-spacing="1">${escapeSvgXml(lines[1])}</text>
+        `;
+    }
+
+    const svg = `
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="450" viewBox="0 0 800 450">
+    <defs>
+        <linearGradient id="${id}" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="${selected[0]}" />
+            <stop offset="50%" stop-color="${selected[1]}" />
+            <stop offset="100%" stop-color="${selected[2]}" />
+        </linearGradient>
+        <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+            <feDropShadow dx="0" dy="6" stdDeviation="5" flood-opacity="0.35" />
+        </filter>
+    </defs>
+    <rect width="800" height="450" fill="url(#${id})" />
+    
+    <!-- Decorative background shapes -->
+    <circle cx="10%" cy="20%" r="140" fill="white" opacity="0.04" />
+    <circle cx="90%" cy="80%" r="180" fill="white" opacity="0.04" />
+    <rect x="75%" y="-10%" width="250" height="250" rx="30" transform="rotate(25)" fill="white" opacity="0.03" />
+    <path d="M 0 320 Q 200 280 400 320 T 800 320 L 800 450 L 0 450 Z" fill="white" opacity="0.03" />
+    
+    <!-- Border -->
+    <rect x="30" y="30" width="740" height="390" rx="20" fill="none" stroke="white" stroke-opacity="0.12" stroke-width="2" />
+    
+    <!-- Text / Title -->
+    <g filter="url(#shadow)">
+        ${textElements}
+        <text x="50%" y="64%" dominant-baseline="middle" text-anchor="middle" font-family="'Outfit', 'Inter', 'Segoe UI', sans-serif" font-weight="700" font-size="18" fill="#ffffff" fill-opacity="0.75" letter-spacing="5">
+            CHALLENGE
+        </text>
+    </g>
+</svg>`.trim();
+
+    return 'data:image/svg+xml;base64,' + Buffer.from(svg).toString('base64');
+}
+
 // Helper for temporary debug logging. Enable by setting environment
 // variable DEBUG_ADMIN=1 when starting the server.
 function adminDebug(...args) {
@@ -322,21 +413,37 @@ module.exports.createCrudRoutes = function(model, routeName, populatePaths = [])
                 }
             }
 
+            if (routeName === 'quizzes') {
+                if (!req.body.imageUrl || String(req.body.imageUrl).trim() === '') {
+                    req.body.imageUrl = generateDefaultQuizImage(req.body.title);
+                }
+            }
+
             const newItem = new model(req.body);
             const item = await newItem.save();
 
             // Special handling for modules/topics linking
-            if (routeName === 'modules' && item.courseId) {
+            if ((routeName === 'modules' || routeName === 'tutorial-modules') && (item.courseId || item.tutorialId)) {
                 try {
-                    const Course = require('../models/Course');
-                    await Course.findByIdAndUpdate(item.courseId, { $push: { modules: item._id } });
+                    if (routeName === 'modules') {
+                        const Course = require('../models/Course');
+                        await Course.findByIdAndUpdate(item.courseId, { $push: { modules: item._id } });
+                    } else {
+                        const Tutorial = require('../models/Tutorial');
+                        await Tutorial.findByIdAndUpdate(item.tutorialId, { $push: { modules: item._id } });
+                    }
                 } catch (e) {
-                    console.warn('Could not link module to course:', e.message);
+                    console.warn('Could not link module to course/tutorial:', e.message);
                 }
-            } else if (routeName === 'topics' && item.moduleId) {
+            } else if ((routeName === 'topics' || routeName === 'tutorial-topics') && item.moduleId) {
                 try {
-                    const Module = require('../models/Module');
-                    await Module.findByIdAndUpdate(item.moduleId, { $push: { topics: item._id } });
+                    if (routeName === 'topics') {
+                        const Module = require('../models/Module');
+                        await Module.findByIdAndUpdate(item.moduleId, { $push: { topics: item._id } });
+                    } else {
+                        const TutorialModule = require('../models/TutorialModule');
+                        await TutorialModule.findByIdAndUpdate(item.moduleId, { $push: { topics: item._id } });
+                    }
                 } catch (e) {
                     console.warn('Could not link topic to module:', e.message);
                 }
@@ -346,7 +453,7 @@ module.exports.createCrudRoutes = function(model, routeName, populatePaths = [])
             if (routeName === 'notes' && item.topicId) {
                 try {
                     const Topic = require('../models/Topic');
-                    const topic = await Topic.findById(item.topicId);
+                    let topic = await Topic.findById(item.topicId);
                     if (topic) {
                         const syncedHtml = (item.format === 'markdown') ? cleanHtml(markdownToHtml(item.content || '')) : (item.content || '');
                         const nextArticles = Array.isArray(topic.articles) ? [...topic.articles] : [];
@@ -359,9 +466,25 @@ module.exports.createCrudRoutes = function(model, routeName, populatePaths = [])
                         topic.articles = nextArticles;
                         topic.updatedAt = new Date();
                         await topic.save();
+                    } else {
+                        const TutorialTopic = require('../models/TutorialTopic');
+                        let tutTopic = await TutorialTopic.findById(item.topicId);
+                        if (tutTopic) {
+                            const syncedHtml = (item.format === 'markdown') ? cleanHtml(markdownToHtml(item.content || '')) : (item.content || '');
+                            const nextArticles = Array.isArray(tutTopic.articles) ? [...tutTopic.articles] : [];
+                            if (nextArticles.length === 0) {
+                                nextArticles.push({ heading: item.title || '', content: syncedHtml, order: 0 });
+                            } else {
+                                nextArticles[0] = { ...nextArticles[0].toObject?.() || nextArticles[0], content: syncedHtml };
+                                if (!nextArticles[0].heading) nextArticles[0].heading = item.title || '';
+                            }
+                            tutTopic.articles = nextArticles;
+                            tutTopic.updatedAt = new Date();
+                            await tutTopic.save();
+                        }
                     }
                 } catch (e) {
-                    console.warn('Could not attach note to topic:', e.message);
+                    console.warn('Could not attach note to topic/tutorial-topic:', e.message);
                 }
             }
 
@@ -420,6 +543,17 @@ module.exports.createCrudRoutes = function(model, routeName, populatePaths = [])
 
             // Prepare atomic update payload
             const updates = Object.assign({}, req.body);
+
+            if (routeName === 'quizzes') {
+                const isGeneratedImage = updates.imageUrl && updates.imageUrl.startsWith('data:image/svg+xml');
+                const hasNoImage = !updates.imageUrl || String(updates.imageUrl).trim() === '';
+                const titleChanged = updates.title && updates.title !== current.title;
+
+                if (hasNoImage || (isGeneratedImage && titleChanged)) {
+                    const titleToUse = updates.title || current.title;
+                    updates.imageUrl = generateDefaultQuizImage(titleToUse);
+                }
+            }
             // Prevent clients from sending `versions` in the update payload which
             // would conflict with the atomic $push we perform below.
             if (Object.prototype.hasOwnProperty.call(updates, 'versions')) {
@@ -456,7 +590,7 @@ module.exports.createCrudRoutes = function(model, routeName, populatePaths = [])
                 if (updated.topicId) {
                     try {
                         const Topic = require('../models/Topic');
-                        const topic = await Topic.findById(updated.topicId);
+                        let topic = await Topic.findById(updated.topicId);
                         if (topic) {
                             const syncedHtml = (updated.format === 'markdown') ? cleanHtml(markdownToHtml(updated.content || '')) : (updated.content || '');
                             const nextArticles = Array.isArray(topic.articles) ? [...topic.articles] : [];
@@ -469,9 +603,25 @@ module.exports.createCrudRoutes = function(model, routeName, populatePaths = [])
                             topic.articles = nextArticles;
                             topic.updatedAt = new Date();
                             await topic.save();
+                        } else {
+                            const TutorialTopic = require('../models/TutorialTopic');
+                            let tutTopic = await TutorialTopic.findById(updated.topicId);
+                            if (tutTopic) {
+                                const syncedHtml = (updated.format === 'markdown') ? cleanHtml(markdownToHtml(updated.content || '')) : (updated.content || '');
+                                const nextArticles = Array.isArray(tutTopic.articles) ? [...tutTopic.articles] : [];
+                                if (nextArticles.length === 0) {
+                                    nextArticles.push({ heading: updated.title || '', content: syncedHtml, order: 0 });
+                                } else {
+                                    nextArticles[0] = { ...nextArticles[0].toObject?.() || nextArticles[0], content: syncedHtml };
+                                    if (!nextArticles[0].heading) nextArticles[0].heading = updated.title || '';
+                                }
+                                tutTopic.articles = nextArticles;
+                                tutTopic.updatedAt = new Date();
+                                await tutTopic.save();
+                            }
                         }
                     } catch (e) {
-                        console.warn('Could not attach updated note to topic:', e.message);
+                        console.warn('Could not attach updated note to topic/tutorial-topic:', e.message);
                     }
                 }
 

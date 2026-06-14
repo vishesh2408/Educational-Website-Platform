@@ -42,45 +42,45 @@ export default function SubscriptionsPage() {
   }, [fetchStatus]);
 
   return (
-    <main className="min-h-screen bg-slate-950 text-white">
+    <main className="min-h-screen bg-transparent text-gray-900 dark:text-white">
       <div className="max-w-5xl mx-auto px-4 py-8">
-        <h1 className="text-2xl font-bold mb-4">Your Subscriptions</h1>
+        <h1 className="text-3xl md:text-4xl lg:text-5xl font-extrabold bg-gradient-to-r from-teal-600 via-emerald-500 to-indigo-600 dark:from-teal-400 dark:via-emerald-300 dark:to-indigo-400 bg-clip-text text-transparent mb-4">Your Subscriptions</h1>
 
         {loading && (
-          <div className="bg-white/5 border border-white/10 p-6 rounded-2xl">Loading...</div>
+          <div className="bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 p-6 rounded-2xl text-gray-705 dark:text-gray-200 shadow-sm dark:shadow-none">Loading...</div>
         )}
 
         {!loading && error && (
-          <div className="bg-red-900/20 border border-red-500/40 p-4 rounded-2xl flex items-center gap-2">
-            <AlertTriangle className="w-5 h-5 text-red-400" />
-            <span className="text-red-200">{error}</span>
+          <div className="bg-rose-50 dark:bg-red-900/20 border border-rose-200 dark:border-red-500/40 p-4 rounded-2xl flex items-center gap-2">
+            <AlertTriangle className="w-5 h-5 text-rose-600 dark:text-red-400" />
+            <span className="text-rose-700 dark:text-red-200">{error}</span>
           </div>
         )}
 
         {!loading && !error && (
-          <div className="bg-white/5 border border-white/10 backdrop-blur p-6 rounded-2xl">
+          <div className="bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 backdrop-blur p-6 rounded-2xl shadow-sm dark:shadow-none">
             {subscription && subscription.status === 'active' ? (
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-green-300 font-semibold flex items-center gap-2">
+                  <p className="text-emerald-600 dark:text-green-300 font-semibold flex items-center gap-2">
                     <Check className="w-5 h-5" /> Active Subscription
                   </p>
-                  <p className="text-sm text-gray-300 mt-1">Plan: <span className="font-medium">{subscription.plan}</span></p>
+                  <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">Plan: <span className="font-medium">{subscription.plan}</span></p>
                   {subscription.billingPeriod && (
-                    <p className="text-sm text-gray-300">Billing: <span className="font-medium">{subscription.billingPeriod}</span></p>
+                    <p className="text-sm text-gray-600 dark:text-gray-300">Billing: <span className="font-medium">{subscription.billingPeriod}</span></p>
                   )}
                   {subscription.startDate && (
-                    <p className="text-sm text-gray-300">Started: <span className="font-medium">{new Date(subscription.startDate).toLocaleDateString()}</span></p>
+                    <p className="text-sm text-gray-600 dark:text-gray-300">Started: <span className="font-medium">{new Date(subscription.startDate).toLocaleDateString()}</span></p>
                   )}
                   {subscription.endDate && (
-                    <p className="text-sm text-gray-300">Renews: <span className="font-medium">{new Date(subscription.endDate).toLocaleDateString()}</span></p>
+                    <p className="text-sm text-gray-600 dark:text-gray-300">Renews: <span className="font-medium">{new Date(subscription.endDate).toLocaleDateString()}</span></p>
                   )}
                 </div>
               </div>
             ) : (
               <div>
-                <p className="text-gray-200">No active subscriptions found.</p>
-                <p className="text-sm text-gray-400 mt-1">Visit Home to view and subscribe to plans.</p>
+                <p className="text-gray-750 dark:text-gray-200">No active subscriptions found.</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Visit Home to view and subscribe to plans.</p>
               </div>
             )}
           </div>

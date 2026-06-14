@@ -23,14 +23,17 @@ const loginLimiter = rateLimit({
 });
 
 const setAuthCookie = (res, payload) => {
-    const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '1h' });
+    const expiry = process.env.JWT_EXPIRES_IN || '30d';
+    const maxAgeMs = parseInt(process.env.COOKIE_MAX_AGE_MS, 10) || 30 * 24 * 60 * 60 * 1000; // Default 30 days
+    
+    const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: expiry });
     const isProd = process.env.NODE_ENV === 'production';
     
     res.cookie('token', token, {
         httpOnly: true,
         secure: isProd,
         sameSite: isProd ? 'None' : 'Lax',
-        maxAge: 3600000,
+        maxAge: maxAgeMs,
     });
 }
 
@@ -148,6 +151,12 @@ router.post('/login',
         // NEW: Reset attempts on successful login
         user.failedLoginAttempts = 0;
         user.lastLoginAttempt = new Date();
+        
+        if (!user.activity) {
+            user.activity = { lastActive: '', activeSessions: 0, totalMinutes: 0 };
+        }
+        user.activity.activeSessions = (user.activity.activeSessions || 0) + 1;
+        user.activity.lastActive = new Date().toISOString();
         await user.save();
         
         const payload = { user: { id: user.id, username: user.username, email: user.email, role: user.role } };
@@ -209,6 +218,13 @@ router.post('/google', async (req, res) => {
         const authPayload = { user: { id: user.id, username: user.username, email: user.email, role: user.role } };
         setAuthCookie(res, authPayload);
 
+        if (!user.activity) {
+            user.activity = { lastActive: '', activeSessions: 0, totalMinutes: 0 };
+        }
+        user.activity.activeSessions = (user.activity.activeSessions || 0) + 1;
+        user.activity.lastActive = new Date().toISOString();
+        await user.save();
+
         res.status(200).json({ msg: 'Google login successful', user: authPayload.user });
     } catch (err) {
         console.error('[AUTH] Google auth error:', err.message);
@@ -257,7 +273,24 @@ router.get('/user', requireAuth, async (req, res) => {
     try {
         // Fetch user, but now we *don't* need to select('-password') because the JWT payload is the source of truth
         const user = await User.findById(req.user.id).select('-password');
-        // We use req.user from the decoded JWT payload for speed, but fetch DB for full profile/role check
+        if (user) {
+            let updated = false;
+            if (!user.activity) {
+                user.activity = { lastActive: '', activeSessions: 1, totalMinutes: 0 };
+                updated = true;
+            } else if (user.activity.activeSessions < 1) {
+                user.activity.activeSessions = 1;
+                updated = true;
+            }
+            const nowIso = new Date().toISOString();
+            if (user.activity.lastActive !== nowIso) {
+                user.activity.lastActive = nowIso;
+                updated = true;
+            }
+            if (updated) {
+                await user.save();
+            }
+        }
         res.json(user);
     } catch (err) {
         console.error(err.message);
@@ -271,8 +304,22 @@ router.get('/session', requireAuth, (req, res) => {
     return res.sendStatus(204);
 });
 
-// NEW: Logout Route (for token revocation)
-router.post('/logout', (req, res) => {
+// NEW: Logout Route (for token revocation and session tracking)
+router.post('/logout', requireAuth, async (req, res) => {
+    try {
+        if (req.user && req.user.id) {
+            const user = await User.findById(req.user.id);
+            if (user) {
+                if (!user.activity) {
+                    user.activity = { lastActive: '', activeSessions: 0, totalMinutes: 0 };
+                }
+                user.activity.activeSessions = Math.max(0, (user.activity.activeSessions || 0) - 1);
+                await user.save();
+            }
+        }
+    } catch (err) {
+        console.error('[AUTH] Logout session update error:', err.message);
+    }
     const isProd = process.env.NODE_ENV === 'production';
     res.clearCookie('token', { 
         httpOnly: true, 

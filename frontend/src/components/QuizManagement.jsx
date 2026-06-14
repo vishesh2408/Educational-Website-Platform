@@ -17,6 +17,89 @@ const { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveC
 const BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:3001';
 const API_BASE_URL = `${BASE_URL}/api`;
 
+const generateFrontendDefaultQuizImage = (title) => {
+    const gradients = [
+        ['#1e3a8a', '#3b82f6', '#60a5fa'], // Blue theme
+        ['#064e3b', '#10b981', '#34d399'], // Emerald theme
+        ['#581c87', '#8b5cf6', '#a78bfa'], // Purple theme
+        ['#7c2d12', '#f97316', '#fb923c'], // Orange theme
+        ['#881337', '#f43f5e', '#fb7185'], // Rose theme
+        ['#0f766e', '#14b8a6', '#2dd4bf'], // Teal theme
+        ['#1e1b4b', '#4f46e5', '#818cf8'], // Indigo theme
+    ];
+    const selected = gradients[Math.floor(Math.random() * gradients.length)];
+    const id = 'grad_' + Math.random().toString(36).substring(2, 9);
+    
+    const words = (title || 'Quiz').split(' ');
+    let lines = [];
+    let currentLine = '';
+    
+    words.forEach(word => {
+        if ((currentLine + ' ' + word).trim().length > 22) {
+            lines.push(currentLine.trim());
+            currentLine = word;
+        } else {
+            currentLine = (currentLine + ' ' + word).trim();
+        }
+    });
+    if (currentLine) {
+        lines.push(currentLine.trim());
+    }
+    
+    if (lines.length > 2) {
+        lines = [lines[0] + ' ' + lines[1], lines.slice(2).join(' ')];
+        if (lines[0].length > 25) lines[0] = lines[0].substring(0, 22) + '...';
+        if (lines[1].length > 25) lines[1] = lines[1].substring(0, 22) + '...';
+    }
+    
+    const escapeSvgXml = (str) => {
+        return (str || '')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&apos;');
+    };
+
+    let textElements = '';
+    if (lines.length === 1) {
+        textElements = `<text x="50%" y="45%" dominant-baseline="middle" text-anchor="middle" font-family="'Outfit', 'Inter', 'Segoe UI', sans-serif" font-weight="900" font-size="44" fill="#ffffff" letter-spacing="1">${escapeSvgXml(lines[0])}</text>`;
+    } else {
+        textElements = `
+            <text x="50%" y="38%" dominant-baseline="middle" text-anchor="middle" font-family="'Outfit', 'Inter', 'Segoe UI', sans-serif" font-weight="900" font-size="40" fill="#ffffff" letter-spacing="1">${escapeSvgXml(lines[0])}</text>
+            <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-family="'Outfit', 'Inter', 'Segoe UI', sans-serif" font-weight="900" font-size="40" fill="#ffffff" letter-spacing="1">${escapeSvgXml(lines[1])}</text>
+        `;
+    }
+
+    const svg = `
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="450" viewBox="0 0 800 450">
+    <defs>
+        <linearGradient id="${id}" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="${selected[0]}" />
+            <stop offset="50%" stop-color="${selected[1]}" />
+            <stop offset="100%" stop-color="${selected[2]}" />
+        </linearGradient>
+        <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+            <feDropShadow dx="0" dy="6" stdDeviation="5" flood-opacity="0.35" />
+        </filter>
+    </defs>
+    <rect width="800" height="450" fill="url(#${id})" />
+    <circle cx="10%" cy="20%" r="140" fill="white" opacity="0.04" />
+    <circle cx="90%" cy="80%" r="180" fill="white" opacity="0.04" />
+    <rect x="75%" y="-10%" width="250" height="250" rx="30" transform="rotate(25)" fill="white" opacity="0.03" />
+    <path d="M 0 320 Q 200 280 400 320 T 800 320 L 800 450 L 0 450 Z" fill="white" opacity="0.03" />
+    <rect x="30" y="30" width="740" height="390" rx="20" fill="none" stroke="white" stroke-opacity="0.12" stroke-width="2" />
+    <g filter="url(#shadow)">
+        ${textElements}
+        <text x="50%" y="64%" dominant-baseline="middle" text-anchor="middle" font-family="'Outfit', 'Inter', 'Segoe UI', sans-serif" font-weight="700" font-size="18" fill="#ffffff" fill-opacity="0.75" letter-spacing="5">
+            CHALLENGE
+        </text>
+    </g>
+</svg>`.trim();
+
+    return 'data:image/svg+xml;base64,' + window.btoa(unescape(encodeURIComponent(svg)));
+};
+
 // Quill editor removed; use CourseEditor or other editor when needed.
 
 const iconMap = {
@@ -114,10 +197,11 @@ const QuizManagement = () => {
 
     const [quizzes, setQuizzes] = useState([]);
     const [courses, setCourses] = useState([]);
-    const [newQuiz, setNewQuiz] = useState({ courseId: '', title: '', description: '', icon: 'CodeIcon', noOfQuestions: '', totalMarks: '', passMark: '', duration: '', isTimedQuiz: true, attemptsCount: 0, totalScoreSum: 0, isReleased: true, questions: [], allowDirectResultAccess: true });
+    const [newQuiz, setNewQuiz] = useState({ courseId: '', title: '', description: '', icon: 'CodeIcon', imageUrl: '', noOfQuestions: '', totalMarks: '', passMark: '', duration: '', isTimedQuiz: true, attemptsCount: 0, totalScoreSum: 0, isReleased: true, questions: [], allowDirectResultAccess: true });
     const [editingQuiz, setEditingQuiz] = useState(null);
     const [isAddQuizModalOpen, setIsAddQuizModalOpen] = useState(false);
     const [isEditQuizModalOpen, setIsEditModalOpen] = useState(false);
+    const [isUploadingImage, setIsUploadingImage] = useState(false);
     const [formMessage, setFormMessage] = useState({ type: '', text: '' });
     const [isDeleting, setIsDeleting] = useState(false);
     const [quizToDelete, setQuizToDelete] = useState(null);
@@ -237,7 +321,7 @@ const QuizManagement = () => {
 
             if (response.ok) {
                 setQuizzes([...quizzes, data]);
-                setNewQuiz({ courseId: '', title: '', description: '', icon: 'CodeIcon', noOfQuestions: '', totalMarks: '', passMark: '', duration: '', isTimedQuiz: true, attemptsCount: 0, totalScoreSum: 0, isReleased: true, questions: [], allowDirectResultAccess: true });
+                setNewQuiz({ courseId: '', title: '', description: '', icon: 'CodeIcon', imageUrl: '', noOfQuestions: '', totalMarks: '', passMark: '', duration: '', isTimedQuiz: true, attemptsCount: 0, totalScoreSum: 0, isReleased: true, questions: [], allowDirectResultAccess: true });
                 setFormMessage({ type: 'success', text: 'Quiz added successfully!' });
                 resetQuestionForm();
                 setIsAddQuizModalOpen(false);
@@ -264,7 +348,7 @@ const QuizManagement = () => {
 
     const startEditingQuiz = (quiz) => {
         setEditingQuiz(JSON.parse(JSON.stringify({
-            ...quiz, questions: quiz.questions || [], noOfQuestions: quiz.noOfQuestions, totalMarks: quiz.totalMarks, passMark: quiz.passMark, isTimedQuiz: quiz.isTimedQuiz ?? true, attemptsCount: quiz.attemptsCount ?? 0, totalScoreSum: quiz.totalScoreSum ?? 0, isReleased: quiz.isReleased ?? true, allowDirectResultAccess: quiz.allowDirectResultAccess ?? true, duration: quiz.duration || (quiz.isTimedQuiz ? '' : 'No Limit')
+            ...quiz, questions: quiz.questions || [], imageUrl: quiz.imageUrl || '', noOfQuestions: quiz.noOfQuestions, totalMarks: quiz.totalMarks, passMark: quiz.passMark, isTimedQuiz: quiz.isTimedQuiz ?? true, attemptsCount: quiz.attemptsCount ?? 0, totalScoreSum: quiz.totalScoreSum ?? 0, isReleased: quiz.isReleased ?? true, allowDirectResultAccess: quiz.allowDirectResultAccess ?? true, duration: quiz.duration || (quiz.isTimedQuiz ? '' : 'No Limit')
         })));
         setIsEditModalOpen(true);
         resetQuestionForm();
@@ -283,6 +367,42 @@ const QuizManagement = () => {
     const handleResultAccessChange = (e, targetStateSetter) => {
         const value = e.target.value === 'true';
         targetStateSetter(prev => ({ ...prev, allowDirectResultAccess: value }));
+    };
+
+    const handleImageUpload = async (e, targetSetter) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        setIsUploadingImage(true);
+        setFormMessage({ type: '', text: '' });
+
+        const formData = new FormData();
+        formData.append('file', file);
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/admin/uploads`, {
+                method: 'POST',
+                credentials: 'include',
+                body: formData,
+            });
+
+            const data = await response.json();
+            if (response.ok) {
+                targetSetter(prev => ({ ...prev, imageUrl: data.url }));
+                setFormMessage({ type: 'success', text: 'Image uploaded successfully!' });
+            } else {
+                setFormMessage({ type: 'error', text: data.msg || 'Image upload failed.' });
+            }
+        } catch (error) {
+            console.error('Error uploading image:', error);
+            setFormMessage({ type: 'error', text: 'Network error occurred during image upload.' });
+        } finally {
+            setIsUploadingImage(false);
+        }
+    };
+
+    const handleRemoveImage = (targetSetter) => {
+        targetSetter(prev => ({ ...prev, imageUrl: '' }));
     };
 
     const handleUpdateQuiz = async (e) => {
@@ -559,7 +679,7 @@ const QuizManagement = () => {
                             {quizzes.map((quiz) => (
                                 <div key={quiz._id} className="admin-quiz-list-item">
                                     <div className="admin-quiz-list-item-header">
-                                        {iconMap[quiz.icon] ? React.createElement(iconMap[quiz.icon], { size: 48, className: 'admin-quiz-icon' }) : null}
+                                        <img src={quiz.imageUrl ? (quiz.imageUrl.startsWith('data:') ? quiz.imageUrl : `${BASE_URL}${quiz.imageUrl}`) : generateFrontendDefaultQuizImage(quiz.title)} alt="" className="admin-quiz-icon" style={{ width: '48px', height: '48px', objectFit: 'cover', borderRadius: '8px', border: '1px solid rgba(255, 255, 255, 0.1)' }} />
                                         <div>
                                             <h4 className="admin-quiz-title">{quiz.title}</h4>
                                             <p className="admin-quiz-course-name">{getCourseNameById(quiz.courseId)}</p>
@@ -600,6 +720,23 @@ const QuizManagement = () => {
                             {newQuiz.isTimedQuiz && (<div className="form-group"><label htmlFor="addDuration" className="form-label">Duration (e.g., "30 Minutes") *</label><input type="text" id="addDuration" name="duration" value={newQuiz.duration} onChange={(e) => handleQuizDetailsChange(e, setNewQuiz)} required={newQuiz.isTimedQuiz} className="form-input" placeholder="e.g., 30 Minutes or 02:05 AM" /></div>)}
 
                             <div className="form-group"><label htmlFor="newQuizDescription" className="form-label">Quiz Description</label><textarea id="newQuizDescription" name="description" value={newQuiz.description} onChange={(e) => handleQuizDetailsChange(e, setNewQuiz)} rows="3" required className="form-textarea resize-y" placeholder="Brief description of the quiz content."></textarea></div>
+
+                            <div className="form-group">
+                                <label className="form-label">Quiz Cover Image (Optional)</label>
+                                {isUploadingImage ? (
+                                    <div className="admin-loading-message" style={{ padding: '8px 0', fontSize: '14px' }}>Uploading image...</div>
+                                ) : (newQuiz.imageUrl ? (
+                                    <div className="flex items-center gap-4 p-3 bg-slate-950/40 border border-slate-800 rounded-xl" style={{ display: 'flex', alignItems: 'center', gap: '16px', padding: '12px', background: 'rgba(2, 6, 23, 0.4)', border: '1px solid rgba(30, 41, 59, 0.8)', borderRadius: '12px' }}>
+                                        <img src={newQuiz.imageUrl.startsWith('data:') ? newQuiz.imageUrl : `${BASE_URL}${newQuiz.imageUrl}`} alt="Preview" style={{ width: '96px', height: '56px', objectFit: 'cover', borderRadius: '8px', border: '1px solid rgba(30, 41, 59, 1)' }} />
+                                        <button type="button" onClick={() => handleRemoveImage(setNewQuiz)} className="admin-button-secondary" style={{ padding: '6px 12px', fontSize: '12px', width: 'auto', minWidth: 'unset' }}>Remove Image</button>
+                                    </div>
+                                ) : (
+                                    <div className="flex flex-col gap-2" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                        <input type="file" accept="image/*" onChange={(e) => handleImageUpload(e, setNewQuiz)} className="form-input" />
+                                        <span className="text-xs text-slate-500" style={{ fontSize: '11px', color: '#64748b' }}>If no image is uploaded, a custom banner with random gradient colors and the quiz title will be generated.</span>
+                                    </div>
+                                ))}
+                            </div>
 
                             <div className="form-group"><label htmlFor="newQuizIcon" className="form-label">Icon Name (e.g., CodeIcon)</label><input type="text" id="newQuizIcon" name="icon" value={newQuiz.icon} onChange={(e) => handleQuizDetailsChange(e, setNewQuiz)} required className="form-input" placeholder="e.g., CodeIcon, BookOpen, Brain" /></div>
 
@@ -647,6 +784,24 @@ const QuizManagement = () => {
                             <div className="admin-form-grid"><div className="form-group"><label htmlFor="editPassMark" className="form-label">Pass Mark *</label><input type="number" id="editPassMark" name="passMark" value={editingQuiz.passMark} onChange={(e) => handleQuizDetailsChange(e, setEditingQuiz)} required min="0" className="form-input" /></div><div className="form-group"><label htmlFor="editIsTimedQuiz" className="form-label">Quiz Timing</label><select id="editIsTimedQuiz" name="isTimedQuiz" value={editingQuiz.isTimedQuiz} onChange={(e) => handleIsTimedQuizChange(e, setEditingQuiz)} className="form-select"><option value={true}>Timed Quiz</option><option value={false}>No Time Limit</option></select></div></div>
                             {editingQuiz.isTimedQuiz && (<div className="form-group"><label htmlFor="editDuration" className="form-label">Duration (e.g., "30 Minutes") *</label><input type="text" id="editDuration" name="duration" value={editingQuiz.duration} onChange={(e) => handleQuizDetailsChange(e, setEditingQuiz)} required={editingQuiz.isTimedQuiz} className="form-input" placeholder="e.g., 30 Minutes or 02:05 AM" /></div>)}
                             <div className="form-group"><label htmlFor="editQuizDescription" className="form-label">Quiz Description</label><textarea id="editQuizDescription" name="description" value={editingQuiz.description} onChange={(e) => handleQuizDetailsChange(e, setEditingQuiz)} rows="3" required className="form-textarea resize-y"></textarea></div>
+
+                            <div className="form-group">
+                                <label className="form-label">Quiz Cover Image (Optional)</label>
+                                {isUploadingImage ? (
+                                    <div className="admin-loading-message" style={{ padding: '8px 0', fontSize: '14px' }}>Uploading image...</div>
+                                ) : (editingQuiz.imageUrl ? (
+                                    <div className="flex items-center gap-4 p-3 bg-slate-950/40 border border-slate-800 rounded-xl" style={{ display: 'flex', alignItems: 'center', gap: '16px', padding: '12px', background: 'rgba(2, 6, 23, 0.4)', border: '1px solid rgba(30, 41, 59, 0.8)', borderRadius: '12px' }}>
+                                        <img src={editingQuiz.imageUrl.startsWith('data:') ? editingQuiz.imageUrl : `${BASE_URL}${editingQuiz.imageUrl}`} alt="Preview" style={{ width: '96px', height: '56px', objectFit: 'cover', borderRadius: '8px', border: '1px solid rgba(30, 41, 59, 1)' }} />
+                                        <button type="button" onClick={() => handleRemoveImage(setEditingQuiz)} className="admin-button-secondary" style={{ padding: '6px 12px', fontSize: '12px', width: 'auto', minWidth: 'unset' }}>Remove Image</button>
+                                    </div>
+                                ) : (
+                                    <div className="flex flex-col gap-2" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                        <input type="file" accept="image/*" onChange={(e) => handleImageUpload(e, setEditingQuiz)} className="form-input" />
+                                        <span className="text-xs text-slate-500" style={{ fontSize: '11px', color: '#64748b' }}>If no image is uploaded, a custom banner with random gradient colors and the quiz title will be generated.</span>
+                                    </div>
+                                ))}
+                            </div>
+
                             <div className="form-group"><label htmlFor="editQuizIcon" className="form-label">Icon Name</label><input type="text" id="editQuizIcon" name="icon" value={editingQuiz.icon} onChange={(e) => handleQuizDetailsChange(e, setEditingQuiz)} required className="form-input" /></div>
                             <div className="form-group"><label htmlFor="editQuizResultAccess" className="form-label">Result Access</label><select id="editQuizResultAccess" name="allowDirectResultAccess" value={editingQuiz.allowDirectResultAccess} onChange={(e) => handleResultAccessChange(e, setEditingQuiz)} className="form-select"><option value={true}>Allow Direct Access (Show immediately)</option><option value={false}>Admin Release (Release later)</option></select></div>
                             <h4 className="admin-form-section-title">Edit Questions ({editingQuiz.questions.length})</h4>

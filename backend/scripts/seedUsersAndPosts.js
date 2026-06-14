@@ -9,7 +9,7 @@ const MONGO = process.env.MONGO_URI || 'mongodb://localhost:27017/myedu';
 
 async function seed() {
   console.log('Connecting to', MONGO);
-  await mongoose.connect(MONGO, { useNewUrlParser: true, useUnifiedTopology: true });
+  await mongoose.connect(MONGO);
 
   try {
     // Helper to create or find user

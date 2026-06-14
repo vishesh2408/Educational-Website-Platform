@@ -2,10 +2,14 @@ const express = require('express');
 const router = express.Router();
 const crypto = require('crypto');
 const bcrypt = require('bcryptjs');
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
 
 const ForumPost = require('../models/ForumPost');
 const ForumPremium = require('../models/ForumPremium');
 const User = require('../models/User');
+const authMiddleware = require('../middleware/authMiddleware');
 
 
 
@@ -45,7 +49,7 @@ router.get('/public/forum-posts', async (req, res) => {
 });
 
 // Authenticated feed: GET /forum-posts/feed
-router.get('/forum-posts/feed', async (req, res) => {
+router.get('/forum-posts/feed', authMiddleware, async (req, res) => {
     try {
         const currentUserId = req.user && req.user.id;
         const currentUser = currentUserId ? await User.findById(currentUserId).select('social.friends') : null;
@@ -87,22 +91,40 @@ router.get('/forum-posts/feed', async (req, res) => {
 });
 
 // Create top-level post (authenticated)
-router.post('/forum-posts', async (req, res) => {
+router.post('/forum-posts', authMiddleware, async (req, res) => {
     const { title, content, imageUrl, category, tags } = req.body;
     try {
         const userId = req.user && req.user.id;
         const user = userId ? await User.findById(userId).select('subscription email role') : null;
         if (!user) return res.status(404).json({ msg: 'User not found' });
 
+        const SubscriptionPlan = require('../models/SubscriptionPlan');
+        const grantedPlan = await SubscriptionPlan.findOne({
+            'freeFor.users': userId,
+            active: true
+        });
+
         const activePremium = await ForumPremium.findOne({ active: true }).lean();
         let isExempt = false;
+        if (grantedPlan) isExempt = true;
         if (activePremium) {
             if (activePremium.freeFor && Array.isArray(activePremium.freeFor.users) && activePremium.freeFor.users.map(String).includes(String(userId))) isExempt = true;
             if (!isExempt && activePremium.freeFor && Array.isArray(activePremium.freeFor.roles) && user.role && activePremium.freeFor.roles.includes(user.role)) isExempt = true;
             if (!isExempt && activePremium.freeFor && Array.isArray(activePremium.freeFor.emails) && user.email && activePremium.freeFor.emails.includes(user.email)) isExempt = true;
         }
 
-        const subscription = user.subscription || { plan: 'free', status: 'active' };
+        const subscription = grantedPlan ? {
+            plan: grantedPlan.planType,
+            status: 'active',
+            startDate: user.subscription?.startDate || new Date(),
+            endDate: new Date(Date.now() + 100 * 365 * 24 * 60 * 60 * 1000),
+            billingPeriod: 'yearly',
+            autoRenew: false,
+            grantedByAdmin: true,
+            grantedPlanId: grantedPlan._id,
+            isForumPremium: grantedPlan.isForumPremium
+        } : (user.subscription || { plan: 'free', status: 'active' });
+
         if (!isExempt && subscription.plan === 'free' && subscription.status === 'active') return res.status(403).json({ msg: 'Subscription required to post. Please subscribe to a plan to access forum posting features.' });
         if (!isExempt && subscription.status === 'expired') return res.status(403).json({ msg: 'Your subscription has expired. Please renew your subscription to continue posting.' });
 
@@ -121,19 +143,27 @@ router.post('/forum-posts', async (req, res) => {
 });
 
 // Add a reply to a post
-router.post('/forum-posts/:parentId/replies', async (req, res) => {
+router.post('/forum-posts/:parentId/replies', authMiddleware, async (req, res) => {
     const { content, imageUrl } = req.body;
     const { parentId } = req.params;
     try {
         const parentPost = await ForumPost.findById(parentId);
         if (!parentPost) return res.status(404).json({ msg: 'Parent post not found' });
 
+        const userId = req.user && req.user.id;
+        const SubscriptionPlan = require('../models/SubscriptionPlan');
+        const grantedPlan = await SubscriptionPlan.findOne({
+            'freeFor.users': userId,
+            active: true
+        });
+
         const activePremium = await ForumPremium.findOne({ active: true }).lean();
         let isExempt = false;
+        if (grantedPlan) isExempt = true;
         if (activePremium) {
-            if (activePremium.freeFor && Array.isArray(activePremium.freeFor.users) && activePremium.freeFor.users.map(String).includes(String(req.user && req.user.id))) isExempt = true;
+            if (activePremium.freeFor && Array.isArray(activePremium.freeFor.users) && activePremium.freeFor.users.map(String).includes(String(userId))) isExempt = true;
             if (!isExempt && activePremium.freeFor && Array.isArray(activePremium.freeFor.roles)) {
-                const user = await User.findById(req.user && req.user.id).select('role');
+                const user = await User.findById(userId).select('role');
                 if (user && user.role && activePremium.freeFor.roles.includes(user.role)) isExempt = true;
             }
         }
@@ -153,21 +183,20 @@ router.post('/forum-posts/:parentId/replies', async (req, res) => {
 });
 
 // Like/unlike a post
-router.put('/forum-posts/like/:postId', async (req, res) => {
+router.put('/forum-posts/like/:postId', authMiddleware, async (req, res) => {
     try {
         const postId = req.params.postId;
-        const userId = req.user && req.user.id;
+        const userId = req.user.id;
         const post = await ForumPost.findById(postId);
         if (!post) return res.status(404).json({ msg: 'Post not found' });
 
         const isLiked = post.likedBy.map(String).includes(String(userId));
         if (isLiked) {
             post.likedBy = post.likedBy.filter(id => String(id) !== String(userId));
-            post.likes = Math.max(0, post.likes - 1);
         } else {
             post.likedBy.push(userId);
-            post.likes += 1;
         }
+        post.likes = post.likedBy.length;
 
         await post.save();
         res.json({ msg: isLiked ? 'Post unliked' : 'Post liked', likes: post.likes, likedBy: post.likedBy, postId: post._id });
@@ -178,7 +207,7 @@ router.put('/forum-posts/like/:postId', async (req, res) => {
 });
 
 // Mark/unmark a reply as solution
-router.put('/forum-posts/mark-solution/:postId/:replyId', async (req, res) => {
+router.put('/forum-posts/mark-solution/:postId/:replyId', authMiddleware, async (req, res) => {
     try {
         const { postId, replyId } = req.params;
         const userId = req.user && req.user.id;
@@ -204,6 +233,62 @@ router.put('/forum-posts/mark-solution/:postId/:replyId', async (req, res) => {
         console.error(err.message);
         res.status(500).send('Server Error');
     }
+});
+
+// Configure Multer for Forum Post Image Uploads
+const UPLOAD_FORUM_ROOT = path.join(__dirname, '..', 'upload', 'forum');
+
+function ensureForumUploadDir() {
+  try {
+    fs.mkdirSync(UPLOAD_FORUM_ROOT, { recursive: true });
+  } catch (e) {
+    // ignore
+  }
+}
+
+const forumStorage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    ensureForumUploadDir();
+    cb(null, UPLOAD_FORUM_ROOT);
+  },
+  filename: function (req, file, cb) {
+    const ext = path.extname(file.originalname).toLowerCase();
+    const uniqueId = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, `${uniqueId}${ext}`);
+  },
+});
+
+const forumUpload = multer({
+  storage: forumStorage,
+  limits: {
+    fileSize: 5 * 1024 * 1024, // 5MB limit
+  },
+  fileFilter: function (req, file, cb) {
+    const filetypes = /jpeg|jpg|png|gif|webp/;
+    const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
+    const mimetype = filetypes.test(file.mimetype);
+    if (mimetype && extname) {
+      return cb(null, true);
+    } else {
+      cb(new Error('Only images are allowed (jpeg, jpg, png, gif, webp)'));
+    }
+  }
+});
+
+// Upload an image attachment for forum posts (authenticated)
+router.post('/forum-posts/upload-image', authMiddleware, forumUpload.single('image'), async (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ msg: 'No file uploaded' });
+
+    const urlPath = `/upload/forum/${req.file.filename}`;
+    return res.json({
+      url: urlPath,
+      msg: 'Image uploaded successfully'
+    });
+  } catch (err) {
+    console.error('Forum image upload error:', err);
+    return res.status(500).json({ msg: 'Server Error' });
+  }
 });
 
 module.exports = router;

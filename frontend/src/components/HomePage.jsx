@@ -48,7 +48,7 @@ function AnimatedBackground() {
                 transition={{ duration: 15, repeat: Infinity, ease: 'easeInOut' }}
                 style={{ bottom: '10%', left: '30%' }}
             />
-            <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:100px_100px]" />
+            <div className="absolute inset-0 bg-[linear-gradient(rgba(0,0,0,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(0,0,0,0.03)_1px,transparent_1px)] dark:bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:100px_100px]" />
         </div>
     );
 }
@@ -73,6 +73,8 @@ const HomePage = () => {
     const [forumSubLoading, setForumSubLoading] = useState(false);
     const [forumSuccessMessage, setForumSuccessMessage] = useState(null);
     const [forumDetailsOpen, setForumDetailsOpen] = useState(false);
+    const [forumPremiumPlan, setForumPremiumPlan] = useState(null);
+    const [showAllTech, setShowAllTech] = useState(false);
 
     const forumFeaturesList = [
         {
@@ -163,7 +165,13 @@ const HomePage = () => {
             const res = await fetch(`${API_BASE_URL}/public/pricing-plans`);
             const data = await res.json();
             if (res.ok) {
+                // Keep all plans, including Forum Premium, so they render in the grid
                 setPricingPlans(data);
+                
+                const forumPlan = data.find(p => p.isForumPremium);
+                if (forumPlan) {
+                    setForumPremiumPlan(forumPlan);
+                }
                 setPricingError(false);
             } else {
                 setPricingPlans([]);
@@ -207,58 +215,41 @@ const HomePage = () => {
             showToast('Please log in to subscribe to Forum Premium.', 'info');
             return;
         }
-        setForumSubLoading(true);
-        try {
-            const res = await fetch(`${API_BASE_URL}/user/subscription/subscribe`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                credentials: 'include',
-                body: JSON.stringify({ planType: 'professional', billingPeriod: forumBillingPeriod }),
-            });
-            const data = await res.json();
-            if (res.ok) {
-                // Update forum subscription status and show inline success
-                await fetchForumSubscriptionStatus();
-                setForumSuccessMessage(data.msg || `Subscribed to Forum Premium`);
-                // clear success after a while
-                setTimeout(() => setForumSuccessMessage(null), 3000);
-            } else {
-                showToast(data.msg || 'Subscription failed', 'error');
+        const amt = forumPremiumPlan
+            ? (forumBillingPeriod === 'monthly' ? forumPremiumPlan.monthlyPrice : forumPremiumPlan.yearlyPrice)
+            : (forumBillingPeriod === 'monthly' ? 99 : 999);
+
+        navigate('/user/dashboard/payment', {
+            state: {
+                planName: forumPremiumPlan?.name || 'Forum Premium',
+                planType: forumPremiumPlan?.planType || 'professional',
+                billingPeriod: forumBillingPeriod,
+                amount: amt,
+                isForumPremium: true
             }
-        } catch (err) {
-            console.error('Forum subscription error:', err);
-            showToast('Network error', 'error');
-        } finally {
-            setForumSubLoading(false);
-        }
-    }, [currentUser, forumBillingPeriod, openModal, fetchForumSubscriptionStatus, showToast]);
+        });
+    }, [currentUser, forumBillingPeriod, forumPremiumPlan, navigate, showToast]);
 
     const handleSubscribe = useCallback(async (plan) => {
+        if (plan.isForumPremium) {
+            navigate('/user/dashboard/forum-premium');
+            return { ok: true };
+        }
         if (!currentUser) {
             showToast('Please log in to subscribe.', 'info');
             return { ok: false, msg: 'login required' };
         }
-        try {
-            const res = await fetch(`${API_BASE_URL}/user/subscription/subscribe`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                credentials: 'include',
-                body: JSON.stringify({ planType: plan.planType, billingPeriod }),
-            });
-            const data = await res.json();
-            if (res.ok) {
-                showToast(data.msg || `Subscribed to ${plan.name}`, 'success');
-                await fetchSubscriptionStatus();
-            } else {
-                showToast(data.msg || 'Subscription failed', 'error');
+        navigate('/user/dashboard/payment', {
+            state: {
+                planName: plan.name,
+                planType: plan.planType,
+                billingPeriod: billingPeriod,
+                amount: billingPeriod === 'monthly' ? plan.monthlyPrice : plan.yearlyPrice,
+                isForumPremium: false
             }
-            return { ok: res.ok, data };
-        } catch (err) {
-            console.error('Subscription error:', err);
-            showToast('Network error', 'error');
-            return { ok: false, msg: 'network error' };
-        }
-    }, [currentUser, billingPeriod, openModal, showToast, fetchSubscriptionStatus]);
+        });
+        return { ok: true };
+    }, [currentUser, billingPeriod, navigate, showToast]);
 
     useEffect(() => {
         const loadAllData = async () => {
@@ -305,11 +296,156 @@ const HomePage = () => {
 
     if (isLoading) {
         return (
-            <main className="min-h-screen relative bg-slate-950">
+            <main className="min-h-screen relative bg-transparent">
                 <AnimatedBackground />
-                <div className="pt-24 flex items-center justify-center">
-                    <div className="max-w-4xl w-full px-4">
-                        <Skeleton variant="grid" count={3} />
+                <div className="animate-pulse">
+                    {/* Hero Skeleton */}
+                    <section className="relative pt-10 md:pt-12 pb-16">
+                        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                            <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
+                                <div className="lg:col-span-7 space-y-6">
+                                    {/* Badge */}
+                                    <div className="h-9 w-56 rounded-full bg-gray-200 dark:bg-white/10"></div>
+                                    {/* Title */}
+                                    <div className="space-y-3">
+                                        <div className="h-12 w-3/4 rounded-lg bg-gray-200 dark:bg-white/10"></div>
+                                        <div className="h-12 w-1/2 rounded-lg bg-gradient-to-r from-gray-200 to-gray-100 dark:from-white/10 dark:to-white/5"></div>
+                                    </div>
+                                    {/* Description */}
+                                    <div className="space-y-2">
+                                        <div className="h-5 w-full rounded bg-gray-200 dark:bg-white/10"></div>
+                                        <div className="h-5 w-5/6 rounded bg-gray-200 dark:bg-white/10"></div>
+                                    </div>
+                                    {/* Buttons */}
+                                    <div className="flex gap-4">
+                                        <div className="h-12 w-40 rounded-2xl bg-gradient-to-r from-purple-300/40 to-teal-300/40 dark:from-purple-500/20 dark:to-teal-500/20"></div>
+                                        <div className="h-12 w-36 rounded-lg bg-gray-200 dark:bg-white/10 border border-gray-200 dark:border-white/10"></div>
+                                    </div>
+                                </div>
+                                <div className="lg:col-span-5">
+                                    <div className="rounded-2xl border border-gray-200 dark:border-white/10 bg-white dark:bg-white/5 p-6 backdrop-blur shadow-md dark:shadow-none">
+                                        {/* Stats 2x2 */}
+                                        <div className="grid grid-cols-2 gap-4">
+                                            {[1, 2, 3, 4].map(i => (
+                                                <div key={i} className="rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 p-4 space-y-2">
+                                                    <div className="h-7 w-12 rounded bg-gray-200 dark:bg-white/15"></div>
+                                                    <div className="h-4 w-20 rounded bg-gray-200 dark:bg-white/10"></div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                        {/* Tech tags */}
+                                        <div className="mt-6">
+                                            <div className="h-4 w-24 rounded bg-gray-200 dark:bg-white/10 mb-3"></div>
+                                            <div className="flex flex-wrap gap-2">
+                                                {[16, 20, 14, 12, 16, 22].map((w, i) => (
+                                                    <div key={i} className="h-7 rounded-full bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/10" style={{ width: `${w * 4}px` }}></div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    {/* Features Skeleton */}
+                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+                            {[1, 2, 3, 4].map(i => (
+                                <div key={i} className="rounded-2xl bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 p-6 space-y-3">
+                                    <div className="h-10 w-10 rounded-xl bg-gray-200 dark:bg-white/10"></div>
+                                    <div className="h-5 w-28 rounded bg-gray-200 dark:bg-white/10"></div>
+                                    <div className="h-4 w-full rounded bg-gray-100 dark:bg-white/10"></div>
+                                    <div className="h-4 w-3/4 rounded bg-gray-100 dark:bg-white/5"></div>
+                                </div>
+                            ))}
+                        </div>
+
+                        {/* Skills Section Skeleton */}
+                        <div className="mb-16">
+                            <div className="h-8 w-48 rounded-lg bg-gray-200 dark:bg-white/10 mx-auto mb-6"></div>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                                {[1, 2, 3, 4].map(i => (
+                                    <div key={i} className="rounded-2xl bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 p-5 space-y-3">
+                                        <div className="flex items-center gap-3">
+                                            <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-orange-200/50 to-orange-300/30 dark:from-orange-500/20 dark:to-orange-400/10"></div>
+                                            <div className="h-5 w-24 rounded bg-gray-200 dark:bg-white/10"></div>
+                                        </div>
+                                        <div className="flex gap-2 pt-1">
+                                            <div className="h-8 flex-1 rounded-lg bg-gray-200 dark:bg-white/10"></div>
+                                            <div className="h-8 flex-1 rounded-lg bg-gray-200 dark:bg-white/10"></div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Tracks Section Skeleton */}
+                        <div className="mb-16">
+                            <div className="h-8 w-56 rounded-lg bg-gray-200 dark:bg-white/10 mx-auto mb-6"></div>
+                            <div className="flex gap-6 overflow-hidden">
+                                {[1, 2, 3].map(i => (
+                                    <div key={i} className="flex-shrink-0 w-72 rounded-2xl bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 p-5 space-y-3">
+                                        <div className="flex items-center gap-3">
+                                            <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-blue-200/50 to-blue-300/30 dark:from-blue-500/20 dark:to-blue-400/10"></div>
+                                            <div className="h-5 w-32 rounded bg-gray-200 dark:bg-white/10"></div>
+                                        </div>
+                                        <div className="h-4 w-full rounded bg-gray-100 dark:bg-white/10"></div>
+                                        <div className="h-9 w-24 rounded-lg bg-gray-200 dark:bg-white/10"></div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Courses Section Skeleton */}
+                        <div className="mb-12">
+                            <div className="h-8 w-52 rounded-lg bg-gray-200 dark:bg-white/10 mx-auto mb-6"></div>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                                {[1, 2, 3].map(i => (
+                                    <div key={i} className="rounded-2xl bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 overflow-hidden">
+                                        <div className="h-40 bg-gradient-to-br from-gray-200 to-gray-100 dark:from-white/10 dark:to-white/5"></div>
+                                        <div className="p-5 space-y-3">
+                                            <div className="h-5 w-3/4 rounded bg-gray-200 dark:bg-white/10"></div>
+                                            <div className="h-4 w-full rounded bg-gray-100 dark:bg-white/10"></div>
+                                            <div className="h-4 w-2/3 rounded bg-gray-100 dark:bg-white/5"></div>
+                                            <div className="flex justify-between items-center pt-2">
+                                                <div className="h-6 w-16 rounded bg-gray-200 dark:bg-white/10"></div>
+                                                <div className="h-9 w-24 rounded-lg bg-gray-200 dark:bg-white/10"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Pricing Section Skeleton */}
+                        <div className="mt-12">
+                            <div className="h-8 w-48 rounded-lg bg-gray-200 dark:bg-white/10 mx-auto mb-6"></div>
+                            <div className="flex justify-center mb-6">
+                                <div className="h-10 w-52 rounded-lg bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/10"></div>
+                            </div>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                                {[1, 2, 3, 4].map(i => (
+                                    <div key={i} className="rounded-2xl bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 p-6 space-y-4">
+                                        <div className="flex justify-between items-center">
+                                            <div className="h-5 w-20 rounded bg-gray-200 dark:bg-white/10"></div>
+                                            {i === 2 && <div className="h-5 w-14 rounded bg-teal-200/50 dark:bg-teal-500/20"></div>}
+                                        </div>
+                                        <div className="h-4 w-full rounded bg-gray-100 dark:bg-white/10"></div>
+                                        <div className="h-8 w-24 rounded bg-gray-200 dark:bg-white/10"></div>
+                                        <div className="space-y-2">
+                                            {[1, 2, 3].map(j => (
+                                                <div key={j} className="flex items-center gap-2">
+                                                    <div className="h-4 w-4 rounded-full bg-green-200 dark:bg-green-500/20"></div>
+                                                    <div className="h-4 flex-1 rounded bg-gray-100 dark:bg-white/10"></div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                        <div className="h-10 w-full rounded-2xl bg-gradient-to-r from-purple-300/30 to-teal-300/30 dark:from-purple-500/15 dark:to-teal-500/15"></div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
                     </div>
                 </div>
             </main>
@@ -318,7 +454,7 @@ const HomePage = () => {
 
     if (error) {
         return (
-            <main className="min-h-screen relative bg-slate-950 text-white">
+            <main className="min-h-screen relative bg-transparent text-gray-900 dark:text-white">
                 <AnimatedBackground />
                 <div className="pt-24 flex items-center justify-center">
                     <p className="text-xl text-red-300">Error: {error}</p>
@@ -328,7 +464,7 @@ const HomePage = () => {
     }
 
     return (
-        <main className="min-h-screen relative bg-slate-950 text-white">
+        <main className="min-h-screen relative bg-transparent text-gray-900 dark:text-white">
             <AnimatedBackground />
 
             {/* Hero (no image) */}
@@ -342,8 +478,8 @@ const HomePage = () => {
                                 transition={{ duration: 0.6 }}
                                 className="space-y-6"
                             >
-                                <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-gray-200">
-                                    <Sparkles className="w-4 h-4 text-amber-400" />
+                                <div className="inline-flex items-center gap-2 rounded-full border border-gray-200 dark:border-white/10 bg-white/50 dark:bg-white/5 px-4 py-2 text-sm text-gray-700 dark:text-gray-200">
+                                    <Sparkles className="w-4 h-4 text-amber-500" />
                                     Learn faster with real projects
                                 </div>
 
@@ -354,7 +490,7 @@ const HomePage = () => {
                                     </span>
                                 </h1>
 
-                                <p className="text-lg sm:text-xl text-gray-300 max-w-2xl leading-relaxed">
+                                <p className="text-lg sm:text-xl text-gray-650 dark:text-gray-300 max-w-2xl leading-relaxed">
                                     Transform your career with hands-on programming courses. Learn from industry experts,
                                     build real projects, and join a community of developers.
                                 </p>
@@ -373,7 +509,7 @@ const HomePage = () => {
 
                                     <motion.button
                                         type="button"
-                                        className="inline-flex items-center justify-center gap-2 px-7 py-3 rounded-lg border border-white/15 bg-white/5 text-white hover:bg-white/10 transition-colors"
+                                        className="inline-flex items-center justify-center gap-2 px-7 py-3 rounded-lg border border-gray-200 dark:border-white/15 bg-white/40 dark:bg-white/5 text-gray-800 dark:text-white hover:bg-gray-100 dark:hover:bg-white/10 transition-colors"
                                         whileHover={{ scale: 1.02 }}
                                         whileTap={{ scale: 0.98 }}
                                         onClick={() => document.querySelector('#courses')?.scrollIntoView({ behavior: 'smooth' })}
@@ -390,38 +526,46 @@ const HomePage = () => {
                                 initial={{ opacity: 0, y: 16 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ duration: 0.6, delay: 0.1 }}
-                                className="rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur"
+                                className="rounded-2xl border border-gray-200 dark:border-white/10 bg-white dark:bg-white/5 p-6 backdrop-blur shadow-md dark:shadow-none"
                             >
                                 <div className="grid grid-cols-2 gap-4">
-                                    <div className="rounded-xl bg-white/5 border border-white/10 p-4">
+                                    <div className="rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 p-4">
                                         <div className="text-2xl font-bold">15+</div>
-                                        <div className="text-sm text-gray-300">Languages</div>
+                                        <div className="text-sm text-gray-550 dark:text-gray-300">Languages</div>
                                     </div>
-                                    <div className="rounded-xl bg-white/5 border border-white/10 p-4">
+                                    <div className="rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 p-4">
                                         <div className="text-2xl font-bold">5K+</div>
-                                        <div className="text-sm text-gray-300">Developers</div>
+                                        <div className="text-sm text-gray-550 dark:text-gray-300">Developers</div>
                                     </div>
-                                    <div className="rounded-xl bg-white/5 border border-white/10 p-4">
+                                    <div className="rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 p-4">
                                         <div className="text-2xl font-bold">50+</div>
-                                        <div className="text-sm text-gray-300">Projects</div>
+                                        <div className="text-sm text-gray-550 dark:text-gray-300">Projects</div>
                                     </div>
-                                    <div className="rounded-xl bg-white/5 border border-white/10 p-4">
+                                    <div className="rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 p-4">
                                         <div className="text-2xl font-bold">24/7</div>
-                                        <div className="text-sm text-gray-300">Community</div>
+                                        <div className="text-sm text-gray-550 dark:text-gray-300">Community</div>
                                     </div>
                                 </div>
 
                                 <div className="mt-6">
-                                    <p className="text-gray-300 text-sm mb-3">In-demand tech</p>
+                                    <p className="text-gray-505 dark:text-gray-355 text-sm mb-3">In-demand tech</p>
                                     <div className="flex flex-wrap gap-2">
-                                        {['HTML/CSS', 'JavaScript', 'Python', 'React', 'Node.js', 'TypeScript'].map((tech) => (
-                                            <span
-                                                key={tech}
-                                                className="px-3 py-1 rounded-full bg-white/5 border border-white/10 text-sm"
-                                            >
-                                                {tech}
-                                            </span>
-                                        ))}
+                                        {['HTML/CSS', 'JavaScript', 'Python', 'React', 'Node.js', 'TypeScript', 'AI/ML', 'Gen AI', 'Deep Learning', 'Agentic AI', 'RAG', 'SQL', 'MongoDB', 'React Native', 'Flutter', 'CI/CD Pipelines', 'Docker', 'Kubernetes', 'AWS', 'Azure', 'GCP', 'Next.js', 'GraphQL', 'Redis', 'PostgreSQL', 'Go', 'Rust', 'Java', 'Spring Boot', 'Django', 'FastAPI', 'Terraform', 'Kafka', 'Blockchain', 'Cybersecurity', 'Data Science', 'LangChain', 'Computer Vision']
+                                            .slice(0, showAllTech ? undefined : 8)
+                                            .map((tech) => (
+                                                <span
+                                                    key={tech}
+                                                    className="px-3 py-1 rounded-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 text-sm"
+                                                >
+                                                    {tech}
+                                                </span>
+                                            ))}
+                                        <button
+                                            onClick={() => setShowAllTech(!showAllTech)}
+                                            className="px-3 py-1 rounded-full text-sm font-medium text-teal-600 dark:text-teal-400 bg-teal-50 dark:bg-teal-500/10 border border-teal-200 dark:border-teal-500/25 hover:bg-teal-100 dark:hover:bg-teal-500/20 transition-colors cursor-pointer"
+                                        >
+                                            {showAllTech ? 'Show less' : '+30 more'}
+                                        </button>
                                     </div>
                                 </div>
                             </motion.div>
@@ -434,15 +578,15 @@ const HomePage = () => {
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
                 <Features />
 
-                <SectionTitle className="text-white">Enhance Your Skills</SectionTitle>
+                <SectionTitle>Enhance Your Skills</SectionTitle>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-16">
                     {skills.length > 0 ? (
                         skills.map(skill => (
                             <SkillCard
                                 key={skill._id}
                                 icon={
-                                    skill.icon.startsWith('http') ?
-                                    <img src={skill.icon} alt={skill.title} className="w-10 h-10" onError={(e) => {e.target.onerror = null; e.target.src='https://placehold.co/40x40/ccc/000?text=Err'}}/> :
+                                    skill.icon.startsWith('http') || skill.icon.startsWith('data:image/') ?
+                                    <img src={skill.icon} alt={skill.title} className="w-10 h-10 object-contain" onError={(e) => {e.target.onerror = null; e.target.src='https://placehold.co/40x40/ccc/000?text=Err'}}/> :
                                     <i className={`${skill.icon} text-3xl text-orange-500`}></i>
                                 }
                                 title={skill.title}
@@ -455,7 +599,7 @@ const HomePage = () => {
                     )}
                 </div>
 
-                <SectionTitle className="text-white">Web Development Tracks</SectionTitle>
+                <SectionTitle>Web Development Tracks</SectionTitle>
                 <div className="mb-16">
                     <div className="flex gap-6 overflow-x-auto pb-4 scrollbar-hide">
                         {tracks.length > 0 ? (
@@ -463,8 +607,8 @@ const HomePage = () => {
                                 <TrackCard
                                     key={track._id}
                                     icon={
-                                        track.icon.startsWith('http') ?
-                                        <img src={track.icon} alt={track.title} className="w-10 h-10" onError={(e) => {e.target.onerror = null; e.target.src='https://placehold.co/40x40/ccc/000?text=Err'}}/> :
+                                        track.icon.startsWith('http') || track.icon.startsWith('data:image/') ?
+                                        <img src={track.icon} alt={track.title} className="w-10 h-10 object-contain" onError={(e) => {e.target.onerror = null; e.target.src='https://placehold.co/40x40/ccc/000?text=Err'}}/> :
                                         <i className={`${track.icon} text-3xl text-blue-500`}></i>
                                     }
                                     title={track.title}
@@ -478,7 +622,7 @@ const HomePage = () => {
                 </div>
 
                 <div id="courses" className="scroll-mt-28">
-                    <SectionTitle className="text-white">Explore More Courses</SectionTitle>
+                    <SectionTitle>Explore More Courses</SectionTitle>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                     {courses.length > 0 ? (
@@ -499,115 +643,13 @@ const HomePage = () => {
                     )}
                 </div>
 
-                {/* Forum Premium - interactive card with detailed features */}
-                <div id="forum-premium" className="mt-16 scroll-mt-20">
-                    <SectionTitle className="text-white">Forum Premium</SectionTitle>
-                    <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur p-6 shadow-lg mb-6 transform transition-transform hover:scale-[1.01]">
-                        <div className="flex items-start justify-between gap-4">
-                            <div>
-                                <h3 className="text-lg font-semibold flex items-center gap-2 text-white">💎 Forum Premium <span className="ml-2 text-xs px-2 py-0.5 rounded-full bg-[#167468]/10 border border-[#167468]/20 text-[#167468]">Popular</span></h3>
-                                <p className="text-sm text-gray-300 mt-2 max-w-xl">Post questions and replies without limits, enjoy priority visibility, access premium previews, and receive priority support from mentors.</p>
-                                <div className="mt-3 flex flex-wrap gap-2">
-                                    <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-gray-200 text-xs">{forumBillingPeriod === 'monthly' ? 'Best for monthly users' : 'Best value yearly'}</span>
-                                    <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-gray-200 text-xs">Includes course previews</span>
-                                </div>
-                            </div>
-                            <div className="text-right">
-                                <div className="text-2xl font-bold text-white">{forumBillingPeriod === 'monthly' ? '₹99' : '₹999'}</div>
-                                <div className="text-xs text-gray-300">{forumBillingPeriod === 'monthly' ? '/ month' : '/ year'}</div>
-                            </div>
-                        </div>
-
-                        <div className="mt-4 flex items-center gap-3">
-                            <button onClick={() => setForumBillingPeriod('monthly')} className={`px-3 py-2 rounded-md text-sm font-medium ${forumBillingPeriod === 'monthly' ? 'bg-teal-600 text-white' : 'bg-white/5 border border-white/10 text-gray-200'}`}>Monthly</button>
-                            <button onClick={() => setForumBillingPeriod('yearly')} className={`px-3 py-2 rounded-md text-sm font-medium ${forumBillingPeriod === 'yearly' ? 'bg-teal-600 text-white' : 'bg-white/5 border border-white/10 text-gray-200'}`}>Yearly</button>
-                            <button onClick={() => setForumDetailsOpen(v => !v)} className="ml-auto text-sm text-gray-200 underline">{forumDetailsOpen ? 'Hide details' : 'Show all features'}</button>
-                        </div>
-
-                        {/* compact preview of top features */}
-                        <div className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-3">
-                            {forumFeaturesList.slice(0,3).map(f => (
-                                <div key={f.key} className="flex items-start gap-3 p-3 bg-white/5 rounded-md border border-white/10">
-                                    <div className="mt-1">{f.icon}</div>
-                                    <div>
-                                        <div className="text-sm font-medium text-white">{f.title}</div>
-                                        <div className="text-xs text-gray-300">{f.desc}</div>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-
-                        {/* expanded full features */}
-                        {forumDetailsOpen && (
-                            <div className="mt-4 border-t pt-4 space-y-3">
-                                {forumFeaturesList.map(f => (
-                                    <div key={f.key} className="flex items-start gap-3">
-                                        <div className="mt-1">{f.icon}</div>
-                                        <div>
-                                            <div className="text-sm font-semibold text-white">{f.title}</div>
-                                            <div className="text-xs text-gray-300">{f.desc}</div>
-                                        </div>
-                                    </div>
-                                ))}
-
-                                <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                    <div className="p-3 rounded-md bg-white/5 border border-white/10">
-                                        <div className="text-sm font-semibold text-white">What free users get</div>
-                                        <ul className="text-xs mt-2 space-y-1 text-gray-300">
-                                            <li>• Limited posts per day</li>
-                                            <li>• Community visibility (no prioritization)</li>
-                                            <li>• Access to free course content</li>
-                                        </ul>
-                                    </div>
-                                    <div className="p-3 rounded-md bg-white/5 border border-white/10">
-                                        <div className="text-sm font-semibold text-white">What Premium adds</div>
-                                        <ul className="text-xs mt-2 space-y-1">
-                                            {forumFeaturesList.map(f => (
-                                                <li key={f.key} className="flex items-center gap-2 text-gray-200"><Check className="w-4 h-4 text-green-500" />{f.title}</li>
-                                            ))}
-                                        </ul>
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-
-                        <div className="mt-5 flex items-center gap-3">
-                            {forumSubscriptionStatus && forumSubscriptionStatus.plan === 'professional' && forumSubscriptionStatus.status === 'active' ? (
-                                <>
-                                    <div className="inline-flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium text-green-700 bg-green-50">✔ You have active premium access</div>
-                                    <button onClick={() => navigate('/user/account/subscriptions')} className="px-4 py-2 rounded-md bg-white/5 text-white border border-white/10">Manage</button>
-                                </>
-                            ) : (
-                                <button
-                                    onClick={() => handleForumSubscribe('premium')}
-                                    className="px-5 py-2.5 rounded-2xl bg-gradient-to-r from-purple-500 to-[#167468] text-white font-semibold flex items-center gap-2 border border-white/10 hover:shadow-lg hover:shadow-[#167468]/30 transition-all"
-                                    disabled={forumSubLoading}
-                                >
-                                    {forumSubLoading ? (
-                                        <>
-                                            <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path></svg>
-                                            Processing...
-                                        </>
-                                    ) : (
-                                        `Subscribe • ${forumBillingPeriod === 'monthly' ? '₹99 / month' : '₹999 / year'}`
-                                    )}
-                                </button>
-                            )}
-                        </div>
-
-                        {forumSuccessMessage && (
-                            <div className="mt-3 text-sm text-green-200 bg-white/5 border border-white/10 p-2 rounded-md">{forumSuccessMessage}</div>
-                        )}
-                    </div>
-                </div>
-
                 {/* Subscription Plans moved below courses */}
                 <div className="mt-12">
-                    <SectionTitle className="text-white">Subscription Plans</SectionTitle>
+                    <SectionTitle>Subscription Plans</SectionTitle>
 
                     {pricingError ? (
-                        <div className="bg-white/5 border border-white/10 backdrop-blur p-6 rounded-2xl text-center">
-                            <p className="mb-4 text-gray-300">Subscription plans are currently unavailable.</p>
+                        <div className="bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 backdrop-blur p-6 rounded-2xl text-center shadow-md dark:shadow-none">
+                            <p className="mb-4 text-gray-600 dark:text-gray-300">Subscription plans are currently unavailable.</p>
                             <button
                                 onClick={() => fetchPricingPlans()}
                                 className="px-5 py-2.5 rounded-2xl bg-gradient-to-r from-purple-500 to-[#167468] text-white font-semibold border border-white/10 hover:shadow-lg hover:shadow-[#167468]/30 transition-all"
@@ -618,27 +660,51 @@ const HomePage = () => {
                     ) : pricingPlans.length > 0 ? (
                         <>
                             <div className="flex justify-center mb-6">
-                                <div className="inline-flex items-center bg-white/5 border border-white/10 backdrop-blur rounded-lg p-1 shadow-sm">
-                                    <button onClick={() => setBillingPeriod('monthly')} className={`px-4 py-2 rounded-md ${billingPeriod === 'monthly' ? 'bg-teal-600 text-white' : 'text-gray-200'}`}>Monthly</button>
-                                    <button onClick={() => setBillingPeriod('yearly')} className={`px-4 py-2 rounded-md ${billingPeriod === 'yearly' ? 'bg-teal-600 text-white' : 'text-gray-200'}`}>Yearly</button>
+                                <div className="inline-flex items-center bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 backdrop-blur rounded-lg p-1 shadow-sm">
+                                    <button 
+                                        onClick={() => setBillingPeriod('monthly')} 
+                                        className={`px-4 py-2 rounded-md text-sm font-semibold transition-all duration-300 ${
+                                            billingPeriod === 'monthly' 
+                                                ? 'bg-gradient-to-r from-purple-500 to-[#167468] text-white shadow-sm' 
+                                                : 'text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'
+                                        }`}
+                                    >
+                                        Monthly
+                                    </button>
+                                    <button 
+                                        onClick={() => setBillingPeriod('yearly')} 
+                                        className={`px-4 py-2 rounded-md text-sm font-semibold transition-all duration-300 ${
+                                            billingPeriod === 'yearly' 
+                                                ? 'bg-gradient-to-r from-purple-500 to-[#167468] text-white shadow-sm' 
+                                                : 'text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'
+                                        }`}
+                                    >
+                                        Yearly
+                                    </button>
                                 </div>
                             </div>
 
-                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-6">
                                 {pricingPlans.map((plan, idx) => (
-                                    <div key={idx} className={`rounded-2xl p-6 shadow-sm border bg-white/5 backdrop-blur ${plan.isPopular ? 'ring-2 ring-[#167468]/30 border-white/10' : 'border-white/10'}`}>
+                                    <div key={idx} className={`rounded-2xl p-6 shadow-sm border bg-white dark:bg-white/5 border-gray-200 dark:border-white/10 backdrop-blur shadow-md dark:shadow-none ${plan.isPopular || plan.isForumPremium ? 'ring-2 ring-[#167468]/30' : ''}`}>
                                         <div className="flex items-center justify-between mb-4">
-                                            <h4 className="text-lg font-semibold text-white">{plan.name}</h4>
-                                            {plan.isPopular && <span className="text-sm bg-teal-600 text-white px-2 py-1 rounded">Popular</span>}
+                                            <h4 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-1">
+                                                {plan.isForumPremium ? '💎 ' : ''}{plan.name}
+                                            </h4>
+                                            {(plan.isPopular || plan.isForumPremium) && (
+                                                <span className="text-xs bg-teal-600/20 border border-teal-500/30 text-teal-600 dark:text-teal-400 px-2 py-0.5 rounded">
+                                                    Popular
+                                                </span>
+                                            )}
                                         </div>
-                                        <p className="text-sm text-gray-300 mb-4">{plan.description}</p>
+                                        <p className="text-sm text-gray-650 dark:text-gray-300 mb-4">{plan.description}</p>
                                         <div className="mb-4">
-                                            <span className="text-3xl font-bold text-white">₹{billingPeriod === 'monthly' ? plan.monthlyPrice : plan.yearlyPrice}</span>
-                                            <span className="text-sm text-gray-300 ml-2">/{billingPeriod === 'monthly' ? 'month' : 'year'}</span>
+                                            <span className="text-3xl font-bold text-gray-900 dark:text-white">₹{billingPeriod === 'monthly' ? plan.monthlyPrice : plan.yearlyPrice}</span>
+                                            <span className="text-sm text-gray-500 dark:text-gray-300 ml-2">/{billingPeriod === 'monthly' ? 'month' : 'year'}</span>
                                         </div>
                                         <ul className="mb-6 space-y-2">
                                             {plan.features.map((f, i) => (
-                                                <li key={i} className="flex items-center gap-2 text-sm text-gray-200"><Check className="w-4 h-4 text-green-500" />{f}</li>
+                                                <li key={i} className="flex items-center gap-2 text-sm text-gray-750 dark:text-gray-200"><Check className="w-4 h-4 text-green-500" />{f}</li>
                                             ))}
                                         </ul>
                                         {subscriptionStatus && subscriptionStatus.plan === plan.planType && subscriptionStatus.status === 'active' ? (

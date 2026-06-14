@@ -1,5 +1,5 @@
 import React, { useEffect, useState, Suspense, lazy } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useLocation } from 'react-router-dom';
 import { ArrowLeft, BookOpen, Video, FileText, Play, CheckCircle2 } from 'lucide-react';
 import Skeleton from './Skeleton';
 import MarkdownIt from 'markdown-it';
@@ -23,6 +23,7 @@ const slugify = (text) =>
 
 export default function TopicView() {
   const { id: courseId, topicId } = useParams();
+  const location = useLocation();
   const [topic, setTopic] = useState(null);
   const [courseTitle, setCourseTitle] = useState('');
   const [isLoading, setIsLoading] = useState(true);
@@ -36,16 +37,20 @@ export default function TopicView() {
       setIsLoading(true);
       setError(null);
       try {
-        const res = await fetch(`${API_BASE_URL}/public/courses/${courseId}`);
+        const isTutorial = location.pathname.includes('/tutorials/');
+        const url = isTutorial 
+          ? `${API_BASE_URL}/public/tutorials/${courseId}`
+          : `${API_BASE_URL}/public/courses/${courseId}`;
+        const res = await fetch(url);
         if (!res.ok) {
           const txt = await res.text();
-          throw new Error(txt || `Failed to fetch course: ${res.status}`);
+          throw new Error(txt || `Failed to fetch: ${res.status}`);
         }
         const course = await res.json();
         if (!mounted) return;
-        setCourseTitle(course.title || 'Course');
+        setCourseTitle(course.title || (isTutorial ? 'Tutorial' : 'Course'));
         const found = (course.modules || []).flatMap(m => m.topics || []).find(t => String(t._id) === String(topicId));
-        if (!found) throw new Error('Topic not found in this course');
+        if (!found) throw new Error(isTutorial ? 'Topic not found in this tutorial' : 'Topic not found in this course');
         setTopic(found);
         // Default to first article if articles exist
         const hasArticles = Array.isArray(found.articles) && found.articles.length > 0;

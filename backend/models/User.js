@@ -53,6 +53,7 @@ const userSchema = new mongoose.Schema({
     // New fields for user-specific data tracking (for Courses and Quizzes)
     enrolledCourses: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Course' }],
     likedCourses: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Course' }],
+    registeredContests: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Contest', default: [] }],
 
     // Profile picture
     profilePicture: { type: String, default: '' },
@@ -143,8 +144,14 @@ const userSchema = new mongoose.Schema({
             default: 'monthly' 
         },
         autoRenew: { type: Boolean, default: false }
+    },
+    settings: {
+        emailNotifications: { type: Boolean, default: true },
+        pushNotifications: { type: Boolean, default: true },
+        theme: { type: String, enum: ['light', 'dark'], default: 'dark' },
+        language: { type: String, default: 'English' },
+        location: { type: String, default: '' },
     }
-
 });
 
 

@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { body, validationResult } = require('express-validator');
+const bcrypt = require('bcryptjs');
 //const authMiddleware = require('./server'); // Assuming you create this if not already done, or use the one from server.js
 const User = require('../models/User'); // Adjust path if necessary
 
@@ -20,7 +21,12 @@ const authMiddleware = (req, res, next) => {
         }
         next();
     } catch (err) {
-        res.clearCookie('token', { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'Strict' });
+        const isProd = process.env.NODE_ENV === 'production';
+        res.clearCookie('token', { 
+            httpOnly: true, 
+            secure: isProd, 
+            sameSite: isProd ? 'None' : 'Lax' 
+        });
         res.status(401).json({ msg: 'Token is not valid' });
     }
 };
@@ -51,10 +57,18 @@ const profilePicValidator = [
 // @access  Private
 router.get('/me', authMiddleware, async (req, res) => {
     try {
-        // Find user by ID from token and select all fields *except* password and OTPs
         const user = await User.findById(req.user.id).select('-password -otp -otpExpires -resetPasswordToken -resetPasswordExpires');
 
         if (!user) return res.status(404).json({ msg: 'User not found' });
+
+        if (!user.activity) {
+            user.activity = { lastActive: '', activeSessions: 0, totalMinutes: 0 };
+        }
+        user.activity.lastActive = new Date().toLocaleString('en-US', {
+            dateStyle: 'medium',
+            timeStyle: 'short'
+        });
+        await user.save();
 
         // Map project status for easier frontend handling if needed, but for now, send as is.
         res.json(user);
@@ -286,17 +300,86 @@ router.post('/add-friend', authMiddleware, [
     }
 });
 
+// @route   GET api/profile/settings
+// @desc    Get user settings
+// @access  Private
+router.get('/settings', authMiddleware, async (req, res) => {
+    try {
+        const user = await User.findById(req.user.id);
+        if (!user) return res.status(404).json({ msg: 'User not found' });
+        
+        // Return settings (fallback to defaults if undefined)
+        const settings = user.settings || {
+            emailNotifications: true,
+            pushNotifications: true,
+            theme: 'dark',
+            language: 'English',
+            location: ''
+        };
+        res.json(settings);
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send('Server Error');
+    }
+});
 
+// @route   POST api/profile/settings
+// @desc    Update user settings
+// @access  Private
+router.post('/settings', authMiddleware, async (req, res) => {
+    const { emailNotifications, pushNotifications, theme, language, location } = req.body;
+    try {
+        const user = await User.findById(req.user.id);
+        if (!user) return res.status(404).json({ msg: 'User not found' });
 
+        if (!user.settings) user.settings = {};
+        
+        if (emailNotifications !== undefined) user.settings.emailNotifications = emailNotifications;
+        if (pushNotifications !== undefined) user.settings.pushNotifications = pushNotifications;
+        if (theme !== undefined) user.settings.theme = theme;
+        if (language !== undefined) user.settings.language = language;
+        if (location !== undefined) user.settings.location = location;
 
+        await user.save();
+        res.json({ msg: 'Settings updated successfully', settings: user.settings });
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send('Server Error');
+    }
+});
 
+// @route   POST api/profile/change-password
+// @desc    Change user password
+// @access  Private
+router.post('/change-password', authMiddleware, [
+    body('currentPassword').notEmpty().withMessage('Current password is required.'),
+    body('newPassword').isLength({ min: 8 }).withMessage('New password must be at least 8 characters long.')
+], async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+    }
 
+    const { currentPassword, newPassword } = req.body;
+    try {
+        const user = await User.findById(req.user.id);
+        if (!user) return res.status(404).json({ msg: 'User not found' });
+        if (user.googleId) {
+            return res.status(400).json({ msg: 'Google login accounts cannot change password directly.' });
+        }
 
+        const isMatch = await bcrypt.compare(currentPassword, user.password);
+        if (!isMatch) {
+            return res.status(400).json({ msg: 'Current password is incorrect.' });
+        }
 
-
-
-
-
-
+        user.password = newPassword; // Pre-save hook will hash it automatically
+        await user.save();
+        res.json({ msg: 'Password updated successfully' });
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send('Server Error');
+    }
+});
 
 module.exports = router;

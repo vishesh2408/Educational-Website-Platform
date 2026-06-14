@@ -44,7 +44,7 @@ import { X, CheckCircle } from 'lucide-react'; // Added CheckCircle for success 
  * @param {Function} props.onClose - The function to call when the modal is closed.
  * @param {boolean} [props.isSuccess=false] - A boolean to show the success animation.
  */
-const Modal = ({ show, title, message, onClose, isSuccess = false }) => {
+const Modal = ({ show, title, message, onClose, isSuccess = false, content = null, hideFooter = false }) => {
   // If 'show' is false, the component renders nothing.
   if (!show) {
     return null;
@@ -76,21 +76,27 @@ const Modal = ({ show, title, message, onClose, isSuccess = false }) => {
           </button>
         </div>
         
-        {/* Modal Body: Displays the main message. */}
-        <p className="mt-4 text-gray-200 whitespace-pre-line">
-          {message}
-        </p>
+        {/* Modal Body: Displays the main message or custom content. */}
+        {content ? (
+          <div className="mt-4">{content}</div>
+        ) : (
+          <p className="mt-4 text-gray-200 whitespace-pre-line">
+            {message}
+          </p>
+        )}
 
         {/* Modal Footer: Contains the action button. */}
         {/* It is aligned to the right and provides top margin. */}
-        <div className="flex justify-end pt-4 mt-6 border-t border-white/10">
-          <button
-            onClick={onClose}
-            className="px-6 py-2 bg-white/5 border border-white/10 text-gray-200 rounded-2xl font-semibold hover:bg-white/10 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-[#167468]"
-          >
-            Close
-          </button>
-        </div>
+        {!hideFooter && (
+          <div className="flex justify-end pt-4 mt-6 border-t border-white/10">
+            <button
+              onClick={onClose}
+              className="px-6 py-2 bg-white/5 border border-white/10 text-gray-200 rounded-2xl font-semibold hover:bg-white/10 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-[#167468]"
+            >
+              Close
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

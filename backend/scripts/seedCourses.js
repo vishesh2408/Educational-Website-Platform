@@ -123,10 +123,7 @@ async function askConfirmation(prompt) {
 
 async function seed() {
   console.log('Connecting to MongoDB:', MONGO_URI);
-  await mongoose.connect(MONGO_URI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  });
+  await mongoose.connect(MONGO_URI);
 
   if (FORCE) {
     console.log('Force mode enabled: existing seeded courses will be removed before seeding.');

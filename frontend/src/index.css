@@ -7,10 +7,6 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Apply the requested global page background color (match Profile.jsx) */
-body {
-  @apply bg-black dark:bg-black;
-}
 
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
@@ -106,4 +102,4 @@ code {
     content: "#";
     @apply absolute -left-3 top-1 text-teal-300 font-semibold;
   }
-}
+}

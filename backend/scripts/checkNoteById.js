@@ -19,7 +19,7 @@ async function main() {
   }
 
   try {
-    await mongoose.connect(uri, { useNewUrlParser: true, useUnifiedTopology: true });
+    await mongoose.connect(uri);
     console.log('Connected to MongoDB');
     const note = await Note.findById(id).lean();
     if (!note) {

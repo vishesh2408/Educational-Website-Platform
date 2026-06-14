@@ -168,14 +168,29 @@ export const AuthProvider = ({ children }) => {
     validateToken();
   }, [handleLogout, showToast]);
 
+  const updateCurrentUser = useCallback((updatedFields) => {
+    setCurrentUser(prev => {
+      if (!prev) return null;
+      const updated = { ...prev, ...updatedFields };
+      // update cached summary
+      try {
+        const summary = { id: updated.id || updated._id, username: updated.username, role: updated.role, profilePicture: updated.profilePicture };
+        const payload = { data: summary, expiresAt: Date.now() + USER_SUMMARY_TTL_MS };
+        localStorage.setItem(USER_SUMMARY_CACHE_KEY, JSON.stringify(payload));
+      } catch (e) {}
+      return updated;
+    });
+  }, []);
+
   const value = {
     currentUser,
     isLoadingUser,
     login: handleLoginSuccess,
     logout: handleLogout,
+    updateCurrentUser,
   };
 
-  const memoed = React.useMemo(() => value, [currentUser, isLoadingUser, handleLoginSuccess, handleLogout]);
+  const memoed = React.useMemo(() => value, [currentUser, isLoadingUser, handleLoginSuccess, handleLogout, updateCurrentUser]);
 
   return <AuthContext.Provider value={memoed}>{children}</AuthContext.Provider>;
 };

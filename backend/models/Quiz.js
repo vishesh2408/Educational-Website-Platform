@@ -30,6 +30,7 @@ const quizSchema = new mongoose.Schema({
     totalScoreSum: { type: Number, default: 0 }, // For quiz stats
     isReleased: { type: Boolean, default: true }, // Whether results are immediately visible or admin-released
     allowDirectResultAccess: { type: Boolean, default: true }, // New field for result access control
+    imageUrl: { type: String },
     createdAt: { type: Date, default: Date.now },
 });
 const Quiz = mongoose.model('Quiz', quizSchema);

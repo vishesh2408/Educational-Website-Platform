@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import Skeleton from './Skeleton';
 import { Award, Zap, Calendar, Users, Clock, ChevronRight, Search, BarChart2, Moon, Sun } from 'lucide-react';
 import { useModal } from '../contexts/ModalContext';
+import { useAuth } from '../contexts/AuthContext';
 import './ContestsPage.css'; // Import the CSS for styling
 // Base URL for your backend API
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:3001';
@@ -100,7 +102,7 @@ const DifficultyPill = ({ difficulty }) => {
  * @param {object} props.contest - The contest object to display.
  * @param {function} props.openModal - Function to open the global modal.
  */
-const ContestCard = ({ contest, openModal }) => {
+const ContestCard = ({ contest, openModal, onRegister }) => {
     // Determine the contest status for conditional rendering and styling.
     const now = new Date();
     const startTime = new Date(contest.startTime);
@@ -145,10 +147,8 @@ const ContestCard = ({ contest, openModal }) => {
     }
 
     const handleButtonClick = () => {
-        if (currentContest.status === 'Live') {
-            openModal('Enter Contest', `You are about to enter the "${currentContest.title}" contest. Good luck!`);
-        } else if (currentContest.status === 'Upcoming') {
-            openModal('Register for Contest', `You are registering for the upcoming "${currentContest.title}" contest.`);
+        if (currentContest.status === 'Live' || currentContest.status === 'Upcoming') {
+            onRegister(currentContest);
         } else if (currentContest.status === 'Past') {
             openModal('Contest Results', `Viewing results for "${currentContest.title}". Winner: ${currentContest.winner || 'N/A'}.`);
         }
@@ -218,7 +218,7 @@ const ContestCard = ({ contest, openModal }) => {
  * @param {object} props - Component props.
  * @param {object} props.contest - The featured contest object.
  */
-const FeaturedContest = ({ contest }) => {
+const FeaturedContest = ({ contest, onRegister }) => {
     const { openModal } = useModal();
     return (
     <div className="featured-contest-card">
@@ -243,7 +243,7 @@ const FeaturedContest = ({ contest }) => {
                     <span className="featured-difficulty">{contest.difficulty}</span>
                 </div>
             </div>
-            <button onClick={() => openModal('Join Featured Challenge', `You are about to join the featured challenge: "${contest.title}".`)} className="featured-action-button">
+            <button onClick={() => onRegister(contest)} className="featured-action-button">
                 Join Challenge
             </button>
         </div>
@@ -266,12 +266,71 @@ const FeaturedContest = ({ contest }) => {
  * @param {function} openModal - Function to open the global modal.
  */
 const ContestsPage = ({ openModal }) => {
+    const { currentUser } = useAuth();
+    const { openModal: modalContextOpenModal } = useModal();
+    const [searchParams, setSearchParams] = useSearchParams();
+    const querySearchTerm = searchParams.get('q') || '';
+
     const [allContests, setAllContests] = useState([]); // Stores all contests fetched from backend
-    const [searchTerm, setSearchTerm] = useState('');
+    const [searchTerm, setSearchTerm] = useState(querySearchTerm);
     const [difficultyFilter, setDifficultyFilter] = useState('All');
     const [categoryFilter, setCategoryFilter] = useState('All');
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
+
+    // Sync searchTerm with URL query parameter changes
+    useEffect(() => {
+        setSearchTerm(querySearchTerm);
+    }, [querySearchTerm]);
+
+    const handleSearchChange = (e) => {
+        const value = e.target.value;
+        setSearchTerm(value);
+        if (value) {
+            setSearchParams({ q: value });
+        } else {
+            const newParams = new URLSearchParams(searchParams);
+            newParams.delete('q');
+            setSearchParams(newParams);
+        }
+    };
+
+    const effectiveOpenModal = openModal || modalContextOpenModal || (() => console.warn('openModal not available'));
+
+    const handleRegister = async (contest) => {
+        if (!currentUser) {
+            effectiveOpenModal('Authentication Required', 'Please log in to register or enter contests.');
+            return;
+        }
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/user/contests/register/${contest._id}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                credentials: 'include'
+            });
+
+            const data = await response.json();
+            if (response.ok) {
+                effectiveOpenModal(
+                    contest.status === 'Live' ? 'Entered Contest' : 'Registered Successfully',
+                    contest.status === 'Live'
+                        ? `You have entered the contest "${contest.title}". Good luck!`
+                        : `You have successfully registered for the upcoming contest "${contest.title}".`,
+                    { isSuccess: true }
+                );
+                // Increment UI participant count locally
+                setAllContests(prev => prev.map(c => c._id === contest._id ? { ...c, participants: c.participants + 1 } : c));
+            } else {
+                effectiveOpenModal('Registration Failed', data.msg || 'Could not complete registration.');
+            }
+        } catch (err) {
+            console.error(err);
+            effectiveOpenModal('Error', 'A network error occurred. Please try again.');
+        }
+    };
 
     // Fetch contests from backend
     const fetchContests = useCallback(async () => {
@@ -335,37 +394,93 @@ const ContestsPage = ({ openModal }) => {
     const categories = ['All', ...new Set(allContests.map(c => c.category))];
     const difficulties = ['All', 'Easy', 'Medium', 'Hard'];
 
-    // Modal fallback: prefer prop, otherwise use ModalContext
-    const modalCtx = useModal && useModal();
-    const effectiveOpenModal = openModal || (modalCtx && modalCtx.openModal) || (() => console.warn('openModal not available'));
+
 
     if (isLoading) {
         return (
-            <div className="contests-page-container bg-slate-950 text-white flex items-center justify-center min-h-[calc(100vh-7rem)]">
-                <div className="w-full max-w-4xl">
-                    <Skeleton variant="list" count={3} />
-                </div>
+            <div className="contests-page-container">
+                <main className="contests-main-content animate-pulse">
+                    {/* Header Skeleton */}
+                    <header className="contests-page-header">
+                        <div className="h-10 bg-gray-200 dark:bg-white/10 rounded-xl w-64 sm:w-80 mx-auto mb-3" />
+                        <div className="h-4 bg-gray-150 dark:bg-white/5 rounded-lg w-80 sm:w-96 md:w-[480px] mx-auto" />
+                    </header>
+
+                    {/* Featured Section Skeleton */}
+                    <div className="mb-8 p-6 bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-3xl space-y-4">
+                        <div className="flex justify-between items-center">
+                            <div className="h-6 bg-gray-250 dark:bg-white/15 rounded-full w-24" />
+                            <div className="h-6 bg-gray-250 dark:bg-white/15 rounded-full w-16" />
+                        </div>
+                        <div className="h-8 bg-gray-200 dark:bg-white/10 rounded-lg w-1/2" />
+                        <div className="space-y-2">
+                            <div className="h-4 bg-gray-150 dark:bg-white/5 rounded-lg w-3/4" />
+                            <div className="h-4 bg-gray-150 dark:bg-white/5 rounded-lg w-1/2" />
+                        </div>
+                        <div className="flex gap-4 pt-2">
+                            <div className="h-5 bg-gray-150 dark:bg-white/5 rounded-lg w-32" />
+                            <div className="h-5 bg-gray-150 dark:bg-white/5 rounded-lg w-32" />
+                        </div>
+                    </div>
+
+                    {/* Filters Section Skeleton */}
+                    <div className="contests-filters-section flex flex-col md:flex-row items-center justify-between gap-4 mb-8">
+                        <div className="w-full max-w-md h-12 bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-2xl" />
+                        <div className="flex gap-3 w-full md:w-auto">
+                            <div className="w-full md:w-40 h-11 bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl" />
+                            <div className="w-full md:w-40 h-11 bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl" />
+                        </div>
+                    </div>
+
+                    {/* Contests Grid Skeleton */}
+                    <div className="contest-sections-wrapper space-y-8">
+                        <div>
+                            <div className="h-6 bg-gray-200 dark:bg-white/10 rounded-lg w-36 mb-4" />
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                {[1, 2, 3].map((idx) => (
+                                    <div key={idx} className="bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-2xl p-5 space-y-4 shadow-sm dark:shadow-none flex flex-col justify-between">
+                                        <div className="space-y-3">
+                                            <div className="flex justify-between items-center">
+                                                <div className="h-5 bg-gray-150 dark:bg-white/5 rounded-full w-16" />
+                                                <div className="h-5 bg-gray-150 dark:bg-white/5 rounded-full w-16" />
+                                            </div>
+                                            <div className="h-6 bg-gray-200 dark:bg-white/10 rounded-lg w-3/4" />
+                                            <div className="h-4 bg-gray-150 dark:bg-white/5 rounded-lg w-full" />
+                                        </div>
+                                        <div className="space-y-3 pt-3 border-t border-gray-100 dark:border-white/5">
+                                            <div className="flex justify-between items-center">
+                                                <div className="h-4 bg-gray-150 dark:bg-white/5 rounded-lg w-20" />
+                                                <div className="h-4 bg-gray-150 dark:bg-white/5 rounded-lg w-20" />
+                                            </div>
+                                            <div className="h-10 bg-gray-200 dark:bg-white/10 rounded-xl w-full" />
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                </main>
             </div>
         );
     }
 
     if (error) {
         return (
-            <div className="contests-page-container bg-slate-950 text-white flex items-center justify-center min-h-[calc(100vh-7rem)]">
+            <div className="contests-page-container flex items-center justify-center min-h-[calc(100vh-7rem)]">
                 <p className="text-xl text-red-400">{error}</p>
             </div>
         );
     }
 
     return (
-        <div className="contests-page-container bg-slate-950 text-white">
+        <div className="contests-page-container">
             
             <div className="contests-main-content">
                 <header className="contests-page-header">
-                    <h1 className="contests-page-title">
+                    <h1 className="text-3xl md:text-4xl lg:text-5xl font-extrabold bg-gradient-to-r from-teal-600 via-emerald-500 to-indigo-600 dark:from-teal-400 dark:via-emerald-300 dark:to-indigo-400 bg-clip-text text-transparent mb-3">
                         Compete & Conquer
                     </h1>
-                    <p className="contests-page-subtitle">
+                    <p className="text-sm sm:text-base text-slate-400 max-w-2xl mx-auto leading-relaxed">
                         Sharpen your skills, challenge your peers, and win amazing prizes in our exciting lineup of contests.
                     </p>
                 </header>
@@ -373,7 +488,7 @@ const ContestsPage = ({ openModal }) => {
                 {/* Featured Contest Section: Renders if a featured contest is found. */}
                 {featuredContest && (
                     <section className="featured-section">
-                        <FeaturedContest contest={featuredContest} />
+                        <FeaturedContest contest={featuredContest} onRegister={handleRegister} />
                     </section>
                 )}
 
@@ -386,7 +501,7 @@ const ContestsPage = ({ openModal }) => {
                             placeholder="Search for a contest..."
                             className="contests-search-input"
                             value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
+                            onChange={handleSearchChange}
                         />
                     </div>
                     <div className="contests-filter-dropdowns">
@@ -419,7 +534,7 @@ const ContestsPage = ({ openModal }) => {
                                 Live Contests
                             </h2>
                             <div className="contests-grid">
-                                {liveContests.map(contest => <ContestCard key={contest._id} contest={contest} openModal={effectiveOpenModal} />)}
+                                {liveContests.map(contest => <ContestCard key={contest._id} contest={contest} openModal={effectiveOpenModal} onRegister={handleRegister} />)}
                             </div>
                         </section>
                     )}
@@ -432,7 +547,7 @@ const ContestsPage = ({ openModal }) => {
                                 Upcoming Contests
                             </h2>
                             <div className="contests-grid">
-                                {upcomingContests.map(contest => <ContestCard key={contest._id} contest={contest} openModal={effectiveOpenModal} />)}
+                                {upcomingContests.map(contest => <ContestCard key={contest._id} contest={contest} openModal={effectiveOpenModal} onRegister={handleRegister} />)}
                             </div>
                         </section>
                     )}
@@ -445,7 +560,7 @@ const ContestsPage = ({ openModal }) => {
                                 Past Contests
                             </h2>
                             <div className="contests-grid">
-                                {pastContests.map(contest => <ContestCard key={contest._id} contest={contest} openModal={effectiveOpenModal} />)}
+                                {pastContests.map(contest => <ContestCard key={contest._id} contest={contest} openModal={effectiveOpenModal} onRegister={handleRegister} />)}
                             </div>
                         </section>
                     )}

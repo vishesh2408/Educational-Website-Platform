@@ -8,7 +8,6 @@ const NewsletterSubscriberSchema = new mongoose.Schema(
       trim: true,
       lowercase: true,
       unique: true,
-      index: true,
     },
     status: {
       type: String,
@@ -39,7 +38,5 @@ const NewsletterSubscriberSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
-
-NewsletterSubscriberSchema.index({ email: 1 }, { unique: true });
 
 module.exports = mongoose.model('NewsletterSubscriber', NewsletterSubscriberSchema);

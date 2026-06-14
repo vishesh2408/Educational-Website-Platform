@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import Toast from './Toast';
+import Spinner from './Spinner';
 import { normalizeImageSrc } from '../utils/image';
 
 const BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:3001';
@@ -57,11 +59,23 @@ const RunningWithErrorsIcon = (props) => (
     <path d="m200-120-40-80h-40l-20-40 40-40h200l20 40 40 40h40l-40 80h-200Zm20-300-40-80h-40l-20-40 40-40h200l20 40 40 40h40l-40 80H220Zm200-240-40-80h-40l-20-40 40-40h200l20 40 40 40h40l-40 80H420Z" />
   </svg>
 );
+const EditIcon = (props) => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+    <path d="M12 20h9" />
+    <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
+  </svg>
+);
+const XIcon = (props) => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+    <line x1="18" y1="6" x2="6" y2="18" />
+    <line x1="6" y1="6" x2="18" y2="18" />
+  </svg>
+);
 // --- End of Icons ---
 
 const PageSection = ({ title, children }) => (
   <section className="mb-4 sm:mb-6 lg:mb-8">
-    <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-white mb-3 sm:mb-4">{title}</h2>
+    <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 dark:text-white mb-3 sm:mb-4">{title}</h2>
     {children}
   </section>
 );
@@ -77,34 +91,19 @@ const DashboardCard = ({ icon, title, value, color }) => (
 );
 
 const CourseCard = ({ course, type }) => (
-  <div className="bg-white/5 border border-white/10 backdrop-blur p-5 rounded-2xl shadow-md transition-transform duration-200 ease-in-out transform hover:scale-105">
-    <h4 className="font-semibold text-lg text-white mb-2">{course.title}</h4>
+  <div className="bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 backdrop-blur p-5 rounded-2xl shadow-md transition-transform duration-200 ease-in-out transform hover:scale-105 shadow-sm dark:shadow-none">
+    <h4 className="font-semibold text-lg text-gray-900 dark:text-white mb-2">{course.title}</h4>
     {type === 'enrolled' && (
-      <div className="w-full bg-white/10 rounded-full h-2.5 mt-2">
+      <div className="w-full bg-gray-100 dark:bg-white/10 rounded-full h-2.5 mt-2">
         <div className="bg-gradient-to-r from-purple-500 to-[#167468] h-2.5 rounded-full" style={{ width: `${course.progress}%` }}></div>
-        <span className="text-sm text-gray-300 mt-1 block">{course.progress}% Complete</span>
+        <span className="text-sm text-gray-600 dark:text-gray-300 mt-1 block">{course.progress}% Complete</span>
       </div>
     )}
-    {type === 'completed' && <p className="text-sm text-gray-300 mt-2">Grade: <span className="font-medium text-emerald-300">{course.grade}</span></p>}
-    {type === 'saved' && <p className="text-sm text-gray-300 mt-2"><HeartIcon className="inline mr-1" /> {course.savedBy} saves</p>}
+    {type === 'completed' && <p className="text-sm text-gray-600 dark:text-gray-300 mt-2">Grade: <span className="font-medium text-emerald-600 dark:text-emerald-300">{course.grade}</span></p>}
+    {type === 'saved' && <p className="text-sm text-gray-600 dark:text-gray-300 mt-2"><HeartIcon className="inline mr-1" /> {course.savedBy} saves</p>}
   </div>
 );
 
-const NotificationItem = ({ notification }) => (
-  <div className="flex items-start p-4 bg-white/5 border border-white/10 backdrop-blur rounded-xl mb-2 shadow-sm">
-    <div className={`p-2 rounded-full mr-3 text-white ${
-      notification.type === 'feedback' ? 'bg-teal-500' :
-      notification.type === 'social' ? 'bg-blue-500' : 'bg-green-500'
-    }`}>      {notification.type === 'feedback' && <MessageCircleIcon />}
-      {notification.type === 'social' && <UserIcon />}
-      {notification.type === 'achievement' && <TrophyIcon />}
-    </div>
-    <div>
-      <p className="text-sm text-gray-200">{notification.text}</p>
-      <span className="text-xs text-gray-400 mt-1 block">{notification.date}</span>
-    </div>
-  </div>
-);
 
 // --- Project Management Components (New/Modified) ---
 const ProjectForm = ({ project = {}, isNew, onSubmit, onDelete, onCancel }) => {
@@ -127,23 +126,23 @@ const ProjectForm = ({ project = {}, isNew, onSubmit, onDelete, onCancel }) => {
     };
 
     return (
-        <div className="bg-white/5 border border-white/10 backdrop-blur p-4 sm:p-5 lg:p-6 rounded-xl sm:rounded-2xl shadow-md mb-4">
-            <h4 className="font-semibold text-base sm:text-lg text-white mb-3">{isNew ? 'Add New Project' : `Edit Project: ${formData.title}`}</h4>
+        <div className="bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 backdrop-blur p-4 sm:p-5 lg:p-6 rounded-xl sm:rounded-2xl shadow-md mb-4 shadow-sm dark:shadow-none">
+            <h4 className="font-semibold text-base sm:text-lg text-gray-905 dark:text-white mb-3">{isNew ? 'Add New Project' : `Edit Project: ${formData.title}`}</h4>
             <form onSubmit={handleSubmit} className="space-y-3">
-              <input type="text" name="title" value={formData.title} onChange={handleChange} placeholder="Title" required className="w-full p-2 rounded bg-white/5 border border-white/10 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#167468]" />
-              <textarea name="description" value={formData.description} onChange={handleChange} placeholder="Description" required className="w-full p-2 rounded bg-white/5 border border-white/10 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#167468]"></textarea>
-              <select name="status" value={formData.status} onChange={handleChange} required className="w-full p-2 rounded bg-white/5 border border-white/10 text-white focus:outline-none focus:ring-2 focus:ring-[#167468]">
-                    <option value="In Progress">In Progress</option>
-                    <option value="Completed">Completed</option>
-                    <option value="Stuck">Stuck</option>
+              <input type="text" name="title" value={formData.title} onChange={handleChange} placeholder="Title" required className="w-full p-2 rounded bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-[#167468]" />
+              <textarea name="description" value={formData.description} onChange={handleChange} placeholder="Description" required className="w-full p-2 rounded bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-[#167468]"></textarea>
+              <select name="status" value={formData.status} onChange={handleChange} required className="w-full p-2 rounded bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 text-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#167468]">
+                    <option value="In Progress" className="bg-white dark:bg-slate-950 text-gray-900 dark:text-white">In Progress</option>
+                    <option value="Completed" className="bg-white dark:bg-slate-950 text-gray-900 dark:text-white">Completed</option>
+                    <option value="Stuck" className="bg-white dark:bg-slate-950 text-gray-900 dark:text-white">Stuck</option>
                 </select>
                 <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3">
                   <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
                     <button type="submit" disabled={isLoading} className="px-4 py-2 bg-gradient-to-r from-purple-500 to-[#167468] text-white rounded hover:opacity-95 disabled:opacity-50 text-sm sm:text-base w-full sm:w-auto">
                       {isLoading ? 'Saving...' : (isNew ? 'Add Project' : 'Update Project')}
                     </button>
-                    {isNew && onCancel && (
-                      <button type="button" onClick={onCancel} disabled={isLoading} className="px-3 py-2 bg-white/10 border border-white/10 text-white rounded hover:bg-white/15 text-sm sm:text-base w-full sm:w-auto">
+                    {onCancel && (
+                      <button type="button" onClick={onCancel} disabled={isLoading} className="px-3 py-2 bg-gray-150 border border-gray-200 text-gray-805 hover:bg-gray-200 dark:bg-white/10 dark:border-white/10 dark:text-white dark:hover:bg-white/15 text-sm sm:text-base w-full sm:w-auto">
                         Cancel
                       </button>
                     )}
@@ -159,21 +158,84 @@ const ProjectForm = ({ project = {}, isNew, onSubmit, onDelete, onCancel }) => {
     );
 };
 
+// ProjectCard component with click-to-expand details
+const ProjectCard = ({ project, editingProjectId, setEditingProjectId, handleProjectSubmit, handleDeleteProject }) => {
+    const [isExpanded, setIsExpanded] = useState(false);
+    const projectId = project._id || project.id;
+    const isEditing = editingProjectId === projectId;
+
+    // Toggle expansion unless clicking interactive elements like buttons
+    const handleCardClick = (e) => {
+        if (e.target.closest('button') || e.target.closest('form') || e.target.closest('input') || e.target.closest('select') || e.target.closest('textarea')) {
+            return;
+        }
+        setIsExpanded(!isExpanded);
+    };
+
+    return (
+        <div 
+            onClick={handleCardClick}
+            className="bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 backdrop-blur p-6 rounded-2xl shadow-md flex flex-col justify-between cursor-pointer hover:bg-gray-50 dark:hover:bg-white/10 hover:border-gray-300 dark:hover:border-white/20 transition-all duration-200 shadow-sm dark:shadow-none"
+        >
+            <div>
+                <div className="flex justify-between items-start mb-2">
+                    <h4 className="font-semibold text-lg text-gray-900 dark:text-white break-words pr-2">{project.title}</h4>
+                    <button
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            setEditingProjectId(isEditing ? null : projectId);
+                        }}
+                        className="text-xs text-teal-500 dark:text-teal-300 hover:underline focus:outline-none shrink-0"
+                    >
+                        {isEditing ? 'Cancel' : 'Edit'}
+                    </button>
+                </div>
+                
+                {/* Expandable Description */}
+                <p className={`text-sm text-gray-600 dark:text-gray-300 transition-all duration-300 break-words ${!isExpanded && !isEditing ? 'line-clamp-2' : ''}`}>
+                    {project.description}
+                </p>
+
+                <div className="flex items-center justify-between mt-3 gap-2">
+                    <span className={`inline-block text-xs font-semibold px-2.5 py-0.5 rounded-full ${
+                        project.status === 'Completed' 
+                            ? 'bg-green-500/20 text-green-650 dark:text-green-300 border border-green-500/30' 
+                            : project.status === 'Stuck' 
+                                ? 'bg-red-500/20 text-red-650 dark:text-red-300 border border-red-500/30' 
+                                : 'bg-yellow-500/20 text-yellow-650 dark:text-yellow-300 border border-yellow-500/30'
+                    }`}>
+                        {project.status}
+                    </span>
+                    {!isEditing && project.description && project.description.length > 80 && (
+                        <span className="text-[10px] text-gray-500 dark:text-gray-400 font-medium select-none whitespace-nowrap">
+                            {isExpanded ? 'Click to collapse' : 'Click to expand'}
+                        </span>
+                    )}
+                </div>
+            </div>
+            
+            {isEditing && (
+                <div className="mt-4 pt-4 border-t border-gray-100 dark:border-white/10" onClick={(e) => e.stopPropagation()}>
+                    <ProjectForm 
+                        project={project} 
+                        isNew={false} 
+                        onSubmit={handleProjectSubmit} 
+                        onDelete={handleDeleteProject}
+                        onCancel={() => setEditingProjectId(null)}
+                    />
+                </div>
+            )}
+        </div>
+    );
+};
+
 // --- Main Profile Page Component ---
 const Profile = () => {
-  const { currentUser, logout } = useAuth();
-  const [friendInput, setFriendInput] = useState('');
-  const [requestSent, setRequestSent] = useState(false);
-  // kept for backward compatibility with older bundles referencing it
-  const [allUsers, setAllUsers] = useState([]);
-  const [filteredUsers, setFilteredUsers] = useState([]);
-  const [searching, setSearching] = useState(false);
-  const [selectedUser, setSelectedUser] = useState(null); // user object when clicked
-  const [highlightedIndex, setHighlightedIndex] = useState(-1);
+  const { currentUser, logout, updateCurrentUser } = useAuth();
+  const navigate = useNavigate();
   const [toast, setToast] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [friendRequests, setFriendRequests] = useState({ sent: [], received: [] });
 
   // --- State for all User Data (including new fields) ---
   const [profileData, setProfileData] = useState({
@@ -190,7 +252,10 @@ const Profile = () => {
     other: '',
     activity: { lastActive: '', activeSessions: 0, totalMinutes: 0 },
     social: { followers: 0, following: 0, friends: [] },
+    registeredContests: [],
   });
+
+  const [quizAttempts, setQuizAttempts] = useState([]);
 
   
 
@@ -211,6 +276,7 @@ const Profile = () => {
   const [tempData, setTempData] = useState({}); // For holding unsaved changes
   const [showNewProjectForm, setShowNewProjectForm] = useState(false);
   const [deleteConfirmId, setDeleteConfirmId] = useState(null);
+  const [editingProjectId, setEditingProjectId] = useState(null);
 
   
 
@@ -240,6 +306,20 @@ const Profile = () => {
 
         const data = await res.json();
 
+        // Fetch quiz attempts
+        let fetchedQuizAttempts = [];
+        try {
+            const quizRes = await fetch(`${API_BASE_URL}/user/quizzes/attempts`, {
+                credentials: 'include',
+            });
+            if (quizRes.ok) {
+                fetchedQuizAttempts = await quizRes.json();
+            }
+        } catch (quizErr) {
+            console.error('Failed to fetch quiz attempts:', quizErr);
+        }
+        setQuizAttempts(fetchedQuizAttempts);
+
         // Initialize state with fetched data
         setProfileData({
             ...profileData,
@@ -254,14 +334,10 @@ const Profile = () => {
             projects: data.projects || [],
             extraCurricular: data.extraCurricular || [],
             other: data.other || '',
-            // Mocking activity/social data as it's not returned by /me yet
-            // *** CRITICAL FIX: Ensure activity/social objects are carried over ***
-            // activity: data.activity || profileData.activity,
-            // social: data.social || profileData.social,
-
             // Include existing activity/social data if available, or fall back to defaults
             activity: data.activity || profileData.activity || { lastActive: 'N/A', activeSessions: 0, totalMinutes: 0 }, 
             social: data.social || profileData.social || { followers: 0, following: 0, friends: [] },
+            registeredContests: data.registeredContests || [],
         });
         
 
@@ -289,58 +365,7 @@ const Profile = () => {
 
   useEffect(() => {
     fetchProfileData();
-    fetchFriendRequests();
   }, [fetchProfileData]);
-
-  // Server-side search: query backend for matching users
-  useEffect(() => {
-    if (!friendInput || friendInput.trim() === '') {
-      setFilteredUsers([]);
-      setSelectedUser(null);
-      setSearching(false);
-      setHighlightedIndex(-1);
-      return;
-    }
-
-    setSearching(true);
-    const q = friendInput.trim();
-    const t = setTimeout(async () => {
-      try {
-        const res = await fetch(`${API_BASE_URL}/public/users?q=${encodeURIComponent(q)}`);
-        if (!res.ok) {
-          setFilteredUsers([]);
-          setSearching(false);
-          return;
-        }
-        const users = await res.json();
-        setFilteredUsers(users || []);
-        setHighlightedIndex(-1);
-        // If exact match, mark selectedUser
-        const exact = users && users.find(u => (u.username || '').toLowerCase() === q.toLowerCase());
-        setSelectedUser(exact || null);
-      } catch (err) {
-        console.error('User search failed', err);
-        setFilteredUsers([]);
-      } finally {
-        setSearching(false);
-      }
-    }, 220);
-
-    return () => clearTimeout(t);
-  }, [friendInput]);
-
-  // Fetch public users for the live-search dropdown
-  const fetchAllUsers = async () => {
-    try {
-      const res = await fetch(`${API_BASE_URL}/public/users`);
-      if (!res.ok) return;
-      const data = await res.json();
-      // store minimal fields
-      setAllUsers(Array.isArray(data) ? data : []);
-    } catch (err) {
-      console.error('Failed to fetch users for search', err);
-    }
-  };
 
   // Toast helper using shared Toast component
   const showToast = (message, type = 'info', timeout = 3500) => {
@@ -348,16 +373,7 @@ const Profile = () => {
     setTimeout(() => setToast(null), timeout);
   };
 
-  const fetchFriendRequests = async () => {
-    try {
-      const res = await fetch(`${API_BASE_URL}/user/friend-requests`, { credentials: 'include' });
-      if (!res.ok) return;
-      const data = await res.json();
-      setFriendRequests({ sent: data.sent || [], received: data.received || [] });
-    } catch (err) {
-      console.error('Failed to fetch friend requests', err);
-    }
-  };
+
 
   
   const handleAddSkill = async (field, value) => {
@@ -427,6 +443,9 @@ const handleRemoveSkill = async (field, value) => {
             if (res.ok) {
             // Update state with the new base64 string returned from the server (or just re-fetch)
             setProfileData(prev => ({ ...prev, profilePicture: result.profilePicture }));
+            if (typeof updateCurrentUser === 'function') {
+                updateCurrentUser({ profilePicture: result.profilePicture });
+            }
             showToast('Profile picture updated!', 'success');
             e.target.value = null; // Reset file input
           } else {
@@ -451,6 +470,9 @@ const handleRemoveSkill = async (field, value) => {
         });
         if (res.ok) {
           setProfileData(prev => ({ ...prev, profilePicture: '' }));
+          if (typeof updateCurrentUser === 'function') {
+              updateCurrentUser({ profilePicture: '' });
+          }
           showToast('Profile picture removed. Using default.', 'info');
         } else {
           showToast('Could not remove profile picture.', 'error');
@@ -551,6 +573,9 @@ const handleSkillStringChange = (e) => {
                 extraCurricular: result.user.extraCurricular || prev.extraCurricular,
                 other: result.user.other || prev.other,
             }));
+            if (typeof updateCurrentUser === 'function' && result.user.username) {
+                updateCurrentUser({ username: result.user.username });
+            }
             // Turn off all editing modes
             setEditing({ username: false, bio: false, skills: false, other: false });
         } else {
@@ -604,6 +629,7 @@ const handleSkillStringChange = (e) => {
                       ...prev, 
                       projects: prev.projects.map(p => p._id === projectId ? result.project : p) 
                   }));
+                  setEditingProjectId(null);
               }
               showToast(projectId ? 'Project updated!' : 'Project added!', 'success');
           } else {
@@ -646,199 +672,11 @@ const handleSkillStringChange = (e) => {
       } finally {
         setLoading(false);
         setDeleteConfirmId(null);
+        setEditingProjectId(null);
       }
     };
 
     const cancelDelete = () => setDeleteConfirmId(null);
-
-    const handleAddFriend = async () => {
-        const usernameToSend = selectedUser ? selectedUser.username : friendInput.trim();
-        if (!usernameToSend) {
-          showToast('Please enter a valid username.', 'error');
-          return;
-        }
-        if (requestSent) {
-          showToast('Friend request already sent.', 'info');
-          return;
-        }
-        // Optimistic UI: add a pending sent request entry
-        const username = usernameToSend;
-        const pendingId = `pending-${Date.now()}`;
-        const pendingUser = { _id: pendingId, username, profilePicture: '', role: selectedUser?.role || 'user' };
-        setFriendRequests(prev => ({ ...prev, sent: [...(prev.sent || []), pendingUser] }));
-        setRequestSent(true);
-        showToast(`Friend request sent to ${username}`, 'info');
-
-        try {
-          const res = await fetch(`${API_BASE_URL}/user/friend-request-by-username`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            credentials: 'include',
-            body: JSON.stringify({ username })
-          });
-          const result = await res.json().catch(()=>null);
-          if (!res.ok) {
-            // Revert optimistic update
-            setFriendRequests(prev => ({ ...prev, sent: (prev.sent || []).filter(u => u._id !== pendingId) }));
-            setRequestSent(false);
-            showToast(result?.msg || 'Failed to send friend request', 'error');
-          } else {
-            showToast(`Friend request delivered to ${username}`, 'success');
-          }
-        } catch (err) {
-          console.error(err);
-          setFriendRequests(prev => ({ ...prev, sent: (prev.sent || []).filter(u => u._id !== pendingId) }));
-          setRequestSent(false);
-          showToast('Network error during friend request', 'error');
-        }
-    };
-
-  const handleAcceptRequest = async (senderId) => {
-    // Optimistic: remove from received and add to friends list
-    const senderObj = friendRequests.received.find(u => String(u._id) === String(senderId));
-    if (!senderObj) return showToast('Request not found', 'error');
-
-    // Remove from received optimistically
-    setFriendRequests(prev => ({ ...prev, received: (prev.received || []).filter(u => String(u._id) !== String(senderId)) }));
-    // Add to friends optimistically
-    setProfileData(prev => ({ ...prev, social: { ...(prev.social || {}), friends: [...(prev.social?.friends || []), senderObj] } }));
-    showToast(`Accepted friend request from ${senderObj.username}`, 'success');
-
-    try {
-      const res = await fetch(`${API_BASE_URL}/user/friend-request/accept`, {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        credentials: 'include', body: JSON.stringify({ senderId })
-      });
-      const result = await res.json().catch(()=>null);
-      if (!res.ok) {
-        // revert optimistic changes
-        setFriendRequests(prev => ({ ...prev, received: [...(prev.received || []), senderObj] }));
-        setProfileData(prev => ({ ...prev, social: { ...(prev.social || {}), friends: (prev.social?.friends || []).filter(f => String(f._id) !== String(senderId)) } }));
-        showToast(result?.msg || 'Failed to accept friend request', 'error');
-      }
-    } catch (err) {
-      console.error(err);
-      // revert optimistic changes
-      setFriendRequests(prev => ({ ...prev, received: [...(prev.received || []), senderObj] }));
-      setProfileData(prev => ({ ...prev, social: { ...(prev.social || {}), friends: (prev.social?.friends || []).filter(f => String(f._id) !== String(senderId)) } }));
-      showToast('Network error while accepting request', 'error');
-    }
-  };
-
-  // Live-search logic (debounced) - filters `allUsers` by username matching the input
-  useEffect(() => {
-    if (!friendInput) {
-      setFilteredUsers([]);
-      setSelectedUser(null);
-      setSearching(false);
-      return;
-    }
-
-    setSearching(true);
-    const t = setTimeout(() => {
-      const q = friendInput.trim().toLowerCase();
-      const matches = allUsers.filter(u => (u.username || '').toLowerCase().includes(q));
-      setFilteredUsers(matches.slice(0, 8));
-      setSearching(false);
-      // If exact single match, mark selectedUser automatically
-      const exact = matches.find(m => (m.username || '').toLowerCase() === q);
-      if (exact) setSelectedUser(exact);
-      else setSelectedUser(null);
-    }, 220);
-
-    return () => clearTimeout(t);
-  }, [friendInput, allUsers]);
-
-  // Clicking a suggestion fills the input and selects the user
-  const handleSelectSuggestion = (user) => {
-    setFriendInput(user.username);
-    setSelectedUser(user);
-    setFilteredUsers([]);
-  };
-
-  const handleDeclineRequest = async (otherUserId) => {
-    // Optimistic: remove from received/sent immediately
-    const wasReceived = (friendRequests.received || []).some(u => String(u._id) === String(otherUserId));
-    const removedFromReceived = (friendRequests.received || []).filter(u => String(u._id) !== String(otherUserId));
-    const removedFromSent = (friendRequests.sent || []).filter(u => String(u._id) !== String(otherUserId));
-    setFriendRequests(prev => ({ ...prev, received: removedFromReceived, sent: removedFromSent }));
-    showToast('Friend request removed', 'info');
-
-    try {
-      const res = await fetch(`${API_BASE_URL}/user/friend-request/decline`, {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        credentials: 'include', body: JSON.stringify({ otherUserId })
-      });
-      const result = await res.json().catch(()=>null);
-      if (!res.ok) {
-        // revert
-        setFriendRequests(prev => ({ ...prev, received: wasReceived ? [...(prev.received || []), { _id: otherUserId }] : prev.received, sent: prev.sent }));
-        showToast(result?.msg || 'Failed to remove request', 'error');
-      }
-    } catch (err) {
-      console.error(err);
-      showToast('Network error while declining request', 'error');
-    }
-  };
-
-  // Unfollow handler: calls backend and updates UI optimistically
-  const handleUnfollow = async (targetId) => {
-    if (!targetId) return;
-    const wasFollowing = (profileData.social?.followingList || []).some(id => String(id) === String(targetId));
-    const prevFollowingList = profileData.social?.followingList || [];
-    const prevFollowingCount = profileData.social?.following || 0;
-
-    if (wasFollowing) {
-      // Optimistic update
-      setProfileData(prev => ({
-        ...prev,
-        social: {
-          ...(prev.social || {}),
-          followingList: prevFollowingList.filter(id => String(id) !== String(targetId)),
-          following: Math.max(0, (prev.social?.following || 0) - 1)
-        }
-      }));
-    }
-
-    try {
-      const res = await fetch(`${API_BASE_URL}/user/unfollow`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ userId: targetId })
-      });
-      const result = await res.json().catch(() => null);
-      if (!res.ok) {
-        // revert optimistic
-        setProfileData(prev => ({
-          ...prev,
-          social: {
-            ...(prev.social || {}),
-            followingList: prevFollowingList,
-            following: prevFollowingCount
-          }
-        }));
-        showToast(result?.msg || 'Failed to unfollow', 'error');
-      } else {
-        showToast(result?.msg || 'Unfollowed', 'success');
-      }
-    } catch (err) {
-      console.error('Unfollow error', err);
-      // revert optimistic
-      setProfileData(prev => ({
-        ...prev,
-        social: {
-          ...(prev.social || {}),
-          followingList: prevFollowingList,
-          following: prevFollowingCount
-        }
-      }));
-      showToast('Network error during unfollow', 'error');
-    }
-  };
-
-
-
 
   const handleSingleSectionSave = async (field) => {
   try {
@@ -867,9 +705,20 @@ const handleSkillStringChange = (e) => {
   const courses = { enrolled: [], completed: [], saved: [] };
   const certifications = [];
   const projects = profileData.projects; // Use the fetched projects now!
-  const quizzes = { completed: 0, averageScore: '', lastQuiz: '' };
-  const contests = [];
-  const notifications = [];
+  const quizzes = {
+      completed: quizAttempts.length,
+      averageScore: quizAttempts.length > 0
+          ? (quizAttempts.reduce((sum, attempt) => {
+              const attemptScore = attempt.score !== undefined ? attempt.score : 0;
+              const attemptTotal = attempt.totalQuestions !== undefined ? attempt.totalQuestions : 1;
+              const pct = (attemptScore / attemptTotal) * 100;
+              return sum + pct;
+            }, 0) / quizAttempts.length).toFixed(1) + '%'
+          : 'N/A',
+      lastQuiz: ''
+  };
+  const contests = profileData.registeredContests || [];
+
 
   if (!currentUser) {
     // Avoid importing react-router-dom Navigate to prevent duplicate/casing resolution issues;
@@ -882,13 +731,101 @@ const handleSkillStringChange = (e) => {
   }
 
   if (loading) {
-    return <div className="flex justify-center items-center h-screen bg-slate-950 text-white px-4">
-      <div className="text-base sm:text-lg lg:text-xl font-medium text-gray-200 text-center">Loading Profile...</div>
-    </div>;
+    return (
+      <div className="min-h-screen bg-transparent text-gray-900 dark:text-white font-sans px-3 py-4 sm:px-6 sm:py-6 lg:px-8 lg:py-8">
+        <div className="max-w-7xl mx-auto animate-pulse">
+          {/* Header Skeleton */}
+          <header className="mb-6 sm:mb-8 lg:mb-10 text-center px-2">
+            <div className="h-10 bg-gray-200 dark:bg-white/10 rounded-xl w-64 mx-auto mb-3" />
+            <div className="h-4 bg-gray-100 dark:bg-white/5 rounded-lg w-48 mx-auto" />
+          </header>
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
+            {/* Main Profile Info and Dashboard (Left, span 2) */}
+            <div className="lg:col-span-2 space-y-4 sm:space-y-6 lg:space-y-8">
+              {/* Profile Card Skeleton */}
+              <div className="relative flex flex-col md:flex-row items-center md:items-start bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 p-4 sm:p-6 lg:p-8 rounded-xl sm:rounded-2xl shadow-lg shadow-sm dark:shadow-none">
+                <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-full bg-gray-200 dark:bg-white/10 shrink-0 mb-4 md:mb-0 md:mr-6" />
+                <div className="text-center md:text-left flex-grow w-full md:w-auto space-y-3">
+                  <div className="flex flex-wrap items-center md:justify-start justify-center gap-2 mb-2">
+                    <div className="h-7 bg-gray-200 dark:bg-white/10 rounded-lg w-40" />
+                    <div className="h-5 bg-gray-100 dark:bg-white/5 rounded-full w-16" />
+                  </div>
+                  <div className="h-4 bg-gray-100 dark:bg-white/5 rounded-lg w-48 mx-auto md:mx-0" />
+                  <div className="h-4 bg-gray-100 dark:bg-white/5 rounded-lg w-32 mx-auto md:mx-0" />
+                  <div className="h-12 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl w-full mt-2" />
+                </div>
+              </div>
+
+              {/* Skills Card Skeleton */}
+              <div className="p-4 sm:p-6 bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl sm:rounded-2xl space-y-4">
+                <div className="h-6 bg-gray-200 dark:bg-white/10 rounded-lg w-24 mb-4" />
+                {[1, 2, 3].map((idx) => (
+                  <div key={idx} className="p-3 sm:p-4 border border-gray-200 dark:border-white/10 rounded-lg sm:rounded-xl bg-gray-50 dark:bg-white/5 space-y-2">
+                    <div className="h-4 bg-gray-200 dark:bg-white/10 rounded-lg w-36 mb-2" />
+                    <div className="flex flex-wrap gap-2">
+                      <div className="h-6 bg-gray-200 dark:bg-white/10 rounded-full w-20" />
+                      <div className="h-6 bg-gray-200 dark:bg-white/10 rounded-full w-16" />
+                      <div className="h-6 bg-gray-200 dark:bg-white/10 rounded-full w-24" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Dashboard Grid Cards Skeleton */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6">
+                {[1, 2, 3].map((idx) => (
+                  <div key={idx} className="bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 p-5 rounded-2xl flex items-center justify-between shadow-sm dark:shadow-none">
+                    <div className="space-y-2">
+                      <div className="h-4 bg-gray-100 dark:bg-white/5 rounded-lg w-24" />
+                      <div className="h-6 bg-gray-200 dark:bg-white/10 rounded-lg w-8" />
+                    </div>
+                    <div className="w-10 h-10 rounded-xl bg-gray-200 dark:bg-white/10" />
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Sidebar Skeleton (Right, span 1) */}
+            <div className="lg:col-span-1 space-y-4 sm:space-y-6 lg:space-y-8">
+              {/* Activity Card Skeleton */}
+              <div className="bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 p-4 sm:p-5 lg:p-6 rounded-xl sm:rounded-2xl space-y-4 shadow-sm dark:shadow-none">
+                <div className="h-6 bg-gray-200 dark:bg-white/10 rounded-lg w-28 mb-3" />
+                <div className="space-y-4">
+                  {[1, 2, 3, 4].map((idx) => (
+                    <div key={idx} className="flex justify-between items-center">
+                      <div className="flex items-center gap-3 w-full">
+                        <div className="w-5 h-5 rounded-full bg-gray-200 dark:bg-white/10" />
+                        <div className="h-4 bg-gray-100 dark:bg-white/5 rounded-lg w-32" />
+                      </div>
+                      <div className="h-4 bg-gray-200 dark:bg-white/10 rounded-lg w-8" />
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Community Stats Skeleton */}
+              <div className="bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 p-4 sm:p-5 lg:p-6 rounded-xl sm:rounded-2xl space-y-4 shadow-sm dark:shadow-none">
+                <div className="h-6 bg-gray-200 dark:bg-white/10 rounded-lg w-36 mb-3" />
+                <div className="grid grid-cols-3 gap-3">
+                  {[1, 2, 3].map((idx) => (
+                    <div key={idx} className="p-4 border border-gray-200 dark:border-white/10 rounded-xl flex flex-col items-center gap-2 bg-gray-50 dark:bg-white/5">
+                      <div className="h-4 bg-gray-200 dark:bg-white/10 rounded-lg w-8" />
+                      <div className="h-3 bg-gray-100 dark:bg-white/5 rounded-lg w-12" />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
   }
 
+
   if (error) {
-    return <div className="flex justify-center items-center h-screen bg-slate-950 text-red-400 p-4 text-center">
+    return <div className="flex justify-center items-center h-screen bg-transparent text-rose-600 dark:text-red-400 p-4 text-center">
       <div className="text-sm sm:text-base">Error: {error}. Please try logging in again.</div>
     </div>;
   }
@@ -903,17 +840,10 @@ const currentProfilePicUrl = profileData.profilePicture
 
   // Helper for rendering skill inputs
   const renderSkillSection = (field, title, description) => (
-      <div key={field} className="mt-4 p-3 sm:p-4 border border-white/10 rounded-lg sm:rounded-xl bg-white/5">
+      <div key={field} className="mt-4 p-3 sm:p-4 border border-gray-200 dark:border-white/10 rounded-lg sm:rounded-xl bg-gray-50/50 dark:bg-white/5">
         <div className="flex justify-between items-center mb-2 gap-2">
-            <h4 className="font-semibold text-white text-sm sm:text-base">{title}</h4>
-            {/* <h3>{title}</h3> */}
-    {/* <ul>
-      {profileData[field]?.map((item, i) => (
-        <li key={i}>{item}</li>
-      ))}
-    </ul> */}
-
-            <button onClick={() => setEditing(prev => ({ ...prev, [field]: !prev[field] }))} className="text-xs sm:text-sm text-teal-300 hover:underline whitespace-nowrap">
+            <h4 className="font-semibold text-gray-900 dark:text-white text-sm sm:text-base">{title}</h4>
+            <button onClick={() => setEditing(prev => ({ ...prev, [field]: !prev[field] }))} className="text-xs sm:text-sm text-teal-600 dark:text-teal-300 hover:underline whitespace-nowrap">
                 {editing[field] ? 'Cancel' : 'Edit'}
             </button>
         </div>
@@ -926,12 +856,12 @@ const currentProfilePicUrl = profileData.profilePicture
   {profileData[field]?.map((item, i) => (
     <div
       key={i}
-      className="flex items-center bg-white/10 border border-white/10 text-white/80 text-sm font-medium px-2 py-1 rounded-full"
+      className="flex items-center bg-gray-100 dark:bg-white/10 border border-gray-200 dark:border-white/10 text-gray-700 dark:text-white/80 text-sm font-medium px-2 py-1 rounded-full"
     >
       <span>{item}</span>
       <button
         onClick={() => handleRemoveSkill(field, item)}
-        className="ml-2 text-white/70 hover:text-red-400 focus:outline-none"
+        className="ml-2 text-gray-500 hover:text-red-650 dark:text-white/70 dark:hover:text-red-400 focus:outline-none"
         aria-label={`Remove ${item}`}
       >
         &times;
@@ -942,7 +872,7 @@ const currentProfilePicUrl = profileData.profilePicture
     
     <input
       type="text"
-          className="w-full p-2 rounded mt-2 bg-white/5 border border-white/10 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#167468]"
+          className="w-full p-2 rounded mt-2 bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 text-gray-900 dark:text-white placeholder-gray-450 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#167468]"
       value={tempData[field] || ''}
       onChange={e => setTempData(prev => ({ ...prev, [field]: e.target.value }))}
       placeholder={`Add ${title.toLowerCase().slice(0, -1)}`}
@@ -951,7 +881,7 @@ const currentProfilePicUrl = profileData.profilePicture
         <button className='mt-2 px-3 py-2 bg-gradient-to-r from-purple-500 to-[#167468] text-white rounded hover:opacity-95 disabled:opacity-50 text-xs sm:text-sm w-full sm:w-auto' onClick={() => handleAddSkill(field, tempData[field])}>
       {loading ? 'Saving...' : `Add ${title}`}
     </button>
-                    <p className="text-xs mt-3 text-gray-400">{description}</p>
+                    <p className="text-xs mt-3 text-gray-500 dark:text-gray-400">{description}</p>
              
 
             </>
@@ -959,10 +889,10 @@ const currentProfilePicUrl = profileData.profilePicture
             <div className="flex flex-wrap gap-2">
                 {profileData[field].length > 0 ? (
               profileData[field].map((skill, index) => (
-                <span key={index} className="bg-white/10 border border-white/10 text-white/80 text-sm font-medium px-3 py-1 rounded-full">{skill}</span>
+                <span key={index} className="bg-gray-100 dark:bg-white/10 border border-gray-200 dark:border-white/10 text-gray-700 dark:text-white/80 text-sm font-medium px-3 py-1 rounded-full">{skill}</span>
               ))
             ) : (
-                    <p className="text-sm text-gray-400">Add Your Skills.</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">Add Your Skills.</p>
                 )}
             </div>
         )}
@@ -970,27 +900,59 @@ const currentProfilePicUrl = profileData.profilePicture
   );
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white font-sans px-3 py-4 sm:px-6 sm:py-6 lg:px-8 lg:py-8">
+    <div className="min-h-screen bg-transparent text-gray-900 dark:text-white font-sans px-3 py-4 sm:px-6 sm:py-6 lg:px-8 lg:py-8">
       {/* Toast container (shared) */}
       <Toast toast={toast} onClose={() => setToast(null)} />
       <div className="max-w-7xl mx-auto">
         <header className="mb-6 sm:mb-8 lg:mb-10 text-center px-2">
-          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white">My Dashboard</h1>
-          <p className="mt-2 text-sm sm:text-base lg:text-lg text-gray-300">Welcome back, {profileData.username}!</p>
+          <h1 className="text-3xl md:text-4xl lg:text-5xl font-extrabold bg-gradient-to-r from-teal-600 via-emerald-500 to-indigo-600 dark:from-teal-400 dark:via-emerald-300 dark:to-indigo-400 bg-clip-text text-transparent">My Dashboard</h1>
+          <p className="mt-2 text-sm sm:text-base lg:text-lg text-gray-605 dark:text-gray-300">Welcome back, {profileData.username}!</p>
         </header>
 
         <main className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
           {/* Main Profile Info and Dashboard */}
           <div className="lg:col-span-2 space-y-4 sm:space-y-6 lg:space-y-8">
             <PageSection title="My Profile">
-              <div className="flex flex-col md:flex-row items-center md:items-start bg-white/5 border border-white/10 backdrop-blur p-4 sm:p-6 lg:p-8 rounded-xl sm:rounded-2xl shadow-lg">
+              <div className="relative flex flex-col md:flex-row items-center md:items-start bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 backdrop-blur p-4 sm:p-6 lg:p-8 rounded-xl sm:rounded-2xl shadow-lg shadow-sm dark:shadow-none">
+                
+                {/* Absolute Action Buttons (Edit / Save & Cancel) */}
+                <div className="absolute top-4 right-4 sm:top-6 sm:right-6 flex items-center gap-2 z-10">
+                  {(editing.username || editing.bio) ? (
+                    <>
+                      <button
+                        onClick={handleProfileUpdate}
+                        disabled={loading}
+                        className="px-3 py-2 rounded-xl bg-gradient-to-r from-purple-500 to-[#167468] text-white hover:opacity-95 disabled:opacity-50 transition duration-200 flex items-center gap-1.5 cursor-pointer text-xs font-semibold shadow-sm focus:outline-none"
+                      >
+                        {loading ? 'Saving...' : 'Save'}
+                      </button>
+                      <button
+                        onClick={() => setEditing(prev => ({ ...prev, username: false, bio: false }))}
+                        className="px-3 py-2 rounded-xl border border-red-200 hover:bg-red-100 text-red-600 dark:bg-red-500/10 dark:border-red-500/20 dark:hover:bg-red-500/20 dark:text-red-300 transition duration-200 flex items-center gap-1.5 cursor-pointer text-xs font-semibold shadow-sm focus:outline-none"
+                      >
+                        <XIcon className="w-4 h-4" />
+                        <span className="hidden sm:inline">Cancel</span>
+                      </button>
+                    </>
+                  ) : (
+                    <button
+                      onClick={() => setEditing(prev => ({ ...prev, username: true, bio: true }))}
+                      className="px-3 py-2 rounded-xl border border-gray-200 hover:border-teal-400/50 hover:bg-gray-100 dark:bg-white/5 dark:border-white/10 dark:hover:bg-white/10 text-gray-750 dark:text-white transition duration-200 flex items-center gap-1.5 cursor-pointer text-xs font-semibold shadow-sm focus:outline-none"
+                    >
+                      <EditIcon className="w-4 h-4 text-teal-650 dark:text-teal-400" />
+                      <span className="hidden sm:inline">Edit Profile</span>
+                    </button>
+                  )}
+                </div>
+
                 {/* PROFILE PICTURE SECTION */}
-                <div className="relative mb-4 md:mb-0 md:mr-6 shrink-0">
-                  <img 
-                    src={currentProfilePicUrl} 
-                    alt="Profile" 
-                    className="w-24 h-24 sm:w-28 sm:h-28 md:w-24 md:h-24 lg:w-28 lg:h-28 rounded-full border-4 border-white/10 object-cover" 
-                  />
+                <div className="flex flex-col items-center shrink-0 mb-4 md:mb-0 md:mr-6">
+                  <div className="relative">
+                    <img 
+                      src={currentProfilePicUrl} 
+                      alt="Profile" 
+                      className="w-24 h-24 sm:w-28 sm:h-28 md:w-24 md:h-24 lg:w-28 lg:h-28 rounded-full border-4 border-gray-150 dark:border-white/10 object-cover" 
+                    />
                     <input 
                         type="file" 
                         accept="image/*" 
@@ -1000,15 +962,21 @@ const currentProfilePicUrl = profileData.profilePicture
                     />
                     <button 
                         onClick={() => document.getElementById('profile-pic-upload').click()}
-                      className="absolute bottom-0 right-0 bg-white/10 text-white p-1 rounded-full border-2 border-white/10 hover:bg-white/15 transition-colors"
+                        className="absolute bottom-0 right-0 bg-gray-100 hover:bg-gray-200 text-gray-700 dark:bg-white/10 dark:text-white p-1.5 rounded-full border-2 border-gray-200 dark:border-white/10 dark:hover:bg-white/15 transition-colors cursor-pointer"
                         title="Change Picture"
                     >
-                        <UserPlusIcon className="w-4 h-4"/>
+                        <UserPlusIcon className="w-3.5 h-3.5"/>
                     </button>
+                  </div>
+                  {profileData.profilePicture && (
+                     <button onClick={handleRemovePicture} className="text-red-500 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300 text-xs hover:underline mt-2 cursor-pointer transition">
+                       Remove Picture
+                     </button>
+                  )}
                 </div>
 
                 {/* PROFILE INFO DISPLAY/EDIT */}
-                <div className="text-center md:text-left flex-grow w-full md:w-auto">
+                <div className="text-center md:text-left flex-grow w-full md:w-auto pr-0 sm:pr-24">
                   <div className="flex flex-wrap items-center md:justify-start justify-center mb-2 gap-2">
                     {editing.username ? (
                         <input 
@@ -1016,60 +984,43 @@ const currentProfilePicUrl = profileData.profilePicture
                           name="username" 
                           value={tempData.username} 
                           onChange={handleTempChange} 
-                          className="text-lg sm:text-xl lg:text-2xl font-bold text-white border border-white/10 p-1 sm:p-2 rounded bg-white/5 focus:outline-none focus:ring-2 focus:ring-[#167468] w-full sm:w-auto"
+                          className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 dark:text-white border border-gray-250 dark:border-white/10 p-1 sm:p-2 rounded bg-white dark:bg-white/5 focus:outline-none focus:ring-2 focus:ring-[#167468] w-full sm:w-auto"
                         />
                     ) : (
-                        <h3 className="text-lg sm:text-xl lg:text-2xl font-bold text-white">{profileData.username}</h3>
+                        <h3 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 dark:text-white">{profileData.username}</h3>
                     )}
                     
-                    <span className="inline-block bg-white/10 border border-white/10 text-white/80 text-xs font-semibold px-2.5 py-0.5 rounded-full">{profileData.role}</span>
+                    <span className="inline-block bg-gray-100 dark:bg-white/10 border border-gray-200 dark:border-white/10 text-gray-650 dark:text-white/80 text-xs font-semibold px-2.5 py-0.5 rounded-full">{profileData.role}</span>
                     {profileData.role === 'staff' && (
-                      <span className="inline-flex items-center ml-2 text-xs font-semibold px-2 py-0.5 rounded-full bg-white/10 border border-white/10 text-white/80">
+                      <span className="inline-flex items-center ml-2 text-xs font-semibold px-2 py-0.5 rounded-full bg-gray-100 dark:bg-white/10 border border-gray-200 dark:border-white/10 text-gray-650 dark:text-white/80">
                         <svg xmlns="http://www.w3.org/2000/svg" className="w-3 h-3 mr-1" viewBox="0 0 20 20" fill="currentColor"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.286 3.95a1 1 0 0 0 .95.69h4.162c.969 0 1.371 1.24.588 1.81l-3.37 2.448a1 1 0 0 0-.364 1.118l1.286 3.95c.3.921-.755 1.688-1.54 1.118L10 13.347l-3.37 2.448c-.784.57-1.84-.197-1.54-1.118l1.286-3.95a1 1 0 0 0-.364-1.118L2.642 9.377c-.783-.57-.38-1.81.588-1.81h4.162a1 1 0 0 0 .95-.69l1.286-3.95z"/></svg>
                         Staff
                       </span>
                     )}
                   </div>
 
-                  <p className="text-sm sm:text-base text-gray-300 mb-2 break-all">{profileData.email}</p>
+                  <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300 mb-2 break-all">{profileData.email}</p>
 
                   {/* BIO EDITING */}
                   <div className="mt-3">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-center md:justify-start mb-1 gap-2">
-                      <span className="text-sm font-medium text-gray-200">Bio:</span>
+                      <span className="text-sm font-medium text-gray-700 dark:text-gray-200">Bio:</span>
                         {!editing.bio ? (
-                        <span className="text-sm text-gray-200 italic break-words">{profileData.bio || 'No bio set.'}</span>
+                        <span className="text-sm text-gray-700 dark:text-gray-205 italic break-words">{profileData.bio || 'No bio set.'}</span>
                         ) : (
                             <textarea 
                                 name="bio" 
                                 value={tempData.bio} 
                                 onChange={handleTempChange} 
-                          className="w-full border border-white/10 bg-white/5 text-white p-2 rounded text-sm focus:outline-none focus:ring-2 focus:ring-[#167468]"
+                          className="w-full border border-gray-200 dark:border-white/10 bg-white dark:bg-white/5 text-gray-900 dark:text-white p-2 rounded text-sm focus:outline-none focus:ring-2 focus:ring-[#167468]"
                                 rows="3"
                             />
                         )}
-                      <button onClick={() => setEditing(prev => ({...prev, bio: !prev.bio}))} className="text-xs sm:text-sm text-teal-300 hover:underline whitespace-nowrap">
-                            {editing.bio ? 'Cancel' : 'Edit'}
-                        </button>
                     </div>
                   </div>
                   
-                    {/* Save Button for Basic Fields */}
-                    {(editing.username || editing.bio) && (
-                        <button 
-                            onClick={handleProfileUpdate} 
-                            disabled={loading}
-                        className="mt-3 px-4 py-2 bg-gradient-to-r from-purple-500 to-[#167468] text-white rounded hover:opacity-95 disabled:opacity-50 transition-colors text-sm sm:text-base w-full sm:w-auto"
-                        >
-                            {loading ? 'Saving...' : 'Save Edits'}
-                        </button>
-                    )}
+
                 </div>
-                
-                {/* Picture Removal */}
-                {profileData.profilePicture && (
-                   <button onClick={handleRemovePicture} className="text-teal-300 text-xs sm:text-sm hover:underline mt-3 md:mt-0 md:ml-4 self-center md:self-start">Remove Picture</button>
-                )}
               </div>
 
 
@@ -1077,18 +1028,18 @@ const currentProfilePicUrl = profileData.profilePicture
 
 
               {/* SKILLS SECTION */}
-              <div className="mt-4 sm:mt-6 p-4 sm:p-6 bg-white/5 border border-white/10 backdrop-blur rounded-xl sm:rounded-2xl shadow-lg">
-                <h3 className="text-lg sm:text-xl font-semibold text-white mb-2">Skills</h3>
+              <div className="mt-4 sm:mt-6 p-4 sm:p-6 bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 backdrop-blur rounded-xl sm:rounded-2xl shadow-lg shadow-sm dark:shadow-none">
+                <h3 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white mb-2">Skills</h3>
                 {renderSkillSection('technicalSkills', 'Technical Skills', 'List all your technical proficiencies.')}
                 {renderSkillSection('softSkills', 'Soft Skills', 'List all your soft skills.')}
                 {renderSkillSection('skillsToLearn', 'Skills to Learn', 'List all skills you want to acquire.')}
                 {renderSkillSection('extraCurricular', 'Extra Curricular Activities', 'List all activities.')}
                 
                 {/* OTHER FIELD */}
-                <div className="mt-4 p-3 sm:p-4 border border-white/10 rounded-lg sm:rounded-xl bg-white/5">
+                <div className="mt-4 p-3 sm:p-4 border border-gray-200 dark:border-white/10 rounded-lg sm:rounded-xl bg-gray-50/50 dark:bg-white/5">
                     <div className="flex justify-between items-center mb-2">
-                        <h4 className="font-semibold text-white">Other Information</h4>
-                        <button onClick={() => setEditing(prev => ({ ...prev, other: !prev.other }))} className="text-sm text-teal-300 hover:underline">
+                        <h4 className="font-semibold text-gray-900 dark:text-white">Other Information</h4>
+                        <button onClick={() => setEditing(prev => ({ ...prev, other: !prev.other }))} className="text-sm text-teal-605 dark:text-teal-300 hover:underline">
                             {editing.other ? 'Cancel' : 'Edit'}
                         </button>
                     </div>
@@ -1098,11 +1049,11 @@ const currentProfilePicUrl = profileData.profilePicture
                             value={tempData.other}
                             onChange={handleTempChange}
                             placeholder="Any other relevant information..."
-                          className="w-full p-2 border border-white/10 rounded mb-2 bg-white/5 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#167468]"
+                          className="w-full p-2 border border-gray-200 dark:border-white/10 rounded mb-2 bg-white dark:bg-white/5 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#167468]"
                             rows="3"
                         />
                     ) : (
-                        <p className="flex items-center bg-white/10 border border-white/10 text-white/80 text-sm font-medium px-2 py-1 rounded-full">{profileData.other || 'No other information provided.'}</p>
+                        <p className="flex items-center bg-gray-150/60 dark:bg-white/10 border border-gray-200 dark:border-white/10 text-gray-700 dark:text-white/80 text-sm font-medium px-2 py-1 rounded-full">{profileData.other || 'No other information provided.'}</p>
                     )}
            
                 {/* Save button for Skills/Other if any are being edited */}
@@ -1136,22 +1087,22 @@ const currentProfilePicUrl = profileData.profilePicture
             <PageSection title="My Courses">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
                 <div>
-                  <h3 className="text-xl font-semibold mb-3 text-white">Currently Pursuing</h3>
+                  <h3 className="text-xl font-semibold mb-3 text-gray-900 dark:text-white">Currently Pursuing</h3>
                   <div className="space-y-4">
                     {courses.enrolled.length > 0 ? (
                       courses.enrolled.map(course => <CourseCard key={course.id} course={course} type="enrolled" />)
                     ) : (
-                      <p className="text-gray-400">No enrolled courses.</p>
+                      <p className="text-gray-500 dark:text-gray-400">No enrolled courses.</p>
                     )}
                   </div>
                 </div>
                 <div>
-                  <h3 className="text-xl font-semibold mb-3 text-white">Completed</h3>
+                  <h3 className="text-xl font-semibold mb-3 text-gray-900 dark:text-white">Completed</h3>
                   <div className="space-y-4">
                     {courses.completed.length > 0 ? (
                       courses.completed.map(course => <CourseCard key={course.id} course={course} type="completed" />)
                     ) : (
-                      <p className="text-gray-400">No completed courses.</p>
+                      <p className="text-gray-500 dark:text-gray-400">No completed courses.</p>
                     )}
                   </div>
                 </div>
@@ -1172,7 +1123,7 @@ const currentProfilePicUrl = profileData.profilePicture
                   <div>
                     <ProjectForm isNew={true} onSubmit={handleProjectSubmit} onCancel={() => setShowNewProjectForm(false)} />
                     <div className="mt-2">
-                      <button className="px-3 py-1 text-sm text-gray-300 hover:underline" onClick={() => setShowNewProjectForm(false)}>Cancel</button>
+                      <button className="px-3 py-1 text-sm text-gray-500 dark:text-gray-300 hover:underline" onClick={() => setShowNewProjectForm(false)}>Cancel</button>
                     </div>
                   </div>
                 )}
@@ -1180,35 +1131,28 @@ const currentProfilePicUrl = profileData.profilePicture
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {projects.length > 0 ? (
                   projects.map(project => (
-                    <div key={project._id} className="bg-white/5 border border-white/10 backdrop-blur p-6 rounded-2xl shadow-md">
-                      <h4 className="font-semibold text-lg text-white">{project.title}</h4>
-                      <p className="text-sm text-gray-300 mt-2">{project.description}</p>
-                      <span className={`inline-block mt-3 text-xs font-semibold px-2.5 py-0.5 rounded-full ${project.status === 'Completed' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' : project.status === 'Stuck' ? 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200' : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'}`}>
-                        {project.status}
-                      </span>
-                      <div className="mt-3 pt-2 border-t border-white/10">
-                        <ProjectForm 
-                            project={project} 
-                            isNew={false} 
-                            onSubmit={handleProjectSubmit} 
-                            onDelete={handleDeleteProject}
-                        />
-                      </div>
-                    </div>
+                    <ProjectCard
+                      key={project._id || project.id}
+                      project={project}
+                      editingProjectId={editingProjectId}
+                      setEditingProjectId={setEditingProjectId}
+                      handleProjectSubmit={handleProjectSubmit}
+                      handleDeleteProject={handleDeleteProject}
+                    />
                   ))
                 ) : (
-                  <p className="text-gray-400">No projects yet. Add one above!</p>
+                  <p className="text-gray-500 dark:text-gray-400">No projects yet. Add one above!</p>
                 )}
               </div>
 
               {/* Non-blocking delete confirmation modal */}
               {deleteConfirmId && (
                 <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-30 z-50 px-4">
-                  <div className="bg-slate-950 border border-white/10 rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-lg w-full max-w-md">
-                    <h3 className="text-lg font-semibold mb-3 text-white">Confirm Delete</h3>
-                    <p className="text-sm text-gray-300 mb-4">Are you sure you want to delete this project? This action cannot be undone.</p>
+                  <div className="bg-white dark:bg-slate-950 border border-gray-200 dark:border-white/10 rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-lg w-full max-w-md">
+                    <h3 className="text-lg font-semibold mb-3 text-gray-905 dark:text-white">Confirm Delete</h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">Are you sure you want to delete this project? This action cannot be undone.</p>
                     <div className="flex justify-end gap-3">
-                      <button onClick={cancelDelete} className="px-4 py-2 bg-white/10 border border-white/10 text-white rounded hover:bg-white/15">Cancel</button>
+                      <button onClick={cancelDelete} className="px-4 py-2 bg-gray-100 border border-gray-205 text-gray-755 dark:bg-white/10 dark:border-white/10 dark:text-white rounded dark:hover:bg-white/15 hover:bg-gray-200">Cancel</button>
                       <button onClick={() => performConfirmedDelete(deleteConfirmId)} className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600">Delete</button>
                     </div>
                   </div>
@@ -1221,14 +1165,14 @@ const currentProfilePicUrl = profileData.profilePicture
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {certifications.length > 0 ? (
                   certifications.map(cert => (
-                    <div key={cert.id} className="bg-white/5 border border-white/10 backdrop-blur p-6 rounded-2xl shadow-md">
-                      <h4 className="font-semibold text-lg text-white">{cert.title}</h4>
-                      <p className="text-sm text-gray-300 mt-2">Provider: {cert.provider}</p>
-                      <p className="text-sm text-gray-300 mt-1">Date: {cert.date}</p>
+                    <div key={cert.id} className="bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 backdrop-blur p-6 rounded-2xl shadow-md shadow-sm dark:shadow-none">
+                      <h4 className="font-semibold text-lg text-gray-900 dark:text-white">{cert.title}</h4>
+                      <p className="text-sm text-gray-605 dark:text-gray-300 mt-2">Provider: {cert.provider}</p>
+                      <p className="text-sm text-gray-605 dark:text-gray-300 mt-1">Date: {cert.date}</p>
                     </div>
                   ))
                 ) : (
-                  <p className="text-gray-400">No certifications earned yet.</p>
+                  <p className="text-gray-500 dark:text-gray-400">No certifications earned yet.</p>
                 )}
               </div>
             </PageSection>
@@ -1239,7 +1183,7 @@ const currentProfilePicUrl = profileData.profilePicture
                 {courses.saved.length > 0 ? (
                   courses.saved.map(course => <CourseCard key={course.id} course={course} type="saved" />)
                 ) : (
-                  <p className="text-gray-400">No saved courses.</p>
+                  <p className="text-gray-500 dark:text-gray-400">No saved courses.</p>
                 )}
               </div>
             </PageSection>
@@ -1249,229 +1193,87 @@ const currentProfilePicUrl = profileData.profilePicture
           <div className="lg:col-span-1 space-y-4 sm:space-y-6 lg:space-y-8">
             {/* User Activity (Mocked) */}
             <PageSection title="My Activity">
-              <div className="bg-white/5 border border-white/10 backdrop-blur p-4 sm:p-5 lg:p-6 rounded-xl sm:rounded-2xl shadow-lg space-y-3 sm:space-y-4">
+              <div className="bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 backdrop-blur p-4 sm:p-5 lg:p-6 rounded-xl sm:rounded-2xl shadow-lg space-y-3 sm:space-y-4 shadow-sm dark:shadow-none">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center">
                     <BookOpenIcon className="text-xl text-teal-500 mr-3" />
-                    <span className="text-sm font-medium text-gray-300">Quizzes Completed</span>
+                    <span className="text-sm font-medium text-gray-600 dark:text-gray-300">Quizzes Completed</span>
                   </div>
-                  <span className="font-bold text-white">{quizzes.completed}</span>
+                  <span className="font-bold text-gray-900 dark:text-white">{quizzes.completed}</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center">
                     <RunningWithErrorsIcon className="text-xl text-yellow-500 mr-3" />
-                    <span className="text-sm font-medium text-gray-300">Contests Participated</span>
+                    <span className="text-sm font-medium text-gray-600 dark:text-gray-300">Contests Participated</span>
                   </div>
-                  <span className="font-bold text-white">{contests.length}</span>
+                  <span className="font-bold text-gray-900 dark:text-white">{contests.length}</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center">
                     <TrophyIcon className="text-xl text-green-500 mr-3" />
-                    <span className="text-sm font-medium text-gray-300">Average Quiz Score</span>
+                    <span className="text-sm font-medium text-gray-600 dark:text-gray-300">Average Quiz Score</span>
                   </div>
-                  <span className="font-bold text-white">{quizzes.averageScore}</span>
+                  <span className="font-bold text-gray-900 dark:text-white">{quizzes.averageScore}</span>
                 </div>
 
                 <div className="flex items-center justify-between">
                   <div className="flex items-center">
                     <HeartIcon className="text-xl text-red-500 mr-3" />
-                    <span className="text-sm font-medium text-gray-300">Last Active</span>
+                    <span className="text-sm font-medium text-gray-600 dark:text-gray-300">Last Active</span>
                   </div>
-                  <span className="font-bold text-white">{profileData.activity?.lastActive || 'N/A'}</span>
+                  <span className="font-bold text-gray-900 dark:text-white">{profileData.activity?.lastActive || 'N/A'}</span>
                 </div>
 
               </div>
             </PageSection>
 
-            {/* Notifications (Mocked) */}
-            <PageSection title="Notifications">
-              <div className="bg-white/5 border border-white/10 backdrop-blur p-4 sm:p-5 lg:p-6 rounded-xl sm:rounded-2xl shadow-lg">
-                {notifications.length > 0 ? (
-                  notifications.map(notification => <NotificationItem key={notification.id} notification={notification} />)
-                ) : (
-                  <p className="text-gray-500 dark:text-gray-400">No new notifications.</p>
-                )}
-                <div className="text-right mt-4">
-                  <a href="#" className="text-sm font-medium text-teal-300 hover:underline">View All</a>
-                </div>
-              </div>
-            </PageSection>
 
-            {/* Social & Community (Mocked) */}
-            <PageSection title="Community">
-              <div className="bg-white/5 border border-white/10 backdrop-blur p-4 sm:p-5 lg:p-6 rounded-xl sm:rounded-2xl shadow-lg space-y-4">
-                <div className="flex justify-around text-center">
-                  <div>
-                    <h3 className="text-3xl font-bold text-teal-300">{profileData.social?.followers || 0}</h3>
-                    <p className="text-sm text-gray-400">Followers</p>
-                  </div>
-                  <div>
-                    <h3 className="text-3xl font-bold text-teal-300">{profileData.social?.following || 0}</h3>
-                    <p className="text-sm text-gray-400">Following</p>
-                  </div>
-                </div>
-                <hr className="border-white/10" />
-                <div>
-                  <h4 className="text-lg font-semibold text-white mb-3">Friends</h4>
-                  <div className="space-y-3">
-                      {profileData.social?.friends?.length > 0 ? (
-                        profileData.social.friends.map(friend => (
-                          <div key={friend._id || friend.id} className="flex items-center">
-                            <img src={normalizeImageSrc(friend.profilePicture || friend.pic || '')} alt={friend.username || friend.name} className="w-8 h-8 rounded-full border-2 border-white/10" />
-                            <span className="ml-3 text-sm text-gray-200">{friend.username || friend.name}</span>
-                          </div>
-                        ))
-                      ) : (
-                        <p className="text-gray-500 dark:text-gray-400">No friends to display.</p>
-                      )}
-                  </div>
-                </div>
-                <hr className="border-white/10" />
-                  {/* Incoming Friend Requests */}
-                  <div className="mb-4">
-                    <h4 className="text-base sm:text-lg font-semibold text-white mb-3">Incoming Requests</h4>
-                    {friendRequests.received.length > 0 ? (
-                      friendRequests.received.map(u => (
-                        <div key={u._id} className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between p-3 border border-white/10 rounded-lg sm:rounded-xl mb-2 bg-white/5 gap-3">
-                          <div className="flex items-center">
-                            <img src={normalizeImageSrc(u.profilePicture || '')} className="w-10 h-10 sm:w-8 sm:h-8 rounded-full mr-3 shrink-0" alt={u.username} />
-                            <div className="min-w-0">
-                              <div className="font-medium text-white text-sm sm:text-base truncate">{u.username}</div>
-                              <div className="text-xs text-gray-500 dark:text-gray-400">{u.role}</div>
-                            </div>
-                          </div>
-                          <div className="flex flex-row sm:flex-row items-center space-x-2 w-full sm:w-auto">
-                            <button onClick={() => handleAcceptRequest(u._id)} className="flex-1 sm:flex-none px-3 py-2 bg-gradient-to-r from-purple-500 to-[#167468] text-white rounded text-xs sm:text-sm">Accept</button>
-                            <button onClick={() => handleDeclineRequest(u._id)} className="flex-1 sm:flex-none px-3 py-2 bg-white/10 border border-white/10 text-white rounded hover:bg-white/15 text-xs sm:text-sm">Decline</button>
-                          </div>
-                        </div>
-                      ))
-                    ) : (
-                      <p className="text-gray-500 dark:text-gray-400">No incoming requests.</p>
-                    )}
-                  </div>
-                  {/* Outgoing (Sent) Friend Requests */}
-                  <div className="mb-4">
-                    <h4 className="text-base sm:text-lg font-semibold text-white mb-3">Sent Requests</h4>
-                    {friendRequests.sent.length > 0 ? (
-                      friendRequests.sent.map(u => (
-                        <div key={u._id} className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between p-3 border border-white/10 rounded-lg sm:rounded-xl mb-2 bg-white/5 gap-3">
-                          <div className="flex items-center">
-                            <img src={normalizeImageSrc(u.profilePicture || '')} className="w-10 h-10 sm:w-8 sm:h-8 rounded-full mr-3 shrink-0" alt={u.username} />
-                            <div className="min-w-0">
-                              <div className="font-medium text-white text-sm sm:text-base truncate">{u.username}</div>
-                              <div className="text-xs text-gray-500 dark:text-gray-400">{u.role}</div>
-                            </div>
-                          </div>
-                          <div className="w-full sm:w-auto">
-                            <button onClick={() => handleDeclineRequest(u._id)} className="w-full sm:w-auto px-3 py-2 bg-red-500 text-white rounded text-xs sm:text-sm">Cancel</button>
-                          </div>
-                        </div>
-                      ))
-                    ) : (
-                      <p className="text-gray-500 dark:text-gray-400">No sent requests.</p>
-                    )}
-                  </div>
-                  {/* Friend Connection Section (Kept as is) */}
-                <div>
-                  <h4 className="text-base sm:text-lg font-semibold text-white mb-3">Find and Connect</h4>
-                  <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-                    <input
-                      type="text"
-                      value={friendInput}
-                      onChange={(e) => { setFriendInput(e.target.value); setRequestSent(false); }}
-                      onKeyDown={(e) => {
-                        if (e.key === 'ArrowDown') {
-                          e.preventDefault();
-                          setHighlightedIndex(i => Math.min(i + 1, filteredUsers.length - 1));
-                        } else if (e.key === 'ArrowUp') {
-                          e.preventDefault();
-                          setHighlightedIndex(i => Math.max(i - 1, 0));
-                        } else if (e.key === 'Enter') {
-                          e.preventDefault();
-                          if (highlightedIndex >= 0 && filteredUsers[highlightedIndex]) {
-                            handleSelectSuggestion(filteredUsers[highlightedIndex]);
-                          } else {
-                            handleAddFriend();
-                          }
-                        } else if (e.key === 'Escape') {
-                          setFilteredUsers([]);
-                          setHighlightedIndex(-1);
-                        }
-                      }}
-                      placeholder="Enter username to add"
-                      className="flex-1 px-4 py-2 sm:py-3 border border-white/10 rounded-full bg-white/5 text-white text-sm sm:text-base placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#167468] transition-shadow"
-                    />
-                    <button
-                      onClick={handleAddFriend}
-                      className="w-full sm:w-auto bg-gradient-to-r from-purple-500 to-[#167468] text-white p-2 sm:p-3 rounded-full shadow-lg hover:opacity-95 transition-colors duration-200 shrink-0"
-                    >
-                      <UserPlusIcon />
-                    </button>
-                  </div>
-                    {/* Suggestions dropdown */}
-                    <div className="relative mt-2">
-                      {searching && <div className="text-sm text-gray-500 dark:text-gray-400">Searching...</div>}
-                      {!searching && filteredUsers.length > 0 && (
-                        <div className="absolute z-20 w-full bg-slate-950 border border-white/10 rounded-lg sm:rounded-xl shadow-lg max-h-48 sm:max-h-56 overflow-auto">
-                          {filteredUsers.map((u, idxMap) => {
-                            const uname = u.username || '';
-                            const q = friendInput.trim();
-                            const idx = uname.toLowerCase().indexOf(q.toLowerCase());
-                            const isHighlighted = idxMap === highlightedIndex;
-                            const isSent = (friendRequests.sent || []).some(s => String(s._id) === String(u._id) || (s.username && s.username === u.username));
-                            const isFriend = (profileData.social?.friends || []).some(f => String(f) === String(u._id) || String(f._id) === String(u._id));
-                            const isFollowing = (profileData.social?.followingList || []).some(f => String(f) === String(u._id));
-                              return (
-                              <div key={u._id} className={`w-full text-left px-3 py-2 flex flex-col sm:flex-row items-stretch sm:items-center gap-2 ${isHighlighted ? 'bg-white/10' : 'hover:bg-white/10'}`}>
-                                <button
-                                  onClick={() => handleSelectSuggestion(u)}
-                                  className="flex-1 text-left flex items-center"
-                                >
-                                  <img src={normalizeImageSrc(u.profilePicture || 'https://placehold.co/40x40/cccccc/ffffff?text=U')} alt={uname} className="w-8 h-8 rounded-full mr-3" />
-                                  <div>
-                                    <div className="text-sm font-medium text-white">
-                                      {idx >= 0 ? (
-                                        <>
-                                          {uname.substring(0, idx)}
-                                          <span className="bg-yellow-200 px-1 rounded">{uname.substring(idx, idx + q.length)}</span>
-                                          {uname.substring(idx + q.length)}
-                                        </>
-                                      ) : uname}
-                                    </div>
-                                    <div className="text-xs text-gray-500 dark:text-gray-400">{u.role || 'user'}</div>
-                                  </div>
-                                </button>
-                                <div className="ml-2 w-full sm:w-auto">
-                                  {isFollowing ? (
-                                    <button onClick={() => handleUnfollow(u._id)} className="w-full sm:w-auto px-2 py-1 bg-white/10 border border-white/10 text-white rounded text-sm hover:bg-white/15">Unfollow</button>
-                                  ) : isSent ? (
-                                    <button onClick={() => handleDeclineRequest(u._id)} className="w-full sm:w-auto px-2 py-1 bg-red-500 text-white rounded text-sm">Cancel</button>
-                                  ) : (
-                                    <button onClick={() => { handleSelectSuggestion(u); handleAddFriend(); }} className="w-full sm:w-auto px-2 py-1 bg-gradient-to-r from-purple-500 to-[#167468] text-white rounded text-sm hover:opacity-95">Add</button>
-                                  )}
-                                </div>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      )}
+            {/* Social & Community (Mocked) */}            <PageSection title="Community Stats">
+              <div className="grid grid-cols-3 gap-3 sm:gap-4">
+                <button
+                  onClick={() => navigate('/user/dashboard/community', { state: { activeTab: 'followers' } })}
+                  className="group flex flex-col items-center justify-center p-4 rounded-xl sm:rounded-2xl bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 hover:border-teal-400/40 dark:hover:border-teal-400/30 hover:bg-gray-50 dark:hover:bg-white/10 shadow-sm transition duration-300 hover:scale-105 active:scale-98 cursor-pointer focus:outline-none"
+                >
+                  <h3 className="text-2xl sm:text-3xl font-extrabold text-teal-600 dark:text-teal-300 transition duration-300 group-hover:scale-110">
+                    {profileData.social?.followers || 0}
+                  </h3>
+                  <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mt-1 font-medium group-hover:text-gray-900 dark:group-hover:text-white transition duration-200">
+                    Followers
+                  </p>
+                  <span className="text-[10px] text-teal-600/70 dark:text-teal-400/70 mt-1.5 opacity-80 group-hover:opacity-100 transition duration-200">
+                    View list →
+                  </span>
+                </button>
 
-                      {/* If an exact user is selected or matched, show exist message */}
-                      {selectedUser && (
-                        <div className="mt-2 text-sm text-emerald-300">User <span className="font-semibold">{selectedUser.username}</span> exists. Click add to send a request.</div>
-                      )}
-                      {/* If no matches and input present */}
-                      {!searching && friendInput && filteredUsers.length === 0 && (
-                        <div className="mt-2 text-sm text-gray-500 dark:text-gray-400">No users found with "{friendInput}"</div>
-                      )}
-                    </div>
-                  {requestSent && (
-                    <p className="mt-2 text-sm text-green-600 text-center">
-                      Friend request sent!
-                    </p>
-                  )}
-                </div>
+                <button
+                  onClick={() => navigate('/user/dashboard/community', { state: { activeTab: 'following' } })}
+                  className="group flex flex-col items-center justify-center p-4 rounded-xl sm:rounded-2xl bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 hover:border-teal-400/40 dark:hover:border-teal-400/30 hover:bg-gray-50 dark:hover:bg-white/10 shadow-sm transition duration-300 hover:scale-105 active:scale-98 cursor-pointer focus:outline-none"
+                >
+                  <h3 className="text-2xl sm:text-3xl font-extrabold text-teal-600 dark:text-teal-300 transition duration-300 group-hover:scale-110">
+                    {profileData.social?.following || 0}
+                  </h3>
+                  <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mt-1 font-medium group-hover:text-gray-900 dark:group-hover:text-white transition duration-200">
+                    Following
+                  </p>
+                  <span className="text-[10px] text-teal-600/70 dark:text-teal-400/70 mt-1.5 opacity-80 group-hover:opacity-100 transition duration-200">
+                    View list →
+                  </span>
+                </button>
+
+                <button
+                  onClick={() => navigate('/user/dashboard/community', { state: { activeTab: 'friends' } })}
+                  className="group flex flex-col items-center justify-center p-4 rounded-xl sm:rounded-2xl bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 hover:border-teal-400/40 dark:hover:border-teal-400/30 hover:bg-gray-50 dark:hover:bg-white/10 shadow-sm transition duration-300 hover:scale-105 active:scale-98 cursor-pointer focus:outline-none"
+                >
+                  <h3 className="text-2xl sm:text-3xl font-extrabold text-teal-600 dark:text-teal-300 transition duration-300 group-hover:scale-110">
+                    {profileData.social?.friends?.length || 0}
+                  </h3>
+                  <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mt-1 font-medium group-hover:text-gray-900 dark:group-hover:text-white transition duration-200">
+                    Friends
+                  </p>
+                  <span className="text-[10px] text-teal-600/70 dark:text-teal-400/70 mt-1.5 opacity-80 group-hover:opacity-100 transition duration-200">
+                    View list →
+                  </span>
+                </button>
               </div>
             </PageSection>
           </div>
