@@ -3,6 +3,7 @@
 
 // src/components/QuizzesPage.jsx
 import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
     Code as CodeIcon,
     Binary as BinaryIcon,
@@ -202,6 +203,7 @@ const SkeletonCard = () => (
 
 const QuizzesPage = () => {
     const canvasRef = useRef(null);
+    const navigate = useNavigate();
 
     // Get currentUser and openModal from contexts
     const { currentUser } = useAuth();
@@ -218,6 +220,10 @@ const QuizzesPage = () => {
     const [isOptionSelected, setIsOptionSelected] = useState(false);
 
     const [customTopic, setCustomTopic] = useState('');
+    const [numQuestions, setNumQuestions] = useState(5);
+    const [difficulty, setDifficulty] = useState('Intermediate');
+    const [isTimed, setIsTimed] = useState(false);
+    const [durationMin, setDurationMin] = useState(10);
     const [isGeneratingQuiz, setIsGeneratingQuiz] = useState(false);
     const [generationError, setGenerationError] = useState('');
 
@@ -353,6 +359,7 @@ const QuizzesPage = () => {
     const handleGenerateCustomQuiz = async () => {
         if (!currentUser) {
             showToast('You must be logged in to generate custom quizzes.', 'info');
+            navigate('/auth');
             return;
         }
         if (!customTopic.trim()) {
@@ -370,7 +377,11 @@ const QuizzesPage = () => {
                     'Content-Type': 'application/json',
                 },
                 credentials: 'include',
-                body: JSON.stringify({ topic: customTopic, num_questions: 5 }),
+                body: JSON.stringify({
+                    topic: customTopic,
+                    num_questions: numQuestions,
+                    difficulty: difficulty
+                }),
             });
 
             if (!response.ok) {
@@ -386,8 +397,8 @@ const QuizzesPage = () => {
             const newQuizId = `generated-${Date.now()}`;
             const newQuiz = {
                 _id: newQuizId,
-                title: `${customTopic} Quiz (AI Generated)`,
-                description: `A dynamically generated quiz on "${customTopic}" by AI.`,
+                title: `${customTopic} Quiz (${difficulty})`,
+                description: `A dynamically generated ${difficulty.toLowerCase()}-level quiz on "${customTopic}" by AI.`,
                 icon: 'SparklesIcon',
                 questions: data.quiz.map(q => ({
                     ...q,
@@ -399,8 +410,8 @@ const QuizzesPage = () => {
                 noOfQuestions: data.quiz.length,
                 totalMarks: data.quiz.length * 10,
                 passMark: data.quiz.length * 7,
-                duration: 'No Limit',
-                isTimedQuiz: false,
+                duration: isTimed ? `${durationMin} Minutes` : 'No Limit',
+                isTimedQuiz: isTimed,
                 attemptsCount: 0,
                 totalScoreSum: 0,
                 isReleased: true,
@@ -410,6 +421,10 @@ const QuizzesPage = () => {
             setAllQuizzes(prev => [...prev, newQuiz]);
             setSelectedQuizId(newQuizId);
             setCustomTopic('');
+            setNumQuestions(5);
+            setDifficulty('Intermediate');
+            setIsTimed(false);
+            setDurationMin(10);
         } catch (err) {
             console.error("Error fetching generated quiz:", err);
             setGenerationError(err.message);
@@ -526,7 +541,7 @@ const QuizzesPage = () => {
                         {/* ===== AI Quiz Generator ===== */}
                         <div className="mb-10 opacity-0 animate-fade-in-up" style={{ animationDelay: '0.1s', animationFillMode: 'forwards' }}>
                             <div className="max-w-3xl mx-auto bg-white dark:bg-slate-900/40 backdrop-blur-md border border-gray-200 dark:border-slate-800/80 rounded-3xl p-6 shadow-xl">
-                                <div className="flex items-center gap-3 mb-4">
+                                <div className="flex items-center gap-3 mb-5">
                                     <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500 to-pink-600 flex items-center justify-center shadow-lg shadow-violet-500/20">
                                         <SparklesIcon className="h-5 w-5 text-white" />
                                     </div>
@@ -535,38 +550,109 @@ const QuizzesPage = () => {
                                         <p className="text-xs text-gray-500 dark:text-slate-400">Create personalized quizzes on any topic</p>
                                     </div>
                                 </div>
-                                <div className="flex flex-col sm:flex-row gap-3">
-                                    <input
-                                        type="text"
-                                        value={customTopic}
-                                        onChange={(e) => setCustomTopic(e.target.value)}
-                                        onKeyDown={(e) => e.key === 'Enter' && handleGenerateCustomQuiz()}
-                                        placeholder="Enter a topic (e.g., 'Machine Learning', 'React Hooks')"
-                                        disabled={isGeneratingQuiz || !currentUser}
-                                        className="flex-1 px-4 py-2.5 rounded-xl border border-gray-200 dark:border-slate-800 bg-gray-50 dark:bg-slate-950/60 text-gray-900 dark:text-slate-100 text-sm placeholder:text-gray-500 focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500/50 focus:outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                                    />
-                                    <button
-                                        onClick={handleGenerateCustomQuiz}
-                                        disabled={isGeneratingQuiz || !customTopic.trim() || !currentUser}
-                                        className="relative overflow-hidden px-5 py-2.5 text-sm font-bold text-white bg-gradient-to-r from-violet-600 to-pink-600 rounded-xl hover:shadow-[0_0_25px_rgba(139,92,246,0.3)] hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-none transition-all duration-300 flex items-center gap-2 justify-center min-w-[160px]"
-                                    >
-                                        {isGeneratingQuiz ? (
-                                            <>
-                                                <Loader2 className="h-4 w-4 animate-spin" />
-                                                Generating...
-                                            </>
-                                        ) : (
-                                            <>
-                                                <SparklesIcon className="h-4 w-4" />
-                                                {currentUser ? 'Generate Quiz' : 'Login Required'}
-                                            </>
-                                        )}
-                                        {/* Shimmer overlay */}
-                                        {!isGeneratingQuiz && currentUser && customTopic.trim() && (
-                                            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent animate-shimmer" style={{ backgroundSize: '200% 100%' }} />
-                                        )}
-                                    </button>
+
+                                <div className="space-y-4">
+                                    {/* Topic Field */}
+                                    <div className="flex flex-col gap-1.5">
+                                        <label className="text-xs font-bold text-gray-700 dark:text-slate-350">Topic / Subject</label>
+                                        <input
+                                            type="text"
+                                            value={customTopic}
+                                            onChange={(e) => setCustomTopic(e.target.value)}
+                                            onKeyDown={(e) => e.key === 'Enter' && handleGenerateCustomQuiz()}
+                                            placeholder="Enter a topic (e.g., 'Machine Learning', 'React Hooks')"
+                                            disabled={isGeneratingQuiz}
+                                            className="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-slate-800 bg-gray-50 dark:bg-slate-950/60 text-gray-900 dark:text-slate-100 text-sm placeholder:text-gray-500 focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500/50 focus:outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                                        />
+                                    </div>
+
+                                    {/* Grid for Parameters */}
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+                                        {/* Number of Questions */}
+                                        <div className="flex flex-col gap-1.5">
+                                            <label className="text-xs font-bold text-gray-700 dark:text-slate-350">Questions</label>
+                                            <select
+                                                value={numQuestions}
+                                                onChange={(e) => setNumQuestions(Number(e.target.value))}
+                                                disabled={isGeneratingQuiz}
+                                                className="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-slate-800 bg-white dark:bg-slate-950/60 text-gray-900 dark:text-slate-100 text-sm focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500/50 focus:outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                                            >
+                                                <option value={3} className="bg-white dark:bg-slate-900 text-gray-900 dark:text-white">3 Questions</option>
+                                                <option value={5} className="bg-white dark:bg-slate-900 text-gray-900 dark:text-white">5 Questions</option>
+                                                <option value={8} className="bg-white dark:bg-slate-900 text-gray-900 dark:text-white">8 Questions</option>
+                                                <option value={10} className="bg-white dark:bg-slate-900 text-gray-900 dark:text-white">10 Questions</option>
+                                            </select>
+                                        </div>
+
+                                        {/* Difficulty */}
+                                        <div className="flex flex-col gap-1.5">
+                                            <label className="text-xs font-bold text-gray-700 dark:text-slate-350">Difficulty</label>
+                                            <select
+                                                value={difficulty}
+                                                onChange={(e) => setDifficulty(e.target.value)}
+                                                disabled={isGeneratingQuiz}
+                                                className="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-slate-800 bg-white dark:bg-slate-950/60 text-gray-900 dark:text-slate-100 text-sm focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500/50 focus:outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                                            >
+                                                <option value="Beginner" className="bg-white dark:bg-slate-900 text-gray-900 dark:text-white">Beginner</option>
+                                                <option value="Intermediate" className="bg-white dark:bg-slate-900 text-gray-900 dark:text-white">Intermediate</option>
+                                                <option value="Advanced" className="bg-white dark:bg-slate-900 text-gray-900 dark:text-white">Advanced</option>
+                                            </select>
+                                        </div>
+
+                                        {/* Timing Style */}
+                                        <div className="flex flex-col gap-1.5">
+                                            <label className="text-xs font-bold text-gray-700 dark:text-slate-350">Timing</label>
+                                            <select
+                                                value={isTimed ? 'Timed' : 'NoLimit'}
+                                                onChange={(e) => setIsTimed(e.target.value === 'Timed')}
+                                                disabled={isGeneratingQuiz}
+                                                className="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-slate-800 bg-white dark:bg-slate-950/60 text-gray-900 dark:text-slate-100 text-sm focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500/50 focus:outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                                            >
+                                                <option value="NoLimit" className="bg-white dark:bg-slate-900 text-gray-900 dark:text-white">No Time Limit</option>
+                                                <option value="Timed" className="bg-white dark:bg-slate-900 text-gray-900 dark:text-white">Timed Quiz</option>
+                                            </select>
+                                        </div>
+
+                                        {/* Duration */}
+                                        <div className="flex flex-col gap-1.5">
+                                            <label className="text-xs font-bold text-gray-700 dark:text-slate-350">Duration (Mins)</label>
+                                            <input
+                                                type="number"
+                                                value={durationMin}
+                                                onChange={(e) => setDurationMin(Math.max(1, Number(e.target.value)))}
+                                                disabled={isGeneratingQuiz || !isTimed}
+                                                min="1"
+                                                className="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-slate-800 bg-gray-50 dark:bg-slate-950/60 text-gray-900 dark:text-slate-100 text-sm focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500/50 focus:outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    {/* Action Button */}
+                                    <div className="flex justify-end pt-2">
+                                        <button
+                                            onClick={handleGenerateCustomQuiz}
+                                            disabled={isGeneratingQuiz || (currentUser && !customTopic.trim())}
+                                            className="relative overflow-hidden w-full sm:w-auto px-6 py-3 text-sm font-bold text-white bg-gradient-to-r from-violet-600 to-pink-650 rounded-xl hover:shadow-[0_0_25px_rgba(139,92,246,0.3)] hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-none transition-all duration-300 flex items-center gap-2 justify-center min-w-[200px]"
+                                        >
+                                            {isGeneratingQuiz ? (
+                                                <>
+                                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                                    Generating Quiz...
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <SparklesIcon className="h-4 w-4" />
+                                                    {currentUser ? 'Generate Quiz' : 'Login Required'}
+                                                </>
+                                            )}
+                                            {/* Shimmer overlay */}
+                                            {!isGeneratingQuiz && (customTopic.trim() || !currentUser) && (
+                                                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent animate-shimmer" style={{ backgroundSize: '200% 100%' }} />
+                                            )}
+                                        </button>
+                                    </div>
                                 </div>
+
                                 {generationError && (
                                     <div className="mt-3 p-3 bg-rose-950/30 border border-rose-500/20 rounded-xl animate-slide-down">
                                         <p className="text-rose-650 dark:text-rose-400 text-xs font-medium">{generationError}</p>

@@ -68,6 +68,17 @@ const activateSubscription = async (userId, dbOrder) => {
     };
 
     await user.save();
+
+    // Populate schema extension fields on the Order
+    dbOrder.startDate = startDate;
+    dbOrder.endDate = endDate;
+    dbOrder.planType = planName;
+    if (!dbOrder.gatewayOrderId) dbOrder.gatewayOrderId = dbOrder.razorpayOrderId;
+    if (!dbOrder.gatewayPaymentId) dbOrder.gatewayPaymentId = dbOrder.razorpayPaymentId;
+    if (!dbOrder.gatewaySignature) dbOrder.gatewaySignature = dbOrder.razorpaySignature;
+    
+    await dbOrder.save();
+
     return user;
 };
 

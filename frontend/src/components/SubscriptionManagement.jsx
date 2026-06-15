@@ -75,7 +75,8 @@ const SubscriptionManagement = () => {
         featuresRaw: '',
         isPopular: false,
         isForumPremium: false,
-        active: true
+        active: true,
+        quizLimit: 3
     });
     const [editingPlan, setEditingPlan] = useState(null);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -172,7 +173,8 @@ const SubscriptionManagement = () => {
             features,
             isPopular: newPlan.isPopular,
             isForumPremium: newPlan.isForumPremium,
-            active: newPlan.active
+            active: newPlan.active,
+            quizLimit: parseInt(newPlan.quizLimit) || 3
         };
 
         try {
@@ -201,7 +203,8 @@ const SubscriptionManagement = () => {
                     featuresRaw: '',
                     isPopular: false,
                     isForumPremium: false,
-                    active: true
+                    active: true,
+                    quizLimit: 3
                 });
                 setFormMessage({ type: 'success', text: 'Subscription plan added successfully!' });
                 setIsAddModalOpen(false);
@@ -219,7 +222,8 @@ const SubscriptionManagement = () => {
     const startEditingPlan = (plan) => {
         setEditingPlan({
             ...plan,
-            featuresRaw: plan.features ? plan.features.join('\n') : ''
+            featuresRaw: plan.features ? plan.features.join('\n') : '',
+            quizLimit: plan.quizLimit !== undefined ? plan.quizLimit : 3
         });
         setIsEditModalOpen(true);
     };
@@ -255,7 +259,8 @@ const SubscriptionManagement = () => {
             features,
             isPopular: editingPlan.isPopular,
             isForumPremium: editingPlan.isForumPremium,
-            active: editingPlan.active
+            active: editingPlan.active,
+            quizLimit: parseInt(editingPlan.quizLimit) || 3
         };
 
         try {
@@ -829,6 +834,7 @@ const SubscriptionManagement = () => {
                                         <th className="admin-table-th">Type</th>
                                         <th className="admin-table-th">Monthly</th>
                                         <th className="admin-table-th">Yearly</th>
+                                        <th className="admin-table-th">Quiz Limit</th>
                                         <th className="admin-table-th">Popular / Forum</th>
                                         <th className="admin-table-th">Status</th>
                                         <th className="admin-table-th rounded-tr-lg">Actions</th>
@@ -841,6 +847,7 @@ const SubscriptionManagement = () => {
                                             <td className="admin-table-td capitalize" data-label="Type">{plan.planType}</td>
                                             <td className="admin-table-td" data-label="Monthly">₹{plan.monthlyPrice}</td>
                                             <td className="admin-table-td" data-label="Yearly">₹{plan.yearlyPrice}</td>
+                                            <td className="admin-table-td" data-label="Quiz Limit">{plan.quizLimit !== undefined ? plan.quizLimit : 3}</td>
                                             <td className="admin-table-td" data-label="Popular / Forum">
                                                 <div className="badges-list">
                                                     {plan.isPopular && <span className="badge badge-popular">Popular</span>}
@@ -907,6 +914,11 @@ const SubscriptionManagement = () => {
                                         <div className="form-group">
                                             <label htmlFor="newPlanYearlyPrice" className="form-label font-medium">Yearly Price (₹)</label>
                                             <input type="number" id="newPlanYearlyPrice" value={newPlan.yearlyPrice} onChange={(e) => setNewPlan({ ...newPlan, yearlyPrice: e.target.value })} required className="form-input" placeholder="290" />
+                                        </div>
+
+                                        <div className="form-group">
+                                            <label htmlFor="newPlanQuizLimit" className="form-label font-medium">Quiz Generation Limit</label>
+                                            <input type="number" id="newPlanQuizLimit" value={newPlan.quizLimit} onChange={(e) => setNewPlan({ ...newPlan, quizLimit: e.target.value })} required className="form-input" placeholder="3" />
                                         </div>
                                     </div>
                     
@@ -1238,6 +1250,11 @@ const SubscriptionManagement = () => {
                                 <div className="form-group">
                                     <label htmlFor="editPlanYearlyPrice" className="form-label">Yearly Price (₹)</label>
                                     <input type="number" id="editPlanYearlyPrice" name="yearlyPrice" value={editingPlan.yearlyPrice} onChange={handleEditChange} required className="form-input" />
+                                </div>
+
+                                <div className="form-group">
+                                    <label htmlFor="editPlanQuizLimit" className="form-label">Quiz Generation Limit</label>
+                                    <input type="number" id="editPlanQuizLimit" name="quizLimit" value={editingPlan.quizLimit} onChange={handleEditChange} required className="form-input" />
                                 </div>
                             </div>
 

@@ -68,6 +68,7 @@ app.use(helmet()); // NEW: Sets various HTTP headers for security
 // Configure CORS to allow credentials (for cookies) from the frontend
 const allowedOrigins = [
     'http://localhost:5173',
+    'http://localhost:5174',
     'https://educational-website-platform.vercel.app',
     'https://educational-website-platform.onrender.com',
     process.env.FRONTEND_URL,
@@ -75,6 +76,7 @@ const allowedOrigins = [
 
 // Allow common preview domains so Vercel preview links work (and future custom domain)
 const allowedOriginPatterns = [
+    /^http:\/\/localhost(:\d+)?$/,
     /\.vercel\.app$/,
     /\.onrender\.com$/,
 ];
@@ -142,7 +144,19 @@ app.use('/api', (req, res, next) => {
 mongoose.connect(process.env.MONGO_URI)
 .then(() => {
     console.log('MongoDB connected successfully');
-    seedSubscriptionPlans();
+    seedSubscriptionPlans().then(async () => {
+        try {
+            const result = await SubscriptionPlan.updateMany(
+                { quizLimit: { $exists: false } },
+                { $set: { quizLimit: 3 } }
+            );
+            if (result.modifiedCount > 0) {
+                console.log(`Migration: Updated ${result.modifiedCount} subscription plans with default quizLimit.`);
+            }
+        } catch (migrationErr) {
+            console.error('Migration failed:', migrationErr);
+        }
+    });
 })
 .catch(err => console.error('MongoDB connection error:', err));
 

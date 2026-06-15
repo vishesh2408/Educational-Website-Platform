@@ -13,6 +13,7 @@ const subscriptionPlanSchema = new mongoose.Schema({
     features: [{ type: String }],
     isPopular: { type: Boolean, default: false },
     isForumPremium: { type: Boolean, default: false },
+    quizLimit: { type: Number, default: 3 },
     active: { type: Boolean, default: true },
     freeFor: {
         users: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }]

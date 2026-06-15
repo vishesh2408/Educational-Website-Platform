@@ -21,6 +21,7 @@ const seedSubscriptionPlans = async () => {
                     ],
                     isPopular: false,
                     isForumPremium: false,
+                    quizLimit: 3,
                     active: true
                 },
                 {
@@ -41,6 +42,7 @@ const seedSubscriptionPlans = async () => {
                     ],
                     isPopular: true,
                     isForumPremium: false,
+                    quizLimit: 3,
                     active: true
                 },
                 {
@@ -61,6 +63,7 @@ const seedSubscriptionPlans = async () => {
                     ],
                     isPopular: false,
                     isForumPremium: false,
+                    quizLimit: 3,
                     active: true
                 },
                 {
@@ -79,6 +82,7 @@ const seedSubscriptionPlans = async () => {
                     ],
                     isPopular: false,
                     isForumPremium: true,
+                    quizLimit: 3,
                     active: true
                 }
             ];

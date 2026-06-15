@@ -27,6 +27,26 @@ const orderSchema = new mongoose.Schema({
     razorpaySignature: { 
         type: String 
     },
+    gatewayOrderId: {
+        type: String,
+        unique: true,
+        sparse: true
+    },
+    gatewayPaymentId: {
+        type: String
+    },
+    gatewaySignature: {
+        type: String
+    },
+    planType: {
+        type: String,
+        enum: ['starter', 'professional', 'enterprise'],
+        required: false
+    },
+    currency: {
+        type: String,
+        default: 'INR'
+    },
     amount: { 
         type: Number, 
         required: true 
@@ -35,6 +55,9 @@ const orderSchema = new mongoose.Schema({
         type: String, 
         enum: ['pending', 'paid', 'failed'], 
         default: 'pending' 
+    },
+    startDate: {
+        type: Date
     },
     endDate: {
         type: Date

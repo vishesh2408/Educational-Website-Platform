@@ -124,6 +124,8 @@ const userSchema = new mongoose.Schema({
       publicVisibility: { type: String, enum: ['public','friends'], default: 'friends' }
     },
 
+    quizzesGenerated: { type: Number, default: 0 },
+
     // Subscription/Plan fields
     subscription: {
         plan: { 
