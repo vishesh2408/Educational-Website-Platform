@@ -1,0 +1,12 @@
+{
+  "name": "myedu-root",
+  "version": "1.0.0",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "scripts": {
+    "postinstall": "npm --prefix backend install",
+    "build": "echo 'No build step required'",
+    "start": "npm --prefix backend start"
+  }
+}
