@@ -237,6 +237,84 @@ app.get('/api/debug/db-info', (req, res) => {
 });
 
 
+// Temporary debug route to expose deployment information
+app.get('/api/debug/deploy-info', (req, res) => {
+    try {
+        const fs = require('fs');
+        const path = require('path');
+        const { execSync } = require('child_process');
+
+        let gitCommit = 'N/A';
+        try {
+            gitCommit = execSync('git rev-parse HEAD', { encoding: 'utf8' }).trim();
+        } catch (e) {
+            gitCommit = 'Exec failed: ' + e.message;
+            // Try reading refs directly
+            try {
+                const gitHeadPath = path.join(__dirname, '.git', 'HEAD');
+                if (fs.existsSync(gitHeadPath)) {
+                    const headContent = fs.readFileSync(gitHeadPath, 'utf8').trim();
+                    if (headContent.startsWith('ref:')) {
+                        const refPath = path.join(__dirname, '.git', headContent.split(' ')[1]);
+                        if (fs.existsSync(refPath)) {
+                            gitCommit = fs.readFileSync(refPath, 'utf8').trim();
+                        }
+                    }
+                }
+            } catch (fsErr) {
+                gitCommit += ' / FS check failed: ' + fsErr.message;
+            }
+        }
+
+        let courseRoutesSize = -1;
+        let courseRoutesLines = -1;
+        let courseRoutesExists = false;
+        try {
+            const crPath = path.join(__dirname, 'routes', 'CourseRoutes.js');
+            if (fs.existsSync(crPath)) {
+                courseRoutesExists = true;
+                const stats = fs.statSync(crPath);
+                courseRoutesSize = stats.size;
+                const content = fs.readFileSync(crPath, 'utf8');
+                courseRoutesLines = content.split('\n').length;
+            }
+        } catch (err) {
+            console.error(err);
+        }
+
+        // List files in routes directory
+        let routesFiles = [];
+        try {
+            const routesDir = path.join(__dirname, 'routes');
+            if (fs.existsSync(routesDir)) {
+                routesFiles = fs.readdirSync(routesDir);
+            }
+        } catch (err) {
+            console.error(err);
+        }
+
+        res.json({
+            timestamp: new Date().toISOString(),
+            gitCommit,
+            courseRoutes: {
+                exists: courseRoutesExists,
+                size: courseRoutesSize,
+                lines: courseRoutesLines,
+            },
+            routesFiles,
+            env: {
+                NODE_ENV: process.env.NODE_ENV,
+                PORT: process.env.PORT,
+            }
+        });
+    } catch (err) {
+        console.error('Debug deploy-info route error:', err.message);
+        res.status(500).json({ error: 'Could not read deploy info', detail: err.message });
+    }
+});
+
+
+
 
 
 
