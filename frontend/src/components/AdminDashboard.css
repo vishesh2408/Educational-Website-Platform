@@ -261,8 +261,8 @@ body {
 }
 
 html.dark .admin-content-card {
-    background-color: var(--color-card-bg-light); /* Use dark mode card background */
-    border-color: var(--color-border-light);
+    background-color: var(--color-card-bg-dark); /* Use dark mode card background */
+    border-color: var(--color-border-dark);
 }
 
 .admin-welcome-header {
@@ -295,7 +295,7 @@ html.dark .admin-content-card {
 }
 
 html.dark .admin-welcome-title {
-    color: var(--color-text-light);
+    color: var(--color-text-dark);
 }
 
 .admin-welcome-username {
@@ -333,7 +333,7 @@ html.dark .admin-welcome-username {
 }
 
 html.dark .admin-welcome-text {
-    color: var(--color-text-muted-light);
+    color: var(--color-text-muted-dark);
 }
 
 /* --- Section Titles within Admin Dashboard --- */
@@ -350,7 +350,7 @@ html.dark .admin-welcome-text {
 }
 
 html.dark .admin-section-title {
-    color: var(--color-text-light);
+    color: var(--color-text-dark);
     border-color: var(--color-gray-700);
 }
 
@@ -380,7 +380,7 @@ html.dark .admin-form-container {
 }
 
 html.dark .form-label {
-    color: var(--color-text-muted-light);
+    color: var(--color-text-muted-dark);
 }
 
 .form-input,
@@ -411,7 +411,7 @@ html.dark .form-textarea,
 html.dark .form-select {
     background-color: var(--color-gray-600);
     border-color: var(--color-gray-500);
-    color: var(--color-text-light);
+    color: var(--color-text-dark);
 }
 
 html.dark .form-input::placeholder,
@@ -923,7 +923,7 @@ html.dark .modal-header {
 }
 
 html.dark .modal-title {
-    color: var(--color-text-light);
+    color: var(--color-text-dark);
 }
 
 .modal-close-button {
@@ -957,7 +957,7 @@ html.dark .modal-close-button:hover {
 }
 
 html.dark .modal-message-text {
-    color: var(--color-text-muted-light);
+    color: var(--color-text-muted-dark);
 }
 
 .modal-actions-footer {
@@ -1045,7 +1045,7 @@ html.dark .stats-modal-header {
 }
 
 html.dark .stats-modal-title {
-    color: var(--color-text-light);
+    color: var(--color-text-dark);
 }
 
 .stats-grid {
@@ -1080,7 +1080,7 @@ html.dark .stats-summary-card {
 }
 
 html.dark .stats-summary-title {
-    color: var(--color-text-light);
+    color: var(--color-text-dark);
 }
 
 .stats-summary-text {
@@ -1088,7 +1088,7 @@ html.dark .stats-summary-title {
 }
 
 html.dark .stats-summary-text {
-    color: var(--color-text-muted-light);
+    color: var(--color-text-muted-dark);
 }
 
 .stats-highlight-teal {
@@ -1131,7 +1131,7 @@ html.dark .chart-card {
 }
 
 html.dark .chart-title {
-    color: var(--color-text-light);
+    color: var(--color-text-dark);
 }
 
 .chart-responsive-container {
@@ -1152,7 +1152,7 @@ html.dark .chart-grid-stroke {
 }
 
 html.dark .chart-axis-tick {
-    fill: var(--color-text-light);
+    fill: var(--color-text-dark);
 }
 
 .chart-tooltip-content {
@@ -1162,9 +1162,9 @@ html.dark .chart-axis-tick {
 }
 
 html.dark .chart-tooltip-content {
-    background-color: var(--color-card-bg-light);
-    border-color: var(--color-border-light);
-    color: var(--color-text-light);
+    background-color: var(--color-card-bg-dark);
+    border-color: var(--color-border-dark);
+    color: var(--color-text-dark);
 }
 
 .chart-legend-wrapper {
@@ -1172,7 +1172,7 @@ html.dark .chart-tooltip-content {
 }
 
 html.dark .chart-legend-wrapper {
-    color: var(--color-text-light);
+    color: var(--color-text-dark);
 }
 
 /* Specific bar/pie colors for charts */
@@ -1257,7 +1257,7 @@ html.dark .admin-quiz-nav {
 }
 
 html.dark .admin-quiz-nav-title {
-    color: var(--color-text-light);
+    color: var(--color-text-dark);
 }
 
 .admin-quiz-nav-actions {
@@ -1296,7 +1296,7 @@ html.dark .admin-quiz-nav-title {
 html.dark .admin-quiz-nav-input {
     background-color: var(--color-gray-700);
     border-color: var(--color-gray-600);
-    color: var(--color-text-light);
+    color: var(--color-text-dark);
 }
 
 .admin-quiz-nav-button {
@@ -1436,7 +1436,7 @@ html.dark .admin-quiz-list-item {
 }
 
 html.dark .admin-quiz-title {
-    color: var(--color-text-light);
+    color: var(--color-text-dark);
 }
 
 .admin-quiz-course-name {
@@ -1469,7 +1469,7 @@ html.dark .admin-quiz-details-row {
 }
 
 html.dark .admin-quiz-detail-item {
-    color: var(--color-text-light);
+    color: var(--color-text-dark);
 }
 
 .admin-quiz-detail-icon {
@@ -1679,7 +1679,7 @@ html.dark .admin-form-question-builder {
 html.dark .admin-question-list-item {
     background-color: var(--color-gray-700);
     border-color: var(--color-gray-600);
-    color: var(--color-text-light);
+    color: var(--color-text-dark);
 }
 
 .admin-question-actions {
@@ -1768,8 +1768,8 @@ html.dark .admin-form-footer-buttons {
 /* Removed legacy Quill overrides (editor replaced with CodeMirror/CourseEditor) */
 
 html.dark .ql-snow .ql-stroke, html.dark .ql-snow .ql-fill {
-    stroke: var(--color-text-muted-light);
-    fill: var(--color-text-muted-light);
+    stroke: var(--color-text-muted-dark);
+    fill: var(--color-text-muted-dark);
 }
 
 .ql-snow .ql-picker-label {
@@ -1777,7 +1777,7 @@ html.dark .ql-snow .ql-stroke, html.dark .ql-snow .ql-fill {
 }
 
 html.dark .ql-snow .ql-picker-label {
-    color: var(--color-text-light);
+    color: var(--color-text-dark);
 }
 
 .ql-snow .ql-active .ql-stroke, .ql-snow .ql-active .ql-fill {
@@ -1804,7 +1804,7 @@ html.dark .ql-snow .ql-picker.ql-expanded .ql-picker-options {
 html.dark .ql-tooltip {
     background-color: var(--color-gray-800);
     border-color: var(--color-gray-700);
-    color: var(--color-text-light);
+    color: var(--color-text-dark);
 }
 
 /* --- Subscription Section Styles --- */

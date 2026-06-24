@@ -14,8 +14,8 @@ const BarChart = ({ data, width = 400, height = 180, label }) => {
     const max = Math.max(...data.map(d => d.value), 1);
     const barWidth = Math.floor(width / data.length) - 8;
     return (
-        <div className="p-3 bg-white rounded shadow-sm">
-            <div className="text-sm font-medium mb-2">{label}</div>
+        <div className="p-3 bg-white dark:bg-gray-800 rounded shadow-sm">
+            <div className="text-sm font-medium mb-2 text-gray-900 dark:text-gray-100">{label}</div>
             <svg width={width} height={height}>
                 {data.map((d, i) => {
                     const barH = Math.round((d.value / max) * (height - 40));
@@ -24,8 +24,8 @@ const BarChart = ({ data, width = 400, height = 180, label }) => {
                     return (
                         <g key={d.label}>
                             <rect x={x} y={y} width={barWidth} height={barH} fill="#14b8a6" rx="4" />
-                            <text x={x + barWidth / 2} y={height - 6} fontSize="11" textAnchor="middle" fill="#334155">{d.label}</text>
-                            <text x={x + barWidth / 2} y={y - 6} fontSize="11" textAnchor="middle" fill="#0f172a">{d.value}</text>
+                            <text x={x + barWidth / 2} y={height - 6} fontSize="11" textAnchor="middle" className="fill-gray-600 dark:fill-gray-300">{d.label}</text>
+                            <text x={x + barWidth / 2} y={y - 6} fontSize="11" textAnchor="middle" className="fill-gray-900 dark:fill-gray-100">{d.value}</text>
                         </g>
                     );
                 })}
@@ -211,7 +211,7 @@ const AdminUserManagement = () => {
             <Toast toast={toast} onClose={() => setToast(null)} />
             <h2 className="text-2xl font-semibold mb-4">User Management</h2>
             <div className="space-y-4">
-                <div className="bg-white p-4 rounded shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div className="bg-white dark:bg-gray-800 p-4 rounded shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div className="flex flex-wrap items-center gap-3">
                         <input placeholder="Search by name or email" value={filterName} onChange={e => setFilterName(e.target.value)} className="p-2 border rounded w-full sm:w-64 dark:bg-gray-700 dark:border-gray-600 dark:text-white" />
                         <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)} className="p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white">
@@ -222,7 +222,7 @@ const AdminUserManagement = () => {
                         <button onClick={fetchUsers} className="px-3 py-2 bg-teal-600 hover:bg-teal-700 text-white rounded cursor-pointer transition-colors border-none font-medium">Refresh</button>
                         <button onClick={() => setSelectedUser({})} className="px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded font-medium transition-colors cursor-pointer border-none">New User</button>
                     </div>
-                    <div className="text-sm text-gray-500 whitespace-nowrap">Total users: {users.length}</div>
+                    <div className="text-sm text-gray-500 dark:text-gray-400 whitespace-nowrap">Total users: {users.length}</div>
                 </div>
 
                 <div className="admin-table-container">
