@@ -13,6 +13,10 @@ const tutorialTopicSchema = new mongoose.Schema({
     title: { type: String, required: true },
     order: { type: Number, required: true },
     articles: { type: [topicArticleSchema], default: [] },
+    videos: [{
+        title: { type: String, default: '' },
+        videoURL: { type: String, default: '' }
+    }],
     otherResources: [{ 
         name: { type: String }, 
         url: { type: String } 

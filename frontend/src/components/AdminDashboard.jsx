@@ -4,7 +4,7 @@ import { Routes, Route, useNavigate, useLocation, Navigate } from 'react-router-
 import {
     LayoutDashboard, Users, GraduationCap, BookOpen, Code, Award,
     MessageSquare, Briefcase, GitBranch, NotebookText, Settings,
-    LogOut, Info, HelpCircle, Library
+    LogOut, Info, HelpCircle, Library, Video, ClipboardList
 } from 'lucide-react';
 import Toast from './Toast';
 import { useAuth } from '../contexts/AuthContext';
@@ -23,6 +23,8 @@ import AdminUserManagement from './AdminUserManagement';
 import StaffManagement from './StaffManagement';
 import SettingsPage from './SettingsPage';
 import TutorialManagement from './TutorialManagement';
+import LiveClassManagement from './LiveClassManagement';
+import QuizAssignmentManagement from './QuizAssignmentManagement';
 import './AdminDashboard.css';
 
 const SidebarLink = ({ icon, label, active, onClick }) => (
@@ -69,8 +71,10 @@ const AdminDashboard = () => {
                         <SidebarLink icon={<GraduationCap size={18} />} label="Staff" active={activePath === 'staff'} onClick={() => navigate('/admin/staff')} />
                         <SidebarLink icon={<BookOpen size={18} />} label="Courses" active={activePath === 'courses'} onClick={() => navigate('/admin/courses')} />
                         <SidebarLink icon={<Library size={18} />} label="Tutorials" active={activePath === 'tutorials'} onClick={() => navigate('/admin/tutorials')} />
+                        <SidebarLink icon={<Video size={18} />} label="Live Classes" active={activePath === 'live-classes'} onClick={() => navigate('/admin/live-classes')} />
                         <SidebarLink icon={<Code size={18} />} label="Contests" active={activePath === 'contests'} onClick={() => navigate('/admin/contests')} />
                         <SidebarLink icon={<Award size={18} />} label="Quizzes" active={activePath === 'quizzes'} onClick={() => navigate('/admin/quizzes')} />
+                        <SidebarLink icon={<ClipboardList size={18} />} label="Quiz Assignments" active={activePath === 'quiz-assignments'} onClick={() => navigate('/admin/quiz-assignments')} />
                         <SidebarLink icon={<MessageSquare size={18} />} label="Forum Posts" active={activePath === 'forum-posts'} onClick={() => navigate('/admin/forum-posts')} />
                         <SidebarLink icon={<Briefcase size={18} />} label="Skills" active={activePath === 'skills'} onClick={() => navigate('/admin/skills')} />
                         <SidebarLink icon={<GitBranch size={18} />} label="Tracks" active={activePath === 'tracks'} onClick={() => navigate('/admin/tracks')} />
@@ -110,8 +114,10 @@ const AdminDashboard = () => {
                         <Route path="overview" element={<DashboardOverview />} />
                         <Route path="courses" element={<CourseManagement />} />
                         <Route path="tutorials" element={<TutorialManagement />} />
+                        <Route path="live-classes" element={<LiveClassManagement />} />
                         <Route path="contests" element={<ContestManagement />} />
                         <Route path="quizzes" element={<QuizManagement />} />
+                        <Route path="quiz-assignments" element={<QuizAssignmentManagement />} />
                         <Route path="forum-posts" element={<ForumPostManagement />} />
                         <Route path="forum-premiums" element={<AdminForumManagement />} />
                         <Route path="skills" element={<SkillManagement />} />

@@ -65,23 +65,31 @@ const ConfirmationModal = ({ show, title, message, onConfirm, onCancel, confirmT
 };
 
 // --- Topic Editor Modal Component ---
-const TopicEditorModal = ({ show, topic, onSave, onCancel, courseTitle, moduleTitle, isLoading }) => {
+const TopicEditorModal = ({ show, topic, onSave, onCancel, courseTitle, moduleTitle, isLoading, quizzes }) => {
     if (!show || !topic) return null;
 
     const [editedTopic, setEditedTopic] = useState(topic);
     const [resources, setResources] = useState(topic.otherResources || []);
     const [articles, setArticles] = useState(Array.isArray(topic.articles) ? topic.articles : []);
+    const [videos, setVideos] = useState(topic.videos || []);
 
     useEffect(() => {
         setEditedTopic(topic);
         setResources(topic.otherResources || []);
         setArticles(Array.isArray(topic.articles) ? topic.articles : []);
+        setVideos(topic.videos || []);
     }, [topic]);
 
     const handleResourceChange = (index, field, value) => {
         const newResources = [...resources];
         newResources[index][field] = value;
         setResources(newResources);
+    };
+
+    const handleVideoChange = (index, field, value) => {
+        const newVideos = [...videos];
+        newVideos[index][field] = value;
+        setVideos(newVideos);
     };
 
     const handleSave = (e) => {
@@ -94,6 +102,7 @@ const TopicEditorModal = ({ show, topic, onSave, onCancel, courseTitle, moduleTi
                     order: typeof a.order === 'number' ? a.order : idx,
                 }))
                 .filter((a) => (a.heading && String(a.heading).trim()) || (a.content && String(a.content).trim())),
+            videos: videos.filter(v => v.title && v.videoURL),
             otherResources: resources.filter(r => r.name && r.url)
         });
     };
@@ -188,14 +197,19 @@ const TopicEditorModal = ({ show, topic, onSave, onCancel, courseTitle, moduleTi
                                             />
                                         </div>
                                         <div className="form-group">
-                                            <label className="form-label">Linked Quiz ID (Optional)</label>
-                                            <input
-                                                type="text"
+                                            <label className="form-label">Linked Quiz (Optional)</label>
+                                            <select
                                                 value={article.quizId || ''}
-                                                onChange={(e) => updateArticle(index, { quizId: e.target.value })}
-                                                className="form-input"
-                                                placeholder="MongoDB Quiz ID"
-                                            />
+                                                onChange={(e) => updateArticle(index, { quizId: e.target.value || null })}
+                                                className="form-select"
+                                            >
+                                                <option value="">No Quiz Linked</option>
+                                                {Array.isArray(quizzes) && quizzes.map(quiz => (
+                                                    <option key={quiz._id} value={quiz._id}>
+                                                        {quiz.title}
+                                                    </option>
+                                                ))}
+                                            </select>
                                         </div>
                                     </div>
                                 </div>
@@ -209,6 +223,35 @@ const TopicEditorModal = ({ show, topic, onSave, onCancel, courseTitle, moduleTi
 
                     <button type="button" onClick={addArticle} className="admin-button-secondary w-full my-2">
                         + Add Article
+                    </button>
+
+                    <h4 className="font-bold mt-6 mb-2 text-lg text-gray-800 dark:text-gray-200">Videos</h4>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
+                        Allocate video lessons directly to this topic. These will show up in the student's Videos tab.
+                    </p>
+                    {videos.map((vid, index) => (
+                        <div key={index} className="flex gap-4 mb-2 items-center p-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-850">
+                            <input 
+                                type="text" 
+                                value={vid.title} 
+                                onChange={(e) => handleVideoChange(index, 'title', e.target.value)} 
+                                placeholder="Video Title"
+                                className="form-input flex-1"
+                                required
+                            />
+                            <input 
+                                type="url" 
+                                value={vid.videoURL} 
+                                onChange={(e) => handleVideoChange(index, 'videoURL', e.target.value)} 
+                                placeholder="Video URL (e.g., https://youtube.com/watch?v=...)"
+                                className="form-input flex-1"
+                                required
+                            />
+                            <button type="button" onClick={() => setVideos(videos.filter((_, i) => i !== index))} className="admin-action-button delete-button p-2"><Trash2 size={18} /></button>
+                        </div>
+                    ))}
+                    <button type="button" onClick={() => setVideos([...videos, { title: '', videoURL: '' }])} className="admin-button-secondary w-full my-2">
+                        + Add Video
                     </button>
                     
                     <h4 className="font-bold mt-4 mb-2 text-lg text-gray-800 dark:text-gray-200">Other Resources</h4>
@@ -290,6 +333,7 @@ const CourseManagement = () => {
     const [moduleToEdit, setModuleToEdit] = useState(null);
     const [topicToEdit, setTopicToEdit] = useState(null);
     const [isTopicEditModalOpen, setIsTopicEditModalOpen] = useState(false);
+    const [quizzes, setQuizzes] = useState([]);
 
     // Api Calls
     const fetchCourses = useCallback(async () => {
@@ -329,9 +373,25 @@ const CourseManagement = () => {
         }
     }, [logout]);
 
+    const fetchQuizzes = useCallback(async () => {
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/admin/quizzes`, {
+                headers: { 'content-type': 'application/json' },
+                credentials: 'include',
+            });
+            if (response.ok) {
+                const data = await response.json();
+                setQuizzes(data);
+            }
+        } catch (error) {
+            console.error('Error fetching quizzes:', error);
+        }
+    }, []);
+
     useEffect(() => {
         fetchCourses();
-    }, [fetchCourses]);
+        fetchQuizzes();
+    }, [fetchCourses, fetchQuizzes]);
 
     // Course Handlers: Create, Edit, Delete
     const handleAddCourse = async (e) => {
@@ -1122,6 +1182,7 @@ const CourseManagement = () => {
                 courseTitle={editingCourse?.title || 'N/A'}
                 moduleTitle={moduleToEdit?.title || 'N/A'}
                 isLoading={isLoading}
+                quizzes={quizzes}
             />
         </>
     );

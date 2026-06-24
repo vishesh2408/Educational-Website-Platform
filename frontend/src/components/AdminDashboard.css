@@ -351,7 +351,7 @@ html.dark .admin-welcome-text {
 
 html.dark .admin-section-title {
     color: var(--color-text-dark);
-    border-color: var(--color-gray-700);
+    border-color: var(--color-border);
 }
 
 /* --- Form Styles --- */
@@ -364,7 +364,7 @@ html.dark .admin-section-title {
 }
 
 html.dark .admin-form-container {
-    background-color: var(--color-gray-700);
+    background-color: var(--color-gray-100);
 }
 
 .form-group {
@@ -409,8 +409,8 @@ html.dark .form-label {
 html.dark .form-input,
 html.dark .form-textarea,
 html.dark .form-select {
-    background-color: var(--color-gray-600);
-    border-color: var(--color-gray-500);
+    background-color: var(--color-bg);
+    border-color: var(--color-border);
     color: var(--color-text-dark);
 }
 
@@ -564,8 +564,8 @@ html.dark .admin-note-preview {
 }
 
 html.dark .form-checkbox {
-    background-color: var(--color-gray-600);
-    border-color: var(--color-gray-500);
+    background-color: var(--color-bg);
+    border-color: var(--color-border);
 }
 
 .form-submit-button {
@@ -661,7 +661,7 @@ html.dark .form-checkbox {
 }
 
 html.dark .admin-table {
-    background-color: var(--color-gray-800);
+    background-color: var(--color-card-bg);
 }
 
 .admin-table-thead {
@@ -669,7 +669,7 @@ html.dark .admin-table {
 }
 
 html.dark .admin-table-thead {
-    background-color: var(--color-gray-700);
+    background-color: var(--color-gray-100);
 }
 
 .admin-table-th {
@@ -695,7 +695,7 @@ html.dark .admin-table-th {
 }
 
 html.dark .admin-table-tr:hover {
-    background-color: var(--color-gray-700);
+    background-color: var(--color-gray-200);
 }
 
 .admin-table-td {
@@ -707,8 +707,8 @@ html.dark .admin-table-tr:hover {
 }
 
 html.dark .admin-table-td {
-    color: var(--color-gray-100);
-    border-color: var(--color-gray-700);
+    color: var(--color-gray-800);
+    border-color: var(--color-border);
 }
 
 .admin-table-td:last-child {
@@ -762,7 +762,7 @@ html.dark .admin-action-button.edit-button {
 
 html.dark .admin-action-button.edit-button:hover {
     color: var(--color-blue-200);
-    background-color: var(--color-gray-700);
+    background-color: var(--color-gray-200);
 }
 
 .admin-action-button.delete-button {
@@ -780,7 +780,7 @@ html.dark .admin-action-button.delete-button {
 
 html.dark .admin-action-button.delete-button:hover {
     color: var(--color-red-200);
-    background-color: var(--color-gray-700);
+    background-color: var(--color-gray-200);
 }
 
 .admin-action-button.admin-action-button-info {
@@ -793,7 +793,7 @@ html.dark .admin-action-button.admin-action-button-info {
     color: var(--color-blue-400);
 }
 html.dark .admin-action-button.admin-action-button-info:hover {
-    background-color: var(--color-gray-700);
+    background-color: var(--color-gray-200);
 }
 
 .admin-action-button.admin-action-button-success {
@@ -806,7 +806,7 @@ html.dark .admin-action-button.admin-action-button-success {
     color: var(--color-green-400);
 }
 html.dark .admin-action-button.admin-action-button-success:hover {
-    background-color: var(--color-gray-700);
+    background-color: var(--color-gray-200);
 }
 
 
@@ -900,7 +900,7 @@ html.dark .modal-content-box-xl form::-webkit-scrollbar-thumb {
 html.dark .modal-content-box,
 html.dark .modal-content-box-lg,
 html.dark .modal-content-box-xl {
-    background-color: var(--color-gray-800);
+    background-color: var(--color-card-bg);
 }
 
 .modal-header {
@@ -913,7 +913,7 @@ html.dark .modal-content-box-xl {
 }
 
 html.dark .modal-header {
-    border-color: var(--color-gray-700);
+    border-color: var(--color-border);
 }
 
 .modal-title {
@@ -947,7 +947,7 @@ html.dark .modal-close-button {
 
 html.dark .modal-close-button:hover {
     color: var(--color-gray-200);
-    background-color: var(--color-gray-700);
+    background-color: var(--color-gray-200);
 }
 
 .modal-message-text {
@@ -977,7 +977,7 @@ html.dark .modal-message-text {
 }
 
 html.dark .modal-button-base {
-    border-color: var(--color-gray-600);
+    border-color: var(--color-border);
 }
 
 .modal-button-cancel {
@@ -990,12 +990,12 @@ html.dark .modal-button-base {
 }
 
 html.dark .modal-button-cancel {
-    background-color: var(--color-gray-700);
+    background-color: var(--color-gray-100);
     color: var(--color-gray-300);
 }
 
 html.dark .modal-button-cancel:hover {
-    background-color: var(--color-gray-600);
+    background-color: var(--color-gray-200);
 }
 
 .modal-button-confirm {
@@ -1022,7 +1022,7 @@ html.dark .modal-button-cancel:hover {
 }
 
 html.dark .stats-modal-content {
-    background-color: var(--color-gray-800);
+    background-color: var(--color-card-bg);
 }
 
 .stats-modal-header {
@@ -1035,7 +1035,7 @@ html.dark .stats-modal-content {
 }
 
 html.dark .stats-modal-header {
-    border-color: var(--color-gray-700);
+    border-color: var(--color-border);
 }
 
 .stats-modal-title {
@@ -1069,7 +1069,7 @@ html.dark .stats-modal-title {
 }
 
 html.dark .stats-summary-card {
-    background-color: var(--color-gray-700);
+    background-color: var(--color-gray-100);
 }
 
 .stats-summary-title {
@@ -1120,7 +1120,7 @@ html.dark .stats-summary-text {
 }
 
 html.dark .chart-card {
-    background-color: var(--color-gray-800);
+    background-color: var(--color-card-bg);
 }
 
 .chart-title {
@@ -1144,7 +1144,7 @@ html.dark .chart-title {
 }
 
 html.dark .chart-grid-stroke {
-    stroke: var(--color-gray-700);
+    stroke: var(--color-border);
 }
 
 .chart-axis-tick {
@@ -1239,8 +1239,8 @@ html.dark .chart-legend-wrapper {
 }
 
 html.dark .admin-quiz-nav {
-    background-color: var(--color-gray-800);
-    border-color: var(--color-gray-700);
+    background-color: var(--color-card-bg);
+    border-color: var(--color-border);
 }
 
 .admin-quiz-nav-title {
@@ -1294,8 +1294,8 @@ html.dark .admin-quiz-nav-title {
 }
 
 html.dark .admin-quiz-nav-input {
-    background-color: var(--color-gray-700);
-    border-color: var(--color-gray-600);
+    background-color: var(--color-bg);
+    border-color: var(--color-border);
     color: var(--color-text-dark);
 }
 
@@ -1361,8 +1361,8 @@ html.dark .admin-quiz-nav-input {
 }
 
 html.dark .admin-quiz-main-content {
-    background-color: var(--color-gray-800);
-    border-color: var(--color-gray-700);
+    background-color: var(--color-card-bg);
+    border-color: var(--color-border);
 }
 
 .admin-section-spacing {
@@ -1405,8 +1405,8 @@ html.dark .admin-loading-message {
 }
 
 html.dark .admin-quiz-list-item {
-    background-color: var(--color-gray-800);
-    border-color: var(--color-gray-700);
+    background-color: var(--color-card-bg);
+    border-color: var(--color-border);
 }
 
 .admin-quiz-list-item-header {
@@ -1533,7 +1533,7 @@ html.dark .admin-action-button-stats {
 }
 
 html.dark .admin-action-button-stats:hover {
-    background-color: var(--color-gray-700);
+    background-color: var(--color-gray-200);
     color: var(--color-gray-100);
 }
 
@@ -1588,8 +1588,8 @@ html.dark .admin-action-button-stats:hover {
 }
 
 html.dark .admin-form-question-builder {
-    background-color: var(--color-gray-700);
-    border-color: var(--color-gray-600);
+    background-color: var(--color-gray-100);
+    border-color: var(--color-gray-200);
 }
 
 .form-group-flex-row { /* For options in quiz questions */
@@ -1677,8 +1677,8 @@ html.dark .admin-form-question-builder {
 }
 
 html.dark .admin-question-list-item {
-    background-color: var(--color-gray-700);
-    border-color: var(--color-gray-600);
+    background-color: var(--color-gray-100);
+    border-color: var(--color-gray-200);
     color: var(--color-text-dark);
 }
 
@@ -1698,7 +1698,7 @@ html.dark .admin-question-list-item {
 }
 
 html.dark .admin-form-footer-buttons {
-    border-color: var(--color-gray-700);
+    border-color: var(--color-border);
 }
 
 /* --- Dashboard Overview Specific Styles --- */
@@ -1791,8 +1791,8 @@ html.dark .ql-snow .ql-picker-label {
 }
 
 html.dark .ql-snow .ql-picker.ql-expanded .ql-picker-options {
-    background-color: var(--color-gray-800);
-    border-color: var(--color-gray-700);
+    background-color: var(--color-card-bg);
+    border-color: var(--color-border);
 }
 
 .ql-tooltip {
@@ -1802,8 +1802,8 @@ html.dark .ql-snow .ql-picker.ql-expanded .ql-picker-options {
 }
 
 html.dark .ql-tooltip {
-    background-color: var(--color-gray-800);
-    border-color: var(--color-gray-700);
+    background-color: var(--color-card-bg);
+    border-color: var(--color-border);
     color: var(--color-text-dark);
 }
 
@@ -1830,8 +1830,8 @@ html.dark .ql-tooltip {
 }
 
 html.dark .subscription-card {
-    background: var(--color-gray-800);
-    border-color: var(--color-gray-700);
+    background: var(--color-card-bg);
+    border-color: var(--color-border);
 }
 
 .subscription-card-image-container {
@@ -1988,4 +1988,14 @@ html.dark .admin-table-tr-clickable:hover {
 
 html.dark .admin-table-tr-clickable:hover .admin-table-td:first-child {
     color: var(--color-teal-400) !important;
+}
+/* Add missing dark overrides for layout containers */
+html.dark .admin-dashboard-container {
+    background-color: var(--color-bg-dark);
+    color: var(--color-text-dark);
+}
+
+html.dark .admin-page-section-container {
+    background-color: var(--color-bg-dark);
+    color: var(--color-text-dark);
 }

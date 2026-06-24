@@ -15,6 +15,10 @@ const topicSchema = new mongoose.Schema({
     order: { type: Number, required: true },
     // Multi-article topic content
     articles: { type: [topicArticleSchema], default: [] },
+    videos: [{
+        title: { type: String, default: '' },
+        videoURL: { type: String, default: '' }
+    }],
     otherResources: [{ 
         name: { type: String }, 
         url: { type: String } 

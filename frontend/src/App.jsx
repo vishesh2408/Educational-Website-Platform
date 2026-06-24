@@ -11,6 +11,7 @@ const CoursesPage = lazy(() => import('./components/CoursesPage'));
 const CourseDetail = lazy(() => import('./components/CourseDetail'));
 const TutorialDetail = lazy(() => import('./components/TutorialDetail'));
 const TopicView = lazy(() => import('./components/TopicView'));
+const LiveClassViewer = lazy(() => import('./components/LiveClassViewer'));
 const AdminDashboard = lazy(() => import('./components/AdminDashboard'));
 import AuthPage from './components/AuthPage';
 const Profile = lazy(() => import('./components/Profile'));
@@ -108,6 +109,7 @@ export default function App() {
             <Route path="courses" element={<CoursesPage />} />
             <Route path="courses/:id" element={<CourseDetail />} />
             <Route path="courses/:id/topics/:topicId" element={<TopicView />} />
+            <Route path="courses/:id/live/:liveClassId" element={<ProtectedRoute><LiveClassViewer /></ProtectedRoute>} />
             <Route path="tutorials/:id" element={<TutorialDetail />} />
             <Route path="tutorials/:id/topics/:topicId" element={<TopicView />} />
             <Route path="quizzes" element={<QuizzesPage />} />

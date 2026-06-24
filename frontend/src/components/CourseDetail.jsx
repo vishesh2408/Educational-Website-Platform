@@ -1,13 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import Skeleton from './Skeleton';
 import { useParams, Link } from 'react-router-dom';
-import { ChevronDown, ChevronUp } from 'lucide-react';
+import { ChevronDown, ChevronUp, Video, Calendar, Clock } from 'lucide-react';
 
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:3001';
 
 export default function CourseDetail() {
   const { id } = useParams();
   const [course, setCourse] = useState(null);
+  const [liveClasses, setLiveClasses] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [expandedModules, setExpandedModules] = useState({});
@@ -36,6 +37,20 @@ export default function CourseDetail() {
             setExpandedModules(initialExpanded);
           }
         }
+
+        // Fetch Live Classes for this course (fails silently if student not enrolled)
+        try {
+          const liveRes = await fetch(`${API_BASE_URL}/api/live-classes/course/${id}`, {
+            credentials: 'include'
+          });
+          if (liveRes.ok) {
+            const liveData = await liveRes.json();
+            if (mounted) setLiveClasses(liveData);
+          }
+        } catch (liveErr) {
+          console.error('Error fetching live classes:', liveErr);
+        }
+
       } catch (err) {
         console.error('Course detail fetch error:', err);
         if (mounted) setError(err.message || 'Failed to load course');
@@ -100,6 +115,67 @@ export default function CourseDetail() {
           </div>
         </header>
 
+        {/* Live Classes Section */}
+        {liveClasses && liveClasses.length > 0 && (
+          <section className="mb-6">
+            <h2 className="text-lg font-semibold mb-3 text-white flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
+              Live & Scheduled Sessions
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {liveClasses.map((live) => (
+                <div key={live._id} className="p-4 bg-white/5 border border-white/10 backdrop-blur rounded-xl flex flex-col justify-between hover:border-white/20 transition-all duration-300">
+                  <div>
+                    <div className="flex justify-between items-start gap-2">
+                      <h3 className="font-semibold text-sm text-white flex items-center gap-1.5">
+                        <Video size={16} className={live.status === 'live' ? 'text-red-500' : 'text-teal-400'} />
+                        {live.title}
+                      </h3>
+                      <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold border ${
+                        live.status === 'live' ? 'bg-red-500/10 text-red-400 border-red-500/20' :
+                        live.status === 'completed' ? 'bg-green-500/10 text-green-400 border-green-500/20' :
+                        'bg-blue-500/10 text-blue-400 border-blue-500/20'
+                      }`}>
+                        {live.status === 'live' && <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse"></span>}
+                        {live.status.toUpperCase()}
+                      </span>
+                    </div>
+                    <p className="text-xs text-gray-400 mt-1 line-clamp-2">{live.description}</p>
+                    <div className="flex flex-wrap gap-x-4 gap-y-1 mt-3 text-[11px] text-gray-300">
+                      <span className="flex items-center gap-1">
+                        <Calendar size={12} className="text-teal-500" />
+                        {new Date(live.scheduledAt).toLocaleString()}
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <Clock size={12} className="text-teal-500" />
+                        {live.duration}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="mt-4">
+                    {live.status === 'completed' ? (
+                      <button disabled className="w-full text-center text-xs font-semibold text-gray-400 bg-white/5 border border-white/10 py-2 rounded-lg cursor-not-allowed">
+                        Session Ended
+                      </button>
+                    ) : (
+                      <Link
+                        to={`live/${live._id}`}
+                        className={`inline-block text-center text-xs font-semibold text-white py-2 rounded-lg hover:opacity-95 transition-all duration-200 w-full ${
+                          live.status === 'live'
+                            ? 'bg-gradient-to-r from-red-600 to-pink-600 hover:shadow-lg hover:shadow-red-900/20 animate-pulse'
+                            : 'bg-gradient-to-r from-teal-600 to-blue-600 hover:shadow-lg hover:shadow-teal-900/20'
+                        }`}
+                      >
+                        {live.status === 'live' ? 'Join Live Stream' : 'View Schedule Details'}
+                      </Link>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
         <section>
           <h2 className="text-xl font-semibold mb-3 text-white">Modules</h2>
           {Array.isArray(course.modules) && course.modules.length > 0 ? (
@@ -139,7 +215,15 @@ export default function CourseDetail() {
                           <ol className="space-y-1 pt-2">
                             {mod.topics.map((topic) => (
                               <li key={topic._id} className="group relative rounded-lg">
-                                <div className="flex items-center justify-between py-2 px-2.5 rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 hover:border-white/20 transition-colors">
+                                <Link
+                                  to={`topics/${topic._id}`}
+                                  className="flex items-center justify-between py-2 px-2.5 rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 hover:border-white/20 transition-colors cursor-pointer no-underline"
+                                  aria-label={`Start ${topic.title}`}
+                                  onMouseEnter={() => {
+                                    import('./TopicView');
+                                    import('./CourseContent');
+                                  }}
+                                >
                                   <div className="flex-1">
                                     <div className="font-medium text-sm text-white">{topic.title}</div>
                                     {Array.isArray(topic.articles) && topic.articles.length > 0 && (
@@ -148,19 +232,11 @@ export default function CourseDetail() {
                                   </div>
 
                                   <div className="ml-3 flex-shrink-0">
-                                    <Link
-                                      to={`topics/${topic._id}`}
-                                      className="inline-block px-3 py-1.5 rounded-lg text-xs font-semibold text-white bg-gradient-to-r from-purple-500 to-[#167468] hover:opacity-90 transition duration-150 ease-out"
-                                      aria-label={`Start ${topic.title}`}
-                                      onMouseEnter={() => {
-                                        import('./TopicView');
-                                        import('./CourseContent');
-                                      }}
-                                    >
+                                    <span className="inline-block px-3 py-1.5 rounded-lg text-xs font-semibold text-white bg-gradient-to-r from-purple-500 to-[#167468] group-hover:opacity-90 transition duration-150 ease-out">
                                       Start
-                                    </Link>
+                                    </span>
                                   </div>
-                                </div>
+                                </Link>
                               </li>
                             ))}
                           </ol>

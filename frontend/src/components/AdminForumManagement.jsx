@@ -189,7 +189,7 @@ const AdminForumManagement = () => {
     };
 
     return (
-        <div className="bg-white p-6 rounded-xl shadow-lg">
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg text-gray-900 dark:text-white transition-colors duration-300">
             <Toast toast={toast} onClose={() => setToast(null)} />
             <h2 className="text-2xl font-semibold mb-4">Forum Premium Management</h2>
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -202,15 +202,15 @@ const AdminForumManagement = () => {
                         ) : (
                             items && items.length > 0 ? (
                                 items.map(item => (
-                                    <div key={item._id} className={`p-3 rounded-lg border ${selected && selected._id === item._id ? 'border-teal-500 bg-teal-50' : 'border-gray-200'}`}>
+                                    <div key={item._id} className={`p-3 rounded-lg border transition-colors duration-200 ${selected && selected._id === item._id ? 'border-teal-500 bg-teal-50 dark:bg-teal-950/20' : 'border-gray-200 dark:border-gray-700 bg-gray-50/10 dark:bg-gray-900/10'}`}>
                                         <div className="flex items-center justify-between">
                                             <div>
-                                                <div className="font-semibold">{item.name}</div>
-                                                <div className="text-xs text-gray-500">₹{item.monthlyPrice} / ₹{item.yearlyPrice}</div>
+                                                <div className="font-semibold text-gray-900 dark:text-gray-100">{item.name}</div>
+                                                <div className="text-xs text-gray-500 dark:text-gray-400">₹{item.monthlyPrice} / ₹{item.yearlyPrice}</div>
                                             </div>
                                             <div className="flex items-center space-x-2">
-                                                <button onClick={() => handleSelect(item)} className="px-2 py-1 bg-teal-500 text-white rounded">Edit</button>
-                                                <button onClick={() => handleDelete(item._id)} className="px-2 py-1 bg-red-500 text-white rounded">Del</button>
+                                                <button onClick={() => handleSelect(item)} className="px-2 py-1 bg-teal-500 hover:bg-teal-600 text-white rounded transition">Edit</button>
+                                                <button onClick={() => handleDelete(item._id)} className="px-2 py-1 bg-red-500 hover:bg-red-600 text-white rounded transition">Del</button>
                                             </div>
                                         </div>
                                     </div>
@@ -221,36 +221,36 @@ const AdminForumManagement = () => {
                         )}
                     </div>
                     <div className="mt-4">
-                        <button onClick={() => { setSelected(null); setForm({ name: '', monthlyPrice: 99, yearlyPrice: 999, features: '', postLimit: 0, replyLimit: 0, active: true }); }} className="px-3 py-2 bg-gray-200 rounded">New Config</button>
+                        <button onClick={() => { setSelected(null); setForm({ name: '', monthlyPrice: 99, yearlyPrice: 999, features: '', postLimit: 0, replyLimit: 0, active: true }); }} className="px-3 py-2 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 rounded transition-colors">New Config</button>
                     </div>
                 </div>
                 <div className="col-span-2">
                     <div className="space-y-3">
-                        <label className="block text-sm font-medium">Name</label>
-                        <input value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} className="w-full p-2 border rounded" />
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Name</label>
+                        <input value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-teal-500/50 outline-none transition" />
 
                         <div className="grid grid-cols-2 gap-3">
                             <div>
-                                <label className="block text-sm font-medium">Monthly Price (₹)</label>
-                                <input type="number" value={form.monthlyPrice} onChange={e => setForm({ ...form, monthlyPrice: e.target.value })} className="w-full p-2 border rounded" />
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Monthly Price (₹)</label>
+                                <input type="number" value={form.monthlyPrice} onChange={e => setForm({ ...form, monthlyPrice: e.target.value })} className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-teal-500/50 outline-none transition" />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium">Yearly Price (₹)</label>
-                                <input type="number" value={form.yearlyPrice} onChange={e => setForm({ ...form, yearlyPrice: e.target.value })} className="w-full p-2 border rounded" />
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Yearly Price (₹)</label>
+                                <input type="number" value={form.yearlyPrice} onChange={e => setForm({ ...form, yearlyPrice: e.target.value })} className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-teal-500/50 outline-none transition" />
                             </div>
                         </div>
 
-                        <label className="block text-sm font-medium">Features (one per line)</label>
-                        <textarea value={form.features} onChange={e => setForm({ ...form, features: e.target.value })} className="w-full p-2 border rounded h-28" />
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Features (one per line)</label>
+                        <textarea value={form.features} onChange={e => setForm({ ...form, features: e.target.value })} className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-teal-500/50 outline-none transition h-28" />
 
                         <div className="grid grid-cols-2 gap-3">
                             <div>
-                                <label className="block text-sm font-medium">Post Limit (0 = unlimited)</label>
-                                <input type="number" value={form.postLimit} onChange={e => setForm({ ...form, postLimit: e.target.value })} className="w-full p-2 border rounded" />
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Post Limit (0 = unlimited)</label>
+                                <input type="number" value={form.postLimit} onChange={e => setForm({ ...form, postLimit: e.target.value })} className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-teal-500/50 outline-none transition" />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium">Reply Limit (0 = unlimited)</label>
-                                <input type="number" value={form.replyLimit} onChange={e => setForm({ ...form, replyLimit: e.target.value })} className="w-full p-2 border rounded" />
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Reply Limit (0 = unlimited)</label>
+                                <input type="number" value={form.replyLimit} onChange={e => setForm({ ...form, replyLimit: e.target.value })} className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-teal-500/50 outline-none transition" />
                             </div>
                         </div>
 
@@ -259,29 +259,29 @@ const AdminForumManagement = () => {
                         </div>
 
                         <div className="flex space-x-2">
-                            <button onClick={handleSave} className="px-4 py-2 bg-teal-600 text-white rounded">Save</button>
-                            {selected && <button onClick={() => { setSelected(null); setForm({ name: '', monthlyPrice: 99, yearlyPrice: 999, features: '', postLimit: 0, replyLimit: 0, active: true }); }} className="px-4 py-2 bg-gray-200 rounded">Cancel</button>}
+                            <button onClick={handleSave} className="px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white rounded transition-colors">Save</button>
+                            {selected && <button onClick={() => { setSelected(null); setForm({ name: '', monthlyPrice: 99, yearlyPrice: 999, features: '', postLimit: 0, replyLimit: 0, active: true }); }} className="px-4 py-2 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 rounded transition-colors">Cancel</button>}
                         </div>
 
                         <hr />
 
-                        <h3 className="text-lg font-semibold">Free Users / Grants</h3>
+                        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Free Users / Grants</h3>
                         <div className="flex items-center space-x-2">
-                            <input value={freeUserInput} onChange={e => setFreeUserInput(e.target.value)} placeholder="user id or email" className="p-2 border rounded flex-grow" />
-                            <button onClick={handleGrant} className="px-3 py-2 bg-teal-500 text-white rounded">Grant</button>
+                            <input value={freeUserInput} onChange={e => setFreeUserInput(e.target.value)} placeholder="user id or email" className="p-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-teal-500/50 outline-none transition flex-grow" />
+                            <button onClick={handleGrant} className="px-3 py-2 bg-teal-500 hover:bg-teal-600 text-white rounded transition-colors">Grant</button>
                         </div>
 
                         <div className="space-y-2 mt-3">
-                            <div className="text-sm text-gray-500">Free users (from selected config):</div>
+                            <div className="text-sm text-gray-500 dark:text-gray-400">Free users (from selected config):</div>
                             {selected && selected.freeFor && selected.freeFor.users && selected.freeFor.users.length > 0 ? (
                                 selected.freeFor.users.map(u => (
-                                    <div key={u} className="flex items-center justify-between p-2 border rounded">
-                                        <div className="truncate">{u}</div>
-                                        <button onClick={() => handleRevoke(u)} className="px-2 py-1 bg-red-500 text-white rounded">Revoke</button>
+                                    <div key={u} className="flex items-center justify-between p-2 border border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-900/10 rounded">
+                                        <div className="truncate text-gray-900 dark:text-gray-150">{u}</div>
+                                        <button onClick={() => handleRevoke(u)} className="px-2 py-1 bg-red-500 hover:bg-red-600 text-white rounded transition">Revoke</button>
                                     </div>
                                 ))
                             ) : (
-                                <div className="text-sm text-gray-400">No free users configured.</div>
+                                <div className="text-sm text-gray-400 dark:text-gray-500">No free users configured.</div>
                             )}
                         </div>
                     </div>

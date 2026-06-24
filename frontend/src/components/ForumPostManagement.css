@@ -83,7 +83,7 @@
 
                 html.dark .admin-section-title {
                     color: var(--color-text-light);
-                    border-color: var(--color-gray-700);
+                    border-color: var(--color-border-light);
                 }
 
                 /* Form Styles */
@@ -96,7 +96,7 @@
                 }
 
                 html.dark .form-container {
-                    background-color: var(--color-gray-700);
+                    background-color: var(--color-gray-100);
                 }
 
                 .form-group {
@@ -141,8 +141,8 @@
                 html.dark .form-input,
                 html.dark .form-textarea,
                 html.dark .form-select {
-                    background-color: var(--color-gray-600);
-                    border-color: var(--color-gray-500);
+                    background-color: var(--color-bg-light);
+                    border-color: var(--color-border-light);
                     color: var(--color-text-light);
                 }
 
@@ -199,7 +199,7 @@
                 }
 
                 html.dark .data-table {
-                    background-color: var(--color-gray-800);
+                    background-color: var(--color-card-bg-light);
                 }
 
                 .table-header {
@@ -207,7 +207,7 @@
                 }
 
                 html.dark .table-header {
-                    background-color: var(--color-gray-700);
+                    background-color: var(--color-gray-100);
                 }
 
                 .table-header-th {
@@ -233,7 +233,7 @@
                 }
 
                 html.dark .table-row:hover {
-                    background-color: var(--color-gray-700);
+                    background-color: var(--color-gray-200);
                 }
 
                 .table-cell {
@@ -245,8 +245,8 @@
                 }
 
                 html.dark .table-cell {
-                    color: var(--color-gray-100);
-                    border-color: var(--color-gray-700);
+                    color: var(--color-gray-800);
+                    border-color: var(--color-border-light);
                 }
 
                 .table-cell:last-child {
@@ -446,8 +446,8 @@
                 html.dark .form-input,
                 html.dark .form-textarea,
                 html.dark .form-select {
-                    background-color: var(--color-gray-600);
-                    border-color: var(--color-gray-500);
+                    background-color: var(--color-bg-light);
+                    border-color: var(--color-border-light);
                     color: var(--color-text-light);
                 }
                 html.dark .form-input::placeholder,
@@ -469,8 +469,8 @@
                     color: var(--color-gray-300);
                 }
                 html.dark .table-cell {
-                    color: var(--color-gray-100);
-                    border-color: var(--color-gray-700);
+                    color: var(--color-gray-800);
+                    border-color: var(--color-border-light);
                 }
                 html.dark .table-cell-description {
                     color: var(--color-gray-300);
@@ -481,26 +481,26 @@
                 }
                 html.dark .button-action.button-edit:hover {
                     color: var(--color-blue-200);
-                    background-color: var(--color-gray-700);
+                    background-color: var(--color-gray-200);
                 }
                 html.dark .button-action.button-delete {
                     color: var(--color-red-400);
                 }
                 html.dark .button-action.button-delete:hover {
                     color: var(--color-red-200);
-                    background-color: var(--color-gray-700);
+                    background-color: var(--color-gray-200);
                 }
                 html.dark .button-action.button-info {
                     color: var(--color-blue-400);
                 }
                 html.dark .button-action.button-info:hover {
-                    background-color: var(--color-gray-700);
+                    background-color: var(--color-gray-200);
                 }
                 html.dark .button-action.button-success {
                     color: var(--color-green-400);
                 }
                 html.dark .button-action.button-success:hover {
-                    background-color: var(--color-gray-700);
+                    background-color: var(--color-gray-200);
                 }
 
                 html.dark .badge-blue {
@@ -513,7 +513,7 @@
                 }
 
                 html.dark .modal-content {
-                    background-color: var(--color-gray-800);
+                    background-color: var(--color-card-bg-light);
                 }
                 html.dark .modal-title {
                     color: var(--color-text-light);
@@ -526,14 +526,14 @@
                 }
                 html.dark .modal-close-button:hover {
                     color: var(--color-gray-200);
-                    background-color: var(--color-gray-700);
+                    background-color: var(--color-gray-200);
                 }
                 html.dark .button-cancel {
-                    background-color: var(--color-gray-700);
+                    background-color: var(--color-gray-100);
                     color: var(--color-gray-300);
                 }
                 html.dark .button-cancel:hover {
-                    background-color: var(--color-gray-600);
+                    background-color: var(--color-gray-200);
                 }
                 .admin-table-image {
                     width: 2.5rem; /* w-10 */
@@ -548,7 +548,7 @@
                     box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
                 }
                 html.dark .admin-quill-editor {
-                    background-color: var(--color-gray-600);
+                    background-color: var(--color-gray-100);
                     color: var(--color-text-light);
                 }
                 .admin-quill-editor .ql-editor {
@@ -639,8 +639,8 @@
                     font-size: 1rem;
                 }
                 html.dark .admin-question-list-item {
-                    background-color: var(--color-gray-700);
-                    border-color: var(--color-gray-600);
+                    background-color: var(--color-gray-100);
+                    border-color: var(--color-gray-200);
                     color: var(--color-text-light);
                 }
                 .admin-question-actions {
@@ -657,5 +657,5 @@
                     border-top: 1px solid var(--color-gray-200);
                 }
                 html.dark .admin-form-footer-buttons {
-                    border-color: var(--color-gray-700);
+                    border-color: var(--color-border-light);
                 }

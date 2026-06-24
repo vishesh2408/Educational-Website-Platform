@@ -40,10 +40,12 @@ const QuizAttempt = require('./models/QuizAttempt');
 const UserProgress = require('./models/UserProgress');
 const SubscriptionPlan = require('./models/SubscriptionPlan');
 const Order = require('./models/Order');
+const LiveClass = require('./models/LiveClass');
 const { seedSubscriptionPlans } = require('./utils/seeder');
 
 
 const authRoutes = require('./routes/authRoutes');
+const liveClassRoutes = require('./routes/liveClassRoutes');
 
 const profileRoutes = require('./routes/profileRoutes');
 const CourseRoutes = require('./routes/CourseRoutes');
@@ -190,6 +192,7 @@ const adminMiddleware = (req, res, next) => {
 // Apply authentication middleware to any '/api/user/*' requests.
 // This keeps middleware mounting in server.js rather than inside route files.
 app.use('/api/user', authMiddleware);
+app.use('/api/live-classes', authMiddleware, liveClassRoutes);
 
 // Now mount CourseRoutes at '/api' so it serves public and user routes.
 app.use('/api', CourseRoutes);
@@ -338,6 +341,7 @@ app.use('/api/admin/tutorial-modules', authMiddleware, adminMiddleware, adminRou
 // Topic Population: Populate nested Quiz IDs on Topic articles
 app.use('/api/admin/topics', authMiddleware, adminMiddleware, adminRouteFactory.createCrudRoutes(Topic, 'topics', ['articles.quizId']));
 app.use('/api/admin/tutorial-topics', authMiddleware, adminMiddleware, adminRouteFactory.createCrudRoutes(TutorialTopic, 'tutorial-topics', ['articles.quizId']));
+app.use('/api/admin/live-classes', authMiddleware, adminMiddleware, adminRouteFactory.createCrudRoutes(LiveClass, 'live-classes'));
 
 // keep the rest as it is
 app.use('/api/admin/contests', authMiddleware, adminMiddleware, adminRouteFactory.createCrudRoutes(Contest, 'contests'));
@@ -374,6 +378,7 @@ app.use('/api/admin/modules', authMiddleware, adminMiddleware, adminRoutesFactor
 app.use('/api/admin/tutorial-modules', authMiddleware, adminMiddleware, adminRoutesFactory.createCrudRoutes(TutorialModule, 'tutorial-modules', ['topics']));
 app.use('/api/admin/topics', authMiddleware, adminMiddleware, adminRoutesFactory.createCrudRoutes(Topic, 'topics', ['articles.quizId']));
 app.use('/api/admin/tutorial-topics', authMiddleware, adminMiddleware, adminRoutesFactory.createCrudRoutes(TutorialTopic, 'tutorial-topics', ['articles.quizId']));
+app.use('/api/admin/live-classes', authMiddleware, adminMiddleware, adminRoutesFactory.createCrudRoutes(LiveClass, 'live-classes'));
 app.use('/api/admin/contests', authMiddleware, adminMiddleware, adminRoutesFactory.createCrudRoutes(Contest, 'contests'));
 app.use('/api/admin/forum-posts', authMiddleware, adminMiddleware, adminRoutesFactory.createCrudRoutes(ForumPost, 'forum-posts'));
 // Forum premium admin endpoints are handled separately in routes/forummanagement

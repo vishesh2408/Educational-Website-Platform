@@ -20,6 +20,8 @@ const quizSchema = new mongoose.Schema({
     description: { type: String, required: true },
     icon: { type: String, default: 'CodeIcon' }, // String name of Lucide icon
     courseId: { type: mongoose.Schema.Types.ObjectId, ref: 'Course' }, // Link quiz to a course
+    moduleId: { type: mongoose.Schema.Types.ObjectId, ref: 'Module' },
+    topicId: { type: mongoose.Schema.Types.ObjectId, ref: 'Topic' },
     noOfQuestions: { type: Number, required: true, min: 1 },
     totalMarks: { type: Number, required: true, min: 1 },
     passMark: { type: Number, required: true, min: 0 },
