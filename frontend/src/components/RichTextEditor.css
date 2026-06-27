@@ -65,6 +65,11 @@ html.dark .rich-text-editor__btn:hover {
   color: #ffffff;
 }
 
+.rich-text-editor__btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
 .rich-text-editor__btn svg {
   width: 16px;
   height: 16px;
@@ -175,20 +180,15 @@ html.dark .rich-text-editor__color-picker:hover {
 }
 
 .ProseMirror pre {
-  background-color: var(--color-gray-100);
-  color: var(--color-gray-800);
+  background-color: #282c34;
+  color: #abb2bf;
   padding: 12px 16px;
   border-radius: 8px;
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   font-size: 14px;
   overflow-x: auto;
   margin: 1.25rem 0;
-  border: 1px solid var(--color-border);
-}
-
-html.dark .ProseMirror pre {
-  background-color: #111827;
-  color: #f3f4f6;
+  border: 1px solid rgba(0, 0, 0, 0.15);
 }
 
 .ProseMirror code {
@@ -277,4 +277,25 @@ html.dark .ProseMirror th {
   border-top: 1px solid var(--color-border);
   font-size: 11px;
   color: var(--color-text-muted);
+}
+
+/* LaTeX Math Node Styles */
+.math-node-wrapper {
+  transition: all 0.2s ease-in-out;
+}
+
+.math-node-wrapper.is-selected {
+  border-color: var(--color-primary) !important;
+  box-shadow: 0 0 0 2px rgba(20, 184, 166, 0.2);
+}
+
+.math-node-input {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 14px;
+  transition: border-color 0.15s ease-in-out;
+}
+
+.math-node-input:focus {
+  border-color: var(--color-primary) !important;
+  outline: none;
 }
