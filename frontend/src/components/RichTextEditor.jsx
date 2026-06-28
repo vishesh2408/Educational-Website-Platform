@@ -271,7 +271,7 @@ export default function RichTextEditor({ value, onChange, placeholder = 'Start w
     extensions: [
       StarterKit.configure({
         heading: {
-          levels: [1, 2, 3, 4],
+          levels: [1, 2, 3, 4, 5, 6],
         },
         codeBlock: false, // Disabling default codeBlock to use CodeBlockLowlight
       }),
@@ -432,6 +432,8 @@ export default function RichTextEditor({ value, onChange, placeholder = 'Start w
     if (editor.isActive('heading', { level: 2 })) return 'h2';
     if (editor.isActive('heading', { level: 3 })) return 'h3';
     if (editor.isActive('heading', { level: 4 })) return 'h4';
+    if (editor.isActive('heading', { level: 5 })) return 'h5';
+    if (editor.isActive('heading', { level: 6 })) return 'h6';
     return 'p';
   };
 
@@ -458,6 +460,30 @@ export default function RichTextEditor({ value, onChange, placeholder = 'Start w
       editor.chain().focus().setFontSize(size).run();
     }
   };
+
+  const increaseFontSize = useCallback(() => {
+    if (!editor) return;
+    const currentSize = editor.getAttributes('textStyle').fontSize || '16px';
+    const numericSize = parseInt(currentSize.replace('px', ''), 10) || 16;
+    
+    // MS Word standard sizes list
+    const sizes = [8, 9, 10, 11, 12, 14, 16, 18, 20, 22, 24, 26, 28, 36, 48, 72];
+    const nextSize = sizes.find(s => s > numericSize) || (numericSize + 2);
+    
+    editor.chain().focus().setFontSize(`${nextSize}px`).run();
+  }, [editor]);
+
+  const decreaseFontSize = useCallback(() => {
+    if (!editor) return;
+    const currentSize = editor.getAttributes('textStyle').fontSize || '16px';
+    const numericSize = parseInt(currentSize.replace('px', ''), 10) || 16;
+    
+    // MS Word standard sizes list
+    const sizes = [8, 9, 10, 11, 12, 14, 16, 18, 20, 22, 24, 26, 28, 36, 48, 72];
+    const prevSize = [...sizes].reverse().find(s => s < numericSize) || Math.max(8, numericSize - 2);
+    
+    editor.chain().focus().setFontSize(`${prevSize}px`).run();
+  }, [editor]);
 
   return (
     <div className="rich-text-editor">
@@ -499,6 +525,8 @@ export default function RichTextEditor({ value, onChange, placeholder = 'Start w
             <option value="h2">Heading 2</option>
             <option value="h3">Heading 3</option>
             <option value="h4">Heading 4</option>
+            <option value="h5">Heading 5</option>
+            <option value="h6">Heading 6</option>
           </select>
 
           <select
@@ -506,17 +534,44 @@ export default function RichTextEditor({ value, onChange, placeholder = 'Start w
             value={getFontSizeValue()}
             onChange={handleFontSizeChange}
             title="Font Size"
+            style={{ marginRight: '4px' }}
           >
             <option value="default">Size (Default)</option>
+            <option value="8px">8px</option>
+            <option value="9px">9px</option>
+            <option value="10px">10px</option>
+            <option value="11px">11px</option>
             <option value="12px">12px</option>
             <option value="14px">14px</option>
             <option value="16px">16px</option>
             <option value="18px">18px</option>
             <option value="20px">20px</option>
+            <option value="22px">22px</option>
             <option value="24px">24px</option>
-            <option value="30px">30px</option>
+            <option value="26px">26px</option>
+            <option value="28px">28px</option>
             <option value="36px">36px</option>
+            <option value="48px">48px</option>
+            <option value="72px">72px</option>
           </select>
+
+          <button
+            type="button"
+            className="rich-text-editor__btn"
+            onClick={increaseFontSize}
+            title="Increase Font Size (A+)"
+            style={{ marginRight: '2px' }}
+          >
+            <span style={{ fontWeight: 'bold', fontSize: '13px' }}>A⁺</span>
+          </button>
+          <button
+            type="button"
+            className="rich-text-editor__btn"
+            onClick={decreaseFontSize}
+            title="Decrease Font Size (A-)"
+          >
+            <span style={{ fontWeight: 'bold', fontSize: '10px' }}>A⁻</span>
+          </button>
         </div>
 
         {/* Text Styles */}

@@ -145,7 +145,8 @@ html.dark .rich-text-editor__color-picker:hover {
   margin-bottom: 0;
 }
 
-.ProseMirror h1, .ProseMirror h2, .ProseMirror h3, .ProseMirror h4 {
+/* Headings 1-6 styling */
+.ProseMirror h1, .ProseMirror h2, .ProseMirror h3, .ProseMirror h4, .ProseMirror h5, .ProseMirror h6 {
   color: var(--color-text);
   font-weight: 700;
   margin-top: 1.5rem;
@@ -156,7 +157,9 @@ html.dark .rich-text-editor__color-picker:hover {
 .ProseMirror h1 { font-size: 1.8em; }
 .ProseMirror h2 { font-size: 1.5em; }
 .ProseMirror h3 { font-size: 1.25em; }
-.ProseMirror h4 { font-size: 1.1em; }
+.ProseMirror h4 { font-size: 1.15em; }
+.ProseMirror h5 { font-size: 1.05em; }
+.ProseMirror h6 { font-size: 0.95em; }
 
 .ProseMirror ul, .ProseMirror ol {
   padding-left: 1.5rem;
