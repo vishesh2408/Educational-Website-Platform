@@ -423,17 +423,25 @@ module.exports.createCrudRoutes = function(model, routeName, populatePaths = [])
             const item = await newItem.save();
 
             // Special handling for modules/topics linking
-            if ((routeName === 'modules' || routeName === 'tutorial-modules') && (item.courseId || item.tutorialId)) {
+            if ((routeName === 'modules' || routeName === 'tutorial-modules') && (item.courseId || item.tutorialId || item.skillId || item.trackId)) {
                 try {
                     if (routeName === 'modules') {
-                        const Course = require('../models/Course');
-                        await Course.findByIdAndUpdate(item.courseId, { $push: { modules: item._id } });
+                        if (item.courseId) {
+                            const Course = require('../models/Course');
+                            await Course.findByIdAndUpdate(item.courseId, { $push: { modules: item._id } });
+                        } else if (item.skillId) {
+                            const Skill = require('../models/Skill');
+                            await Skill.findByIdAndUpdate(item.skillId, { $push: { modules: item._id } });
+                        } else if (item.trackId) {
+                            const Track = require('../models/Track');
+                            await Track.findByIdAndUpdate(item.trackId, { $push: { modules: item._id } });
+                        }
                     } else {
                         const Tutorial = require('../models/Tutorial');
                         await Tutorial.findByIdAndUpdate(item.tutorialId, { $push: { modules: item._id } });
                     }
                 } catch (e) {
-                    console.warn('Could not link module to course/tutorial:', e.message);
+                    console.warn('Could not link module to course/tutorial/skill/track:', e.message);
                 }
             } else if ((routeName === 'topics' || routeName === 'tutorial-topics') && item.moduleId) {
                 try {
@@ -724,5 +732,52 @@ module.exports.adminUtilitiesRouter = function() {
             return res.status(500).json({ msg: 'Proxy error' });
         }
     });
+    // AI Auto-Formatting route using Google Gemini API
+    router.post('/ai-format', async (req, res) => {
+        try {
+            const { content } = req.body || {};
+            if (!content) return res.status(400).json({ msg: 'Missing content to format' });
+            
+            const apiKey = process.env.GEMINI_API_KEY2 || process.env.GEMINI_API_KEY;
+            if (!apiKey) {
+                return res.status(400).json({ msg: 'GEMINI_API_KEY or GEMINI_API_KEY2 is not configured in backend environment variables (.env).' });
+            }
+
+            const { GoogleGenerativeAI } = require("@google/generative-ai");
+            const genAI = new GoogleGenerativeAI(apiKey);
+            const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+
+            const prompt = `
+You are an expert technical note formatter. Take the following HTML document / raw text and output a beautifully formatted and structured HTML note suitable for an advanced rich text editor.
+
+Formatting Rules:
+1. Retain all original textual content, code blocks, formulas, and diagrams.
+2. Group logical paragraphs into clear sections using semantic headings (H2, H3, H4).
+3. If there are code blocks, wrap them in clean <pre><code>...</code></pre> tags.
+4. If there are lists (like bullet points), wrap them in standard <ul>/<li> or <ol>/<li> tags.
+5. Highlight important callouts (warnings, tips, success info) using inline styles (e.g. style="border-left: 4px solid var(--color-primary); padding: 10px; background: rgba(20, 184, 166, 0.05); margin: 10px 0; border-radius: 4px;").
+6. You can use standard tables for comparisons if relevant.
+7. Return ONLY the valid HTML inner body content. Do NOT include markdown code fences (\`\`\`html) or outer <html>/<head>/<body> boilerplate wrapper tags.
+
+Input Content:
+${content}
+`;
+
+            const result = await model.generateContent(prompt);
+            const rawText = result.response.text();
+            
+            // Clean up any markdown code fence blocks if returned by the model
+            const cleanedHtml = rawText
+                .replace(/^```html\s*/i, '')
+                .replace(/```\s*$/, '')
+                .trim();
+
+            return res.json({ formattedHtml: cleanedHtml });
+        } catch (err) {
+            console.error('Gemini AI Formatting Error:', err);
+            res.status(500).json({ msg: `AI formatting failed: ${err.message}` });
+        }
+    });
+
     return router;
 };

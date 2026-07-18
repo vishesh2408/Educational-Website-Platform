@@ -445,3 +445,36 @@ html.dark .emoji-picker-item:hover {
 .ProseMirror div[data-card-template]:hover {
   transform: translateY(-1px);
 }
+
+/* AI Format button styles */
+.rich-text-editor__btn--ai {
+  font-size: 13px !important;
+  color: var(--color-primary-dark) !important;
+  width: auto !important;
+  padding: 0 10px !important;
+  min-width: 95px;
+}
+
+.rich-text-editor__btn--ai:hover {
+  background-color: rgba(20, 184, 166, 0.15) !important;
+  border-color: rgba(20, 184, 166, 0.4) !important;
+}
+
+.rich-text-editor__btn--ai.is-loading {
+  animation: aiPulse 1.5s infinite ease-in-out;
+}
+
+@keyframes aiPulse {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.6;
+    transform: scale(0.98);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}

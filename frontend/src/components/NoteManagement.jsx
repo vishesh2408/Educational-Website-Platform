@@ -182,18 +182,27 @@ const NoteManagement = () => {
     const [newNote, setNewNote] = useState({ title: '', subject: '', content: '', imageUrl: '' });
     const [coursesList, setCoursesList] = useState([]);
     const [tutorialsList, setTutorialsList] = useState([]);
+    const [skillsList, setSkillsList] = useState([]);
+    const [tracksList, setTracksList] = useState([]);
+    const [sectionsList, setSectionsList] = useState([]);
     const [selectedCourseId, setSelectedCourseId] = useState('');
     const [selectedTutorialId, setSelectedTutorialId] = useState('');
+    const [selectedSkillId, setSelectedSkillId] = useState('');
+    const [selectedTrackId, setSelectedTrackId] = useState('');
     const [selectedModuleId, setSelectedModuleId] = useState('');
     const [selectedTopicId, setSelectedTopicId] = useState('');
-    const [attachType, setAttachType] = useState(''); // 'course', 'tutorial', or ''
+    const [selectedSectionId, setSelectedSectionId] = useState('');
+    const [attachType, setAttachType] = useState(''); // 'course', 'tutorial', 'skill', 'track', or ''
     const [editingNote, setEditingNote] = useState(null);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [editSelectedCourseId, setEditSelectedCourseId] = useState('');
     const [editSelectedTutorialId, setEditSelectedTutorialId] = useState('');
+    const [editSelectedSkillId, setEditSelectedSkillId] = useState('');
+    const [editSelectedTrackId, setEditSelectedTrackId] = useState('');
     const [editSelectedModuleId, setEditSelectedModuleId] = useState('');
     const [editSelectedTopicId, setEditSelectedTopicId] = useState('');
-    const [editAttachType, setEditAttachType] = useState(''); // 'course', 'tutorial', or ''
+    const [editSelectedSectionId, setEditSelectedSectionId] = useState('');
+    const [editAttachType, setEditAttachType] = useState(''); // 'course', 'tutorial', 'skill', 'track', or ''
     const [formMessage, setFormMessage] = useState({ type: '', text: '' });
     const [isDeleting, setIsDeleting] = useState(false);
     const [noteToDelete, setNoteToDelete] = useState(null);
@@ -217,8 +226,11 @@ const NoteManagement = () => {
         setAttachType(type);
         setSelectedCourseId('');
         setSelectedTutorialId('');
+        setSelectedSkillId('');
+        setSelectedTrackId('');
         setSelectedModuleId('');
         setSelectedTopicId('');
+        setSelectedSectionId('');
     };
 
     const handleModuleChange = (moduleId) => {
@@ -232,9 +244,19 @@ const NoteManagement = () => {
             const mod = course ? (course.modules || []).find(m => m._id === moduleId) : null;
             const firstTopic = mod && mod.topics && mod.topics[0] ? mod.topics[0]._id : '';
             setSelectedTopicId(firstTopic);
-        } else {
+        } else if (attachType === 'tutorial') {
             const tutorial = tutorialsList.find(t => t._id === selectedTutorialId);
             const mod = tutorial ? (tutorial.modules || []).find(m => m._id === moduleId) : null;
+            const firstTopic = mod && mod.topics && mod.topics[0] ? mod.topics[0]._id : '';
+            setSelectedTopicId(firstTopic);
+        } else if (attachType === 'skill') {
+            const skill = skillsList.find(s => s._id === selectedSkillId);
+            const mod = skill ? (skill.modules || []).find(m => m._id === moduleId) : null;
+            const firstTopic = mod && mod.topics && mod.topics[0] ? mod.topics[0]._id : '';
+            setSelectedTopicId(firstTopic);
+        } else if (attachType === 'track') {
+            const track = tracksList.find(t => t._id === selectedTrackId);
+            const mod = track ? (track.modules || []).find(m => m._id === moduleId) : null;
             const firstTopic = mod && mod.topics && mod.topics[0] ? mod.topics[0]._id : '';
             setSelectedTopicId(firstTopic);
         }
@@ -244,8 +266,11 @@ const NoteManagement = () => {
         setEditAttachType(type);
         setEditSelectedCourseId('');
         setEditSelectedTutorialId('');
+        setEditSelectedSkillId('');
+        setEditSelectedTrackId('');
         setEditSelectedModuleId('');
         setEditSelectedTopicId('');
+        setEditSelectedSectionId('');
     };
 
     const handleEditModuleChange = (moduleId) => {
@@ -259,9 +284,19 @@ const NoteManagement = () => {
             const mod = course ? (course.modules || []).find(m => m._id === moduleId) : null;
             const firstTopic = mod && mod.topics && mod.topics[0] ? mod.topics[0]._id : '';
             setEditSelectedTopicId(firstTopic);
-        } else {
+        } else if (editAttachType === 'tutorial') {
             const tutorial = tutorialsList.find(t => t._id === editSelectedTutorialId);
             const mod = tutorial ? (tutorial.modules || []).find(m => m._id === moduleId) : null;
+            const firstTopic = mod && mod.topics && mod.topics[0] ? mod.topics[0]._id : '';
+            setEditSelectedTopicId(firstTopic);
+        } else if (editAttachType === 'skill') {
+            const skill = skillsList.find(s => s._id === editSelectedSkillId);
+            const mod = skill ? (skill.modules || []).find(m => m._id === moduleId) : null;
+            const firstTopic = mod && mod.topics && mod.topics[0] ? mod.topics[0]._id : '';
+            setEditSelectedTopicId(firstTopic);
+        } else if (editAttachType === 'track') {
+            const track = tracksList.find(t => t._id === editSelectedTrackId);
+            const mod = track ? (track.modules || []).find(m => m._id === moduleId) : null;
             const firstTopic = mod && mod.topics && mod.topics[0] ? mod.topics[0]._id : '';
             setEditSelectedTopicId(firstTopic);
         }
@@ -337,9 +372,92 @@ const NoteManagement = () => {
         }
     }, []);
 
+    // Fetch admin skills (populated with modules and topics)
+    const fetchAdminSkills = useCallback(async () => {
+        try {
+            const res = await fetch(`${API_BASE_URL}/admin/skills`, { ...authFetchOptions, method: 'GET' });
+            if (res.ok) {
+                const data = await res.json();
+                setSkillsList(data || []);
+            } else {
+                console.warn('Failed to fetch admin skills for notes selector');
+            }
+        } catch (err) {
+            console.error('Error fetching admin skills:', err);
+        }
+    }, []);
+
+    // Fetch admin tracks (populated with modules and topics)
+    const fetchAdminTracks = useCallback(async () => {
+        try {
+            const res = await fetch(`${API_BASE_URL}/admin/tracks`, { ...authFetchOptions, method: 'GET' });
+            if (res.ok) {
+                const data = await res.json();
+                setTracksList(data || []);
+            } else {
+                console.warn('Failed to fetch admin tracks for notes selector');
+            }
+        } catch (err) {
+            console.error('Error fetching admin tracks:', err);
+        }
+    }, []);
+
+    // Fetch admin resource sections
+    const fetchAdminSections = useCallback(async () => {
+        try {
+            const res = await fetch(`${API_BASE_URL}/admin/sections`, { ...authFetchOptions, method: 'GET' });
+            if (res.ok) {
+                const data = await res.json();
+                setSectionsList(data || []);
+            } else {
+                console.warn('Failed to fetch admin sections for notes selector');
+            }
+        } catch (err) {
+            console.error('Error fetching admin sections:', err);
+        }
+    }, []);
+
 
     useEffect(() => { fetchNotes(1, false); }, [fetchNotes]);
-    useEffect(() => { fetchAdminCourses(); fetchAdminTutorials(); }, [fetchAdminCourses, fetchAdminTutorials]);
+    useEffect(() => { fetchAdminCourses(); fetchAdminTutorials(); fetchAdminSkills(); fetchAdminTracks(); fetchAdminSections(); }, [fetchAdminCourses, fetchAdminTutorials, fetchAdminSkills, fetchAdminTracks, fetchAdminSections]);
+
+    // Load drafts on mount
+    useEffect(() => {
+        const savedContent = localStorage.getItem('draft_note_content');
+        const savedTitle = localStorage.getItem('draft_note_title');
+        const savedSubject = localStorage.getItem('draft_note_subject');
+        if (savedContent) setContent(savedContent);
+        if (savedTitle || savedSubject) {
+            setNewNote(prev => ({
+                ...prev,
+                title: savedTitle || prev.title,
+                subject: savedSubject || prev.subject
+            }));
+        }
+    }, []);
+
+    // Save draft content on changes
+    useEffect(() => {
+        if (content) {
+            localStorage.setItem('draft_note_content', content);
+        } else {
+            localStorage.removeItem('draft_note_content');
+        }
+    }, [content]);
+
+    // Save draft title & subject on changes
+    useEffect(() => {
+        if (newNote.title) {
+            localStorage.setItem('draft_note_title', newNote.title);
+        } else {
+            localStorage.removeItem('draft_note_title');
+        }
+        if (newNote.subject) {
+            localStorage.setItem('draft_note_subject', newNote.subject);
+        } else {
+            localStorage.removeItem('draft_note_subject');
+        }
+    }, [newNote.title, newNote.subject]);
 
     const fetchSanitizedPreview = async (html) => {
         try {
@@ -363,8 +481,18 @@ const NoteManagement = () => {
         e.preventDefault(); setIsLoading(true);
         //if (!adminToken) { setFormMessage({ type: 'error', text: 'Authentication token missing.' }); setIsLoading(false); return; }
         if (!newNote.title.trim() || !content.trim()) { setFormMessage({ type: 'error', text: 'Title and content are required for a new note.' }); setIsLoading(false); return; }
+        if (['course', 'tutorial', 'skill', 'track'].includes(attachType) && !selectedTopicId) {
+            setFormMessage({ type: 'error', text: `Please select a target topic for the attached ${attachType}.` });
+            setIsLoading(false);
+            return;
+        }
+        if (['roadmap', 'interview', 'placement', 'software_tool', 'miscellaneous'].includes(attachType) && !selectedSectionId) {
+            setFormMessage({ type: 'error', text: `Please select a target section/list for the attached ${attachType === 'software_tool' ? 'Software & Tools' : attachType.charAt(0).toUpperCase() + attachType.slice(1)}.` });
+            setIsLoading(false);
+            return;
+        }
         try {
-            const response = await fetch(`${API_BASE_URL}/admin/notes`, { ...authFetchOptions, method: 'POST',  body: JSON.stringify({ ...newNote, content: content, format: 'html', topicId: selectedTopicId || null }) });
+            const response = await fetch(`${API_BASE_URL}/admin/notes`, { ...authFetchOptions, method: 'POST',  body: JSON.stringify({ ...newNote, content: content, format: 'html', topicId: ['course', 'tutorial', 'skill', 'track'].includes(attachType) ? (selectedTopicId || null) : null, sectionId: ['roadmap', 'interview', 'placement', 'software_tool', 'miscellaneous'].includes(attachType) ? (selectedSectionId || null) : null }) });
             
             if (response.status === 401 || response.status === 403) {
                 setFormMessage({ type: 'error', text: 'Authentication failed. Please log in again.' });
@@ -381,10 +509,18 @@ const NoteManagement = () => {
                 setContent('');
                 setSelectedCourseId('');
                 setSelectedTutorialId('');
+                setSelectedSkillId('');
+                setSelectedTrackId('');
                 setSelectedModuleId('');
                 setSelectedTopicId('');
+                setSelectedSectionId('');
                 setAttachType('');
                 setFormMessage({ type: 'success', text: 'Note added successfully!' });
+                
+                // Clear any drafts saved in localStorage
+                localStorage.removeItem('draft_note_content');
+                localStorage.removeItem('draft_note_title');
+                localStorage.removeItem('draft_note_subject');
             }
             
             else { setFormMessage({ type: 'error', text: data.msg || 'Failed to add note.' }); 
@@ -393,15 +529,24 @@ const NoteManagement = () => {
         } catch (error) { console.error('Error adding note:', error); setFormMessage({ type: 'error', text: 'Network error or server unavailable. Failed to add note.' }); } finally { setIsLoading(false); }
     };
 
+    const handleCancelAdd = () => {
+        setNewNote({ title: '', subject: '', content: '', imageUrl: '' });
+        setContent('');
+        setSelectedCourseId('');
+        setSelectedTutorialId('');
+        setSelectedModuleId('');
+        setSelectedTopicId('');
+        setSelectedSectionId('');
+        setAttachType('');
+        localStorage.removeItem('draft_note_content');
+        localStorage.removeItem('draft_note_title');
+        localStorage.removeItem('draft_note_subject');
+        setFormMessage({ type: 'info', text: 'Draft cleared.' });
+    };
+
     // Open a full-page preview in a new tab/window.
-    const openFullPagePreview = async (html) => {
+    const openFullPagePreview = (html) => {
         try {
-            const rendered = await fetchSanitizedPreview(html || '');
-            const w = window.open('', '_blank');
-            if (!w) {
-                setFormMessage({ type: 'error', text: 'Popup blocked. Allow popups to view full preview.' });
-                return;
-            }
             const baseStyles = `
                 body { font-family: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial; padding: 24px; background: #fff; color: #111827; }
                 img { max-width: 100%; height: auto; }
@@ -425,13 +570,18 @@ const NoteManagement = () => {
                   }).catch(() => {});
                 });
             `;
-            // Write a minimal HTML document into the new window
-            w.document.open();
-            w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Note Preview</title><style>${baseStyles}</style></head><body>${rendered}<script>${copyScript}</script></body></html>`);
-            w.document.close();
+
+            const fullHtml = `<!doctype html><html><head><meta charset="utf-8"><title>Note Preview</title><style>${baseStyles}</style></head><body>${html || '<em>No content to preview</em>'}<script>${copyScript}</script></body></html>`;
+            const blob = new Blob([fullHtml], { type: 'text/html;charset=utf-8' });
+            const blobUrl = URL.createObjectURL(blob);
+
+            const w = window.open(blobUrl, '_blank');
+            if (!w) {
+                setFormMessage({ type: 'error', text: 'Popup blocked. Allow popups to view full preview.' });
+            }
         } catch (err) {
-            console.error('Failed to open full preview', err);
-            setFormMessage({ type: 'error', text: 'Failed to open full preview.' });
+            console.error('Failed to open preview via blob URL', err);
+            setFormMessage({ type: 'error', text: 'Failed to open preview.' });
         }
     };
 
@@ -455,8 +605,25 @@ const NoteManagement = () => {
                 setContent(note.content || '');
             }
         })();
-        // If the note already has a deterministic topicId, use it to pre-select Course/Module/Topic
-        if (note.topicId) {
+        
+        // Reset all edit selections
+        setEditSelectedCourseId('');
+        setEditSelectedTutorialId('');
+        setEditSelectedModuleId('');
+        setEditSelectedTopicId('');
+        setEditSelectedSectionId('');
+        setEditAttachType('');
+
+        // If the note has a sectionId, pre-select it
+        if (note.sectionId) {
+            setEditSelectedSectionId(note.sectionId);
+            const foundSection = sectionsList.find(s => String(s._id) === String(note.sectionId));
+            if (foundSection) {
+                setEditAttachType(foundSection.type);
+            }
+        }
+        // Else if the note already has a topicId, use it to pre-select Course/Module/Topic
+        else if (note.topicId) {
             let found = false;
             for (const course of coursesList || []) {
                 if (!course.modules) continue;
@@ -476,7 +643,7 @@ const NoteManagement = () => {
                 }
                 if (found) break;
             }
-            if (!found) {
+             if (!found) {
                 for (const tutorial of tutorialsList || []) {
                     if (!tutorial.modules) continue;
                     for (const mod of tutorial.modules) {
@@ -485,9 +652,55 @@ const NoteManagement = () => {
                             if (String(topic._id) === String(note.topicId)) {
                                 setEditSelectedTutorialId(tutorial._id);
                                 setEditSelectedCourseId('');
+                                setEditSelectedSkillId('');
+                                setEditSelectedTrackId('');
                                 setEditSelectedModuleId(mod._id);
                                 setEditSelectedTopicId(topic._id);
                                 setEditAttachType('tutorial');
+                                found = true; break;
+                            }
+                        }
+                        if (found) break;
+                    }
+                    if (found) break;
+                }
+            }
+            if (!found) {
+                for (const skill of skillsList || []) {
+                    if (!skill.modules) continue;
+                    for (const mod of skill.modules) {
+                        if (!mod.topics) continue;
+                        for (const topic of mod.topics) {
+                            if (String(topic._id) === String(note.topicId)) {
+                                setEditSelectedSkillId(skill._id);
+                                setEditSelectedCourseId('');
+                                setEditSelectedTutorialId('');
+                                setEditSelectedTrackId('');
+                                setEditSelectedModuleId(mod._id);
+                                setEditSelectedTopicId(topic._id);
+                                setEditAttachType('skill');
+                                found = true; break;
+                            }
+                        }
+                        if (found) break;
+                    }
+                    if (found) break;
+                }
+            }
+            if (!found) {
+                for (const track of tracksList || []) {
+                    if (!track.modules) continue;
+                    for (const mod of track.modules) {
+                        if (!mod.topics) continue;
+                        for (const topic of mod.topics) {
+                            if (String(topic._id) === String(note.topicId)) {
+                                setEditSelectedTrackId(track._id);
+                                setEditSelectedCourseId('');
+                                setEditSelectedTutorialId('');
+                                setEditSelectedSkillId('');
+                                setEditSelectedModuleId(mod._id);
+                                setEditSelectedTopicId(topic._id);
+                                setEditAttachType('track');
                                 found = true; break;
                             }
                         }
@@ -503,17 +716,30 @@ const NoteManagement = () => {
                     if (detected.courseId) {
                         setEditSelectedCourseId(detected.courseId);
                         setEditSelectedTutorialId('');
+                        setEditSelectedSkillId('');
+                        setEditSelectedTrackId('');
                         setEditAttachType('course');
                     } else if (detected.tutorialId) {
                         setEditSelectedTutorialId(detected.tutorialId);
                         setEditSelectedCourseId('');
+                        setEditSelectedSkillId('');
+                        setEditSelectedTrackId('');
                         setEditAttachType('tutorial');
+                    } else if (detected.skillId) {
+                        setEditSelectedSkillId(detected.skillId);
+                        setEditSelectedCourseId('');
+                        setEditSelectedTutorialId('');
+                        setEditSelectedTrackId('');
+                        setEditAttachType('skill');
+                    } else if (detected.trackId) {
+                        setEditSelectedTrackId(detected.trackId);
+                        setEditSelectedCourseId('');
+                        setEditSelectedTutorialId('');
+                        setEditSelectedSkillId('');
+                        setEditAttachType('track');
                     }
                     setEditSelectedModuleId(detected.moduleId);
                     setEditSelectedTopicId(detected.topicId);
-                } else {
-                    setEditSelectedCourseId(''); setEditSelectedTutorialId(''); setEditSelectedModuleId(''); setEditSelectedTopicId('');
-                    setEditAttachType('');
                 }
             }
         } else {
@@ -523,21 +749,30 @@ const NoteManagement = () => {
                 if (detected.courseId) {
                     setEditSelectedCourseId(detected.courseId);
                     setEditSelectedTutorialId('');
+                    setEditSelectedSkillId('');
+                    setEditSelectedTrackId('');
                     setEditAttachType('course');
                 } else if (detected.tutorialId) {
                     setEditSelectedTutorialId(detected.tutorialId);
                     setEditSelectedCourseId('');
+                    setEditSelectedSkillId('');
+                    setEditSelectedTrackId('');
                     setEditAttachType('tutorial');
+                } else if (detected.skillId) {
+                    setEditSelectedSkillId(detected.skillId);
+                    setEditSelectedCourseId('');
+                    setEditSelectedTutorialId('');
+                    setEditSelectedTrackId('');
+                    setEditAttachType('skill');
+                } else if (detected.trackId) {
+                    setEditSelectedTrackId(detected.trackId);
+                    setEditSelectedCourseId('');
+                    setEditSelectedTutorialId('');
+                    setEditSelectedSkillId('');
+                    setEditAttachType('track');
                 }
                 setEditSelectedModuleId(detected.moduleId);
                 setEditSelectedTopicId(detected.topicId);
-            } else {
-                // reset edit selectors; admin can choose where to attach
-                setEditSelectedCourseId('');
-                setEditSelectedTutorialId('');
-                setEditSelectedModuleId('');
-                setEditSelectedTopicId('');
-                setEditAttachType('');
             }
         }
         setIsEditModalOpen(true);
@@ -583,6 +818,40 @@ const NoteManagement = () => {
                 }
             }
         }
+        for (const skill of skillsList || []) {
+            if (!skill.modules) continue;
+            for (const mod of skill.modules) {
+                if (!mod.topics) continue;
+                for (const topic of mod.topics) {
+                    const tNotes = (Array.isArray(topic.articles)
+                        ? topic.articles.map(a => (a && a.content) ? String(a.content) : '').join('\n\n')
+                        : '')
+                        .replace(/\s+/g, ' ')
+                        .trim();
+                    if (!tNotes) continue;
+                    if (tNotes === normalized) return { skillId: skill._id, moduleId: mod._id, topicId: topic._id };
+                    const snippet = normalized.slice(0, 200);
+                    if (tNotes.includes(snippet) || snippet.includes(tNotes.slice(0,200))) return { skillId: skill._id, moduleId: mod._id, topicId: topic._id };
+                }
+            }
+        }
+        for (const track of tracksList || []) {
+            if (!track.modules) continue;
+            for (const mod of track.modules) {
+                if (!mod.topics) continue;
+                for (const topic of mod.topics) {
+                    const tNotes = (Array.isArray(topic.articles)
+                        ? topic.articles.map(a => (a && a.content) ? String(a.content) : '').join('\n\n')
+                        : '')
+                        .replace(/\s+/g, ' ')
+                        .trim();
+                    if (!tNotes) continue;
+                    if (tNotes === normalized) return { trackId: track._id, moduleId: mod._id, topicId: topic._id };
+                    const snippet = normalized.slice(0, 200);
+                    if (tNotes.includes(snippet) || snippet.includes(tNotes.slice(0,200))) return { trackId: track._id, moduleId: mod._id, topicId: topic._id };
+                }
+            }
+        }
         return null;
     };
     const handleImageFileChange = (e, target) => {
@@ -616,8 +885,18 @@ const NoteManagement = () => {
         e.preventDefault(); setIsLoading(true);
         //if (!adminToken || !editingNote?._id) { setFormMessage({ type: 'error', text: 'Authentication token or note ID missing.' }); setIsLoading(false); return; }
         if (!editingNote.title.trim() || !String(editingNote.content || '').trim()) { setFormMessage({ type: 'error', text: 'Title and content are required for the note.' }); setIsLoading(false); return; }
+        if (['course', 'tutorial', 'skill', 'track'].includes(editAttachType) && !editSelectedTopicId) {
+            setFormMessage({ type: 'error', text: `Please select a target topic for the attached ${editAttachType}.` });
+            setIsLoading(false);
+            return;
+        }
+        if (['roadmap', 'interview', 'placement', 'software_tool', 'miscellaneous'].includes(editAttachType) && !editSelectedSectionId) {
+            setFormMessage({ type: 'error', text: `Please select a target section/list for the attached ${editAttachType === 'software_tool' ? 'Software & Tools' : editAttachType.charAt(0).toUpperCase() + editAttachType.slice(1)}.` });
+            setIsLoading(false);
+            return;
+        }
         try {
-            const response = await fetch(`${API_BASE_URL}/admin/notes/${editingNote._id}`, { ...authFetchOptions, method: 'PUT', body: JSON.stringify({ ...editingNote, content: editingNote.content, format: 'html', topicId: editSelectedTopicId || editingNote.topicId || null }) });
+            const response = await fetch(`${API_BASE_URL}/admin/notes/${editingNote._id}`, { ...authFetchOptions, method: 'PUT', body: JSON.stringify({ ...editingNote, content: editingNote.content, format: 'html', topicId: ['course', 'tutorial', 'skill', 'track'].includes(editAttachType) ? (editSelectedTopicId || null) : null, sectionId: ['roadmap', 'interview', 'placement', 'software_tool', 'miscellaneous'].includes(editAttachType) ? (editSelectedSectionId || null) : null }) });
             
             if (response.status === 401 || response.status === 403) {
                 setFormMessage({ type: 'error', text: 'Authentication failed. Please log in again.' });
@@ -892,28 +1171,51 @@ const NoteManagement = () => {
 
             <form onSubmit={handleAddNote} className="admin-form-container">
                             <div className="form-group"><label htmlFor="newNoteTitle" className="form-label">Title</label><input type="text" id="newNoteTitle" name="title" value={newNote.title} onChange={(e) => setNewNote({ ...newNote, title: e.target.value })} required className="form-input" /></div>
+                            <div className="form-group"><label htmlFor="newNoteSubject" className="form-label">Subject</label><input type="text" id="newNoteSubject" name="subject" value={newNote.subject} onChange={(e) => setNewNote({ ...newNote, subject: e.target.value })} className="form-input" /></div>
                             <div className="form-group"><label className="form-label">Attach to (optional)</label>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    {/* Row 1 Left: Select Course or Tutorial */}
+                                    {/* Row 1 Left: Select Category */}
                                     <div>
                                         <select value={attachType} onChange={(e)=>handleAttachTypeChange(e.target.value)} className="form-input w-full">
-                                            <option value="">Select Course or Tutorial</option>
+                                            <option value="">Select Attachment Category</option>
                                             <option value="course">Course</option>
                                             <option value="tutorial">Tutorial</option>
+                                            <option value="skill">Skill</option>
+                                            <option value="track">Track</option>
+                                            <option value="roadmap">Roadmap</option>
+                                            <option value="interview">Interview Prep</option>
+                                            <option value="placement">Placement Prep</option>
+                                            <option value="software_tool">Software & Tools</option>
+                                            <option value="miscellaneous">Miscellaneous</option>
                                         </select>
                                     </div>
 
-                                    {/* Row 1 Right: Select Course or Tutorial Item */}
+                                    {/* Row 1 Right: Select Category Item */}
                                     <div>
                                         {attachType === 'course' ? (
-                                            <select value={selectedCourseId} onChange={(e)=>{ setSelectedCourseId(e.target.value); setSelectedTutorialId(''); setSelectedModuleId(''); setSelectedTopicId(''); }} className="form-input w-full">
+                                            <select value={selectedCourseId} onChange={(e)=>{ setSelectedCourseId(e.target.value); setSelectedTutorialId(''); setSelectedSkillId(''); setSelectedTrackId(''); setSelectedModuleId(''); setSelectedTopicId(''); }} className="form-input w-full">
                                                 <option value="">Select Course</option>
                                                 {coursesList.map(c => (<option key={c._id} value={c._id}>{c.title}</option>))}
                                             </select>
                                         ) : attachType === 'tutorial' ? (
-                                            <select value={selectedTutorialId} onChange={(e)=>{ setSelectedTutorialId(e.target.value); setSelectedCourseId(''); setSelectedModuleId(''); setSelectedTopicId(''); }} className="form-input w-full">
+                                            <select value={selectedTutorialId} onChange={(e)=>{ setSelectedTutorialId(e.target.value); setSelectedCourseId(''); setSelectedSkillId(''); setSelectedTrackId(''); setSelectedModuleId(''); setSelectedTopicId(''); }} className="form-input w-full">
                                                 <option value="">Select Tutorial</option>
                                                 {tutorialsList.map(t => (<option key={t._id} value={t._id}>{t.title}</option>))}
+                                            </select>
+                                        ) : attachType === 'skill' ? (
+                                            <select value={selectedSkillId} onChange={(e)=>{ setSelectedSkillId(e.target.value); setSelectedCourseId(''); setSelectedTutorialId(''); setSelectedTrackId(''); setSelectedModuleId(''); setSelectedTopicId(''); }} className="form-input w-full">
+                                                <option value="">Select Skill</option>
+                                                {skillsList.map(s => (<option key={s._id} value={s._id}>{s.title}</option>))}
+                                            </select>
+                                        ) : attachType === 'track' ? (
+                                            <select value={selectedTrackId} onChange={(e)=>{ setSelectedTrackId(e.target.value); setSelectedCourseId(''); setSelectedTutorialId(''); setSelectedSkillId(''); setSelectedModuleId(''); setSelectedTopicId(''); }} className="form-input w-full">
+                                                <option value="">Select Track</option>
+                                                {tracksList.map(t => (<option key={t._id} value={t._id}>{t.title}</option>))}
+                                            </select>
+                                        ) : ['roadmap', 'interview', 'placement', 'software_tool', 'miscellaneous'].includes(attachType) ? (
+                                            <select value={selectedSectionId} onChange={(e)=>setSelectedSectionId(e.target.value)} className="form-input w-full">
+                                                <option value="">Select {attachType === 'software_tool' ? 'Software & Tool List' : attachType.charAt(0).toUpperCase() + attachType.slice(1)}</option>
+                                                {sectionsList.filter(s => s.type === attachType).map(s => (<option key={s._id} value={s._id}>{s.title}</option>))}
                                             </select>
                                         ) : (
                                             <select disabled className="form-input w-full cursor-not-allowed opacity-50">
@@ -934,18 +1236,53 @@ const NoteManagement = () => {
                                                 <option value="">Select Tutorial Module</option>
                                                 {(tutorialsList.find(t=>t._id===selectedTutorialId)?.modules || []).map(m => (<option key={m._id} value={m._id}>{m.title}</option>))}
                                             </select>
+                                        ) : attachType === 'skill' && selectedSkillId ? (
+                                            <select value={selectedModuleId} onChange={(e)=>handleModuleChange(e.target.value)} className="form-input w-full">
+                                                <option value="">Select Skill Module</option>
+                                                {(skillsList.find(s=>s._id===selectedSkillId)?.modules || []).map(m => (<option key={m._id} value={m._id}>{m.title}</option>))}
+                                            </select>
+                                        ) : attachType === 'track' && selectedTrackId ? (
+                                            <select value={selectedModuleId} onChange={(e)=>handleModuleChange(e.target.value)} className="form-input w-full">
+                                                <option value="">Select Track Module</option>
+                                                {(tracksList.find(t=>t._id===selectedTrackId)?.modules || []).map(m => (<option key={m._id} value={m._id}>{m.title}</option>))}
+                                            </select>
                                         ) : (
                                             <select disabled className="form-input w-full cursor-not-allowed opacity-50">
-                                                <option value="">Select Module</option>
+                                                <option value="">Select Module (N/A)</option>
                                             </select>
                                         )}
                                     </div>
 
-                                    {/* Row 2 Right: Empty Spacer */}
-                                    <div></div>
+                                    {/* Row 2 Right: Select Topic */}
+                                    <div>
+                                        {attachType === 'course' && selectedModuleId ? (
+                                            <select value={selectedTopicId} onChange={(e)=>setSelectedTopicId(e.target.value)} className="form-input w-full">
+                                                <option value="">Select Course Topic</option>
+                                                {((coursesList.find(c=>c._id===selectedCourseId)?.modules || []).find(m=>m._id===selectedModuleId)?.topics || []).map(t => (<option key={t._id} value={t._id}>{t.title}</option>))}
+                                            </select>
+                                        ) : attachType === 'tutorial' && selectedModuleId ? (
+                                            <select value={selectedTopicId} onChange={(e)=>setSelectedTopicId(e.target.value)} className="form-input w-full">
+                                                <option value="">Select Tutorial Topic</option>
+                                                {((tutorialsList.find(t=>t._id===selectedTutorialId)?.modules || []).find(m=>m._id===selectedModuleId)?.topics || []).map(t => (<option key={t._id} value={t._id}>{t.title}</option>))}
+                                            </select>
+                                        ) : attachType === 'skill' && selectedModuleId ? (
+                                            <select value={selectedTopicId} onChange={(e)=>setSelectedTopicId(e.target.value)} className="form-input w-full">
+                                                <option value="">Select Skill Topic</option>
+                                                {((skillsList.find(s=>s._id===selectedSkillId)?.modules || []).find(m=>m._id===selectedModuleId)?.topics || []).map(t => (<option key={t._id} value={t._id}>{t.title}</option>))}
+                                            </select>
+                                        ) : attachType === 'track' && selectedModuleId ? (
+                                            <select value={selectedTopicId} onChange={(e)=>setSelectedTopicId(e.target.value)} className="form-input w-full">
+                                                <option value="">Select Track Topic</option>
+                                                {((tracksList.find(t=>t._id===selectedTrackId)?.modules || []).find(m=>m._id===selectedModuleId)?.topics || []).map(t => (<option key={t._id} value={t._id}>{t.title}</option>))}
+                                            </select>
+                                        ) : (
+                                            <select disabled className="form-input w-full cursor-not-allowed opacity-50">
+                                                <option value="">Select Topic (N/A)</option>
+                                            </select>
+                                        )}
+                                    </div>
                                 </div>
                             </div>
-                            <div className="form-group"><label htmlFor="newNoteSubject" className="form-label">Subject</label><input type="text" id="newNoteSubject" name="subject" value={newNote.subject} onChange={(e) => setNewNote({ ...newNote, subject: e.target.value })} className="form-input" /></div>
                             <div className="form-group"><label htmlFor="newNoteContent" className="form-label">Content</label>
                                 <QuillNoteEditor value={content} onChange={setContent} />
                                 <div className="mt-2 flex items-center gap-2">
@@ -995,7 +1332,11 @@ const NoteManagement = () => {
                                     </div>
                                 )}
                             </div>
-                            <button type="submit" disabled={isLoading} className="form-submit-button">{isLoading ? 'Adding...' : <><PlusCircle size={20} className="icon-mr" /> Add Note</>}</button>
+                            <div className="flex gap-3">
+                                <button type="submit" disabled={isLoading} className="form-submit-button flex-1">{isLoading ? 'Adding...' : <><PlusCircle size={20} className="icon-mr" /> Add Note</>}</button>
+                                <button type="button" onClick={handleCancelAdd} className="admin-button-secondary py-2 px-4 rounded text-sm font-semibold">Cancel</button>
+                                <button type="button" onClick={() => { fetchNotes(1, false); }} className="admin-button-secondary py-2 px-4 rounded text-sm font-semibold">Refresh List</button>
+                            </div>
                         </form>
 
             <h3 className="admin-section-title"><Info size={20} /> Existing Notes</h3>
@@ -1045,35 +1386,50 @@ const NoteManagement = () => {
                         <form onSubmit={handleUpdateNote}>
                             <div className="form-group"><label htmlFor="editNoteTitle" className="form-label">Title</label><input type="text" id="editNoteTitle" name="title" value={editingNote.title} onChange={handleEditChange} required className="form-input" /></div>
                             <div className="form-group"><label htmlFor="editNoteSubject" className="form-label">Subject</label><input type="text" id="editNoteSubject" name="subject" value={editingNote.subject || ''} onChange={handleEditChange} className="form-input" /></div>
-                            <div className="form-group"><label htmlFor="editNoteContent" className="form-label">Content</label>
-                                <QuillNoteEditor value={editingNote.content || ''} onChange={(val) => setEditingNote(prev => ({ ...prev, content: val }))} />
-                                <div className="mt-2 flex items-center gap-2">
-                                    <button type="button" className="admin-button-secondary" onClick={async () => { await openFullPagePreview(editingNote.content || ''); }}>Full Page</button>
-                                    <span className="text-sm text-gray-400">Use Update Note to save</span>
-                                </div>
-                            </div>
-                            <div className="form-group"><label className="form-label">Attach to (optional)</label>
+                             <div className="form-group"><label className="form-label">Attach to (optional)</label>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    {/* Row 1 Left: Select Course or Tutorial */}
+                                    {/* Row 1 Left: Select Category */}
                                     <div>
                                         <select value={editAttachType} onChange={(e)=>handleEditAttachTypeChange(e.target.value)} className="form-input w-full">
-                                            <option value="">Select Course or Tutorial</option>
+                                            <option value="">Select Attachment Category</option>
                                             <option value="course">Course</option>
                                             <option value="tutorial">Tutorial</option>
+                                            <option value="skill">Skill</option>
+                                            <option value="track">Track</option>
+                                            <option value="roadmap">Roadmap</option>
+                                            <option value="interview">Interview Prep</option>
+                                            <option value="placement">Placement Prep</option>
+                                            <option value="software_tool">Software & Tools</option>
+                                            <option value="miscellaneous">Miscellaneous</option>
                                         </select>
                                     </div>
 
-                                    {/* Row 1 Right: Select Course or Tutorial Item */}
+                                    {/* Row 1 Right: Select Category Item */}
                                     <div>
                                         {editAttachType === 'course' ? (
-                                            <select value={editSelectedCourseId} onChange={(e)=>{ setEditSelectedCourseId(e.target.value); setEditSelectedTutorialId(''); setEditSelectedModuleId(''); setEditSelectedTopicId(''); }} className="form-input w-full">
+                                            <select value={editSelectedCourseId} onChange={(e)=>{ setEditSelectedCourseId(e.target.value); setEditSelectedTutorialId(''); setEditSelectedSkillId(''); setEditSelectedTrackId(''); setEditSelectedModuleId(''); setEditSelectedTopicId(''); }} className="form-input w-full">
                                                 <option value="">Select Course</option>
                                                 {coursesList.map(c => (<option key={c._id} value={c._id}>{c.title}</option>))}
                                             </select>
                                         ) : editAttachType === 'tutorial' ? (
-                                            <select value={editSelectedTutorialId} onChange={(e)=>{ setEditSelectedTutorialId(e.target.value); setEditSelectedCourseId(''); setEditSelectedModuleId(''); setEditSelectedTopicId(''); }} className="form-input w-full">
+                                            <select value={editSelectedTutorialId} onChange={(e)=>{ setEditSelectedTutorialId(e.target.value); setEditSelectedCourseId(''); setEditSelectedSkillId(''); setEditSelectedTrackId(''); setEditSelectedModuleId(''); setEditSelectedTopicId(''); }} className="form-input w-full">
                                                 <option value="">Select Tutorial</option>
                                                 {tutorialsList.map(t => (<option key={t._id} value={t._id}>{t.title}</option>))}
+                                            </select>
+                                        ) : editAttachType === 'skill' ? (
+                                            <select value={editSelectedSkillId} onChange={(e)=>{ setEditSelectedSkillId(e.target.value); setEditSelectedCourseId(''); setEditSelectedTutorialId(''); setEditSelectedTrackId(''); setEditSelectedModuleId(''); setEditSelectedTopicId(''); }} className="form-input w-full">
+                                                <option value="">Select Skill</option>
+                                                {skillsList.map(s => (<option key={s._id} value={s._id}>{s.title}</option>))}
+                                            </select>
+                                        ) : editAttachType === 'track' ? (
+                                            <select value={editSelectedTrackId} onChange={(e)=>{ setEditSelectedTrackId(e.target.value); setEditSelectedCourseId(''); setEditSelectedTutorialId(''); setEditSelectedSkillId(''); setEditSelectedModuleId(''); setEditSelectedTopicId(''); }} className="form-input w-full">
+                                                <option value="">Select Track</option>
+                                                {tracksList.map(t => (<option key={t._id} value={t._id}>{t.title}</option>))}
+                                            </select>
+                                        ) : ['roadmap', 'interview', 'placement', 'software_tool', 'miscellaneous'].includes(editAttachType) ? (
+                                            <select value={editSelectedSectionId} onChange={(e)=>setEditSelectedSectionId(e.target.value)} className="form-input w-full">
+                                                <option value="">Select {editAttachType === 'software_tool' ? 'Software & Tool List' : editAttachType.charAt(0).toUpperCase() + editAttachType.slice(1)}</option>
+                                                {sectionsList.filter(s => s.type === editAttachType).map(s => (<option key={s._id} value={s._id}>{s.title}</option>))}
                                             </select>
                                         ) : (
                                             <select disabled className="form-input w-full cursor-not-allowed opacity-50">
@@ -1094,15 +1450,58 @@ const NoteManagement = () => {
                                                 <option value="">Select Tutorial Module</option>
                                                 {(tutorialsList.find(t=>t._id===editSelectedTutorialId)?.modules || []).map(m => (<option key={m._id} value={m._id}>{m.title}</option>))}
                                             </select>
+                                        ) : editAttachType === 'skill' && editSelectedSkillId ? (
+                                            <select value={editSelectedModuleId} onChange={(e)=>handleEditModuleChange(e.target.value)} className="form-input w-full">
+                                                <option value="">Select Skill Module</option>
+                                                {(skillsList.find(s=>s._id===editSelectedSkillId)?.modules || []).map(m => (<option key={m._id} value={m._id}>{m.title}</option>))}
+                                            </select>
+                                        ) : editAttachType === 'track' && editSelectedTrackId ? (
+                                            <select value={editSelectedModuleId} onChange={(e)=>handleEditModuleChange(e.target.value)} className="form-input w-full">
+                                                <option value="">Select Track Module</option>
+                                                {(tracksList.find(t=>t._id===editSelectedTrackId)?.modules || []).map(m => (<option key={m._id} value={m._id}>{m.title}</option>))}
+                                            </select>
                                         ) : (
                                             <select disabled className="form-input w-full cursor-not-allowed opacity-50">
-                                                <option value="">Select Module</option>
+                                                <option value="">Select Module (N/A)</option>
                                             </select>
                                         )}
                                     </div>
 
-                                    {/* Row 2 Right: Empty Spacer */}
-                                    <div></div>
+                                    {/* Row 2 Right: Select Topic */}
+                                    <div>
+                                        {editAttachType === 'course' && editSelectedModuleId ? (
+                                            <select value={editSelectedTopicId} onChange={(e)=>setEditSelectedTopicId(e.target.value)} className="form-input w-full">
+                                                <option value="">Select Course Topic</option>
+                                                {((coursesList.find(c=>c._id===editSelectedCourseId)?.modules || []).find(m=>m._id===editSelectedModuleId)?.topics || []).map(t => (<option key={t._id} value={t._id}>{t.title}</option>))}
+                                            </select>
+                                        ) : editAttachType === 'tutorial' && editSelectedModuleId ? (
+                                            <select value={editSelectedTopicId} onChange={(e)=>setEditSelectedTopicId(e.target.value)} className="form-input w-full">
+                                                <option value="">Select Tutorial Topic</option>
+                                                {((tutorialsList.find(t=>t._id===editSelectedTutorialId)?.modules || []).find(m=>m._id===editSelectedModuleId)?.topics || []).map(t => (<option key={t._id} value={t._id}>{t.title}</option>))}
+                                            </select>
+                                        ) : editAttachType === 'skill' && editSelectedModuleId ? (
+                                            <select value={editSelectedTopicId} onChange={(e)=>setEditSelectedTopicId(e.target.value)} className="form-input w-full">
+                                                <option value="">Select Skill Topic</option>
+                                                {((skillsList.find(s=>s._id===editSelectedSkillId)?.modules || []).find(m=>m._id===editSelectedModuleId)?.topics || []).map(t => (<option key={t._id} value={t._id}>{t.title}</option>))}
+                                            </select>
+                                        ) : editAttachType === 'track' && editSelectedModuleId ? (
+                                            <select value={editSelectedTopicId} onChange={(e)=>setEditSelectedTopicId(e.target.value)} className="form-input w-full">
+                                                <option value="">Select Track Topic</option>
+                                                {((tracksList.find(t=>t._id===editSelectedTrackId)?.modules || []).find(m=>m._id===editSelectedModuleId)?.topics || []).map(t => (<option key={t._id} value={t._id}>{t.title}</option>))}
+                                            </select>
+                                        ) : (
+                                            <select disabled className="form-input w-full cursor-not-allowed opacity-50">
+                                                <option value="">Select Topic (N/A)</option>
+                                            </select>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="form-group"><label htmlFor="editNoteContent" className="form-label">Content</label>
+                                <QuillNoteEditor value={editingNote.content || ''} onChange={(val) => setEditingNote(prev => ({ ...prev, content: val }))} />
+                                <div className="mt-2 flex items-center gap-2">
+                                    <button type="button" className="admin-button-secondary" onClick={async () => { await openFullPagePreview(editingNote.content || ''); }}>Full Page</button>
+                                    <span className="text-sm text-gray-400">Use Update Note to save</span>
                                 </div>
                             </div>
                             <div className="form-group">

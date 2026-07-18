@@ -4,6 +4,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import {
     ArrowRight,
+    ArrowLeft,
     Play,
     Check,
     Shield,
@@ -12,6 +13,13 @@ import {
     Clock,
     BookOpen,
     Award,
+    ChevronRight,
+    ChevronLeft,
+    Terminal,
+    Briefcase,
+    Cpu,
+    Layers,
+    Compass,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
@@ -57,7 +65,16 @@ const HomePage = () => {
     const [skills, setSkills] = useState([]);
     const [tracks, setTracks] = useState([]);
     const [courses, setCourses] = useState([]);
+    const [resourceSections, setResourceSections] = useState([]);
+    const [miscellaneousNotes, setMiscellaneousNotes] = useState([]);
     const [pricingPlans, setPricingPlans] = useState([]);
+    
+    // Pagination States for Resource categories (4 cards at a time)
+    const [roadmapPage, setRoadmapPage] = useState(0);
+    const [interviewPage, setInterviewPage] = useState(0);
+    const [placementPage, setPlacementPage] = useState(0);
+    const [toolPage, setToolPage] = useState(0);
+    const [miscPage, setMiscPage] = useState(0);
     const [billingPeriod, setBillingPeriod] = useState('monthly');
     const [pricingError, setPricingError] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
@@ -157,6 +174,30 @@ const HomePage = () => {
         } catch (err) {
             console.error('Error fetching homepage courses:', err);
             setError('Failed to load courses for homepage.');
+        }
+    }, []);
+
+    const fetchResourceSections = useCallback(async () => {
+        try {
+            const response = await fetch(`${API_BASE_URL}/public/sections`);
+            if (response.ok) {
+                const data = await response.json();
+                setResourceSections(data || []);
+            }
+        } catch (err) {
+            console.error('Error fetching resource sections in home:', err);
+        }
+    }, []);
+
+    const fetchMiscellaneousNotes = useCallback(async () => {
+        try {
+            const response = await fetch(`${API_BASE_URL}/public/notes?type=miscellaneous`);
+            const data = await response.json();
+            if (response.ok) {
+                setMiscellaneousNotes(data || []);
+            }
+        } catch (err) {
+            console.error('Error fetching miscellaneous notes in home:', err);
         }
     }, []);
 
@@ -260,6 +301,8 @@ const HomePage = () => {
                 fetchTracks(),
                 fetchCourses(),
                 fetchPricingPlans(),
+                fetchResourceSections(),
+                fetchMiscellaneousNotes(),
             ]).catch(err => {
                 console.error("Overall homepage data fetch error:", err);
             });
@@ -267,7 +310,7 @@ const HomePage = () => {
         };
 
         loadAllData();
-    }, [fetchSkills, fetchTracks, fetchCourses, fetchPricingPlans]);
+    }, [fetchSkills, fetchTracks, fetchCourses, fetchPricingPlans, fetchResourceSections, fetchMiscellaneousNotes]);
 
     const handleAction = useCallback((itemTitle, itemPrice, isPaid, itemId) => {
         // Navigate to course detail page instead of opening modal
@@ -293,6 +336,189 @@ const HomePage = () => {
         }
         navigate('/user/dashboard/courses');
     }, [currentUser, navigate]);
+
+    // Categories groupings
+    const roadmaps = resourceSections.filter(s => s.type === 'roadmap');
+    const interviews = resourceSections.filter(s => s.type === 'interview');
+    const placements = resourceSections.filter(s => s.type === 'placement');
+    const softwareTools = resourceSections.filter(s => s.type === 'software_tool');
+    const miscellaneous = resourceSections.filter(s => s.type === 'miscellaneous');
+
+    const renderDashboardSection = (title, items, page, setPage, linkPath, badgeColor, categoryName, IconComponent) => {
+        if (!items || items.length === 0) return null;
+        
+        const totalPages = Math.ceil(items.length / 4);
+        const visibleItems = items.slice(page * 4, (page + 1) * 4);
+        
+        return (
+            <div className="mt-16">
+                <div className="flex items-center justify-between border-b border-gray-200 dark:border-white/10 pb-3 mb-6">
+                    <div className="flex items-center gap-2">
+                        <IconComponent size={20} className="text-teal-550 dark:text-teal-400" />
+                        <h3 className="text-lg sm:text-xl font-extrabold text-gray-800 dark:text-white">{title}</h3>
+                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-gray-100 dark:bg-white/10 text-gray-500 dark:text-gray-400 font-bold">
+                            {items.length} total
+                        </span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                        <button 
+                            onClick={() => navigate(linkPath)}
+                            className="text-xs font-bold text-teal-600 dark:text-teal-400 hover:underline flex items-center gap-0.5 bg-transparent border-none cursor-pointer"
+                        >
+                            View All <ChevronRight size={14} />
+                        </button>
+                        {totalPages > 1 && (
+                            <div className="flex items-center gap-1 bg-gray-100 dark:bg-white/5 p-1 rounded-lg">
+                                <button
+                                    onClick={() => setPage(Math.max(page - 1, 0))}
+                                    disabled={page === 0}
+                                    className="p-1 rounded text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-white/10 disabled:opacity-30 disabled:hover:bg-transparent cursor-pointer transition-colors"
+                                    aria-label="Previous page"
+                                >
+                                    <ChevronLeft size={14} />
+                                </button>
+                                <span className="text-[9px] font-bold px-1 text-gray-500 dark:text-gray-400 min-w-[28px] text-center">
+                                    {page + 1} / {totalPages}
+                                </span>
+                                <button
+                                    onClick={() => setPage(Math.min(page + 1, totalPages - 1))}
+                                    disabled={page === totalPages - 1}
+                                    className="p-1 rounded text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-white/10 disabled:opacity-30 disabled:hover:bg-transparent cursor-pointer transition-colors"
+                                    aria-label="Next page"
+                                >
+                                    <ChevronRight size={14} />
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                </div>
+                
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                    {visibleItems.map(section => (
+                        <div
+                            key={section._id}
+                            onClick={() => navigate(linkPath)}
+                            className="group relative flex flex-col rounded-2xl overflow-hidden cursor-pointer bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 backdrop-blur shadow-md hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1"
+                        >
+                            <div className="relative h-32 overflow-hidden bg-gray-100 dark:bg-white/10">
+                                <img
+                                    src={section.imageUrl || 'https://placehold.co/400x224/cccccc/000000?text=Resource'}
+                                    alt={section.title}
+                                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                                />
+                                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+                                <div className="absolute bottom-3 left-3 right-3">
+                                    <span className={`inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-semibold ${badgeColor} text-white backdrop-blur-sm mb-1`}>
+                                        {categoryName}
+                                    </span>
+                                    <h4 className="text-sm font-bold text-white leading-tight line-clamp-2">{section.title}</h4>
+                                </div>
+                            </div>
+                            <div className="p-4 flex-1 flex flex-col justify-between">
+                                <p className="text-gray-655 dark:text-gray-300 text-xs mb-3 line-clamp-2">
+                                    {section.description || 'Access dynamic notes, guides, and learning documents.'}
+                                </p>
+                                <span className="text-[11px] font-semibold text-teal-600 dark:text-teal-400 group-hover:underline flex items-center gap-1 mt-auto">
+                                    Open Category <ArrowRight size={10} className="inline ml-1" />
+                                </span>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        );
+    };
+
+    const renderMiscNotesSection = (title, items, page, setPage, IconComponent) => {
+        if (!items || items.length === 0) return null;
+        
+        const totalPages = Math.ceil(items.length / 4);
+        const visibleItems = items.slice(page * 4, (page + 1) * 4);
+        
+        return (
+            <div className="mt-16">
+                <div className="flex items-center justify-between border-b border-gray-200 dark:border-white/10 pb-3 mb-6">
+                    <div className="flex items-center gap-2">
+                        <IconComponent size={20} className="text-teal-550 dark:text-teal-400" />
+                        <h3 className="text-lg sm:text-xl font-extrabold text-gray-800 dark:text-white">{title}</h3>
+                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-gray-100 dark:bg-white/10 text-gray-500 dark:text-gray-400 font-bold">
+                            {items.length} total
+                        </span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                        <button 
+                            onClick={() => navigate("/user/dashboard/miscellaneous")}
+                            className="text-xs font-bold text-teal-600 dark:text-teal-400 hover:underline flex items-center gap-0.5 bg-transparent border-none cursor-pointer"
+                        >
+                            View All <ChevronRight size={14} />
+                        </button>
+                        {totalPages > 1 && (
+                            <div className="flex items-center gap-1 bg-gray-100 dark:bg-white/5 p-1 rounded-lg">
+                                <button
+                                    onClick={() => setPage(Math.max(page - 1, 0))}
+                                    disabled={page === 0}
+                                    className="p-1 rounded text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-white/10 disabled:opacity-30 disabled:hover:bg-transparent cursor-pointer transition-colors"
+                                    aria-label="Previous page"
+                                >
+                                    <ChevronLeft size={14} />
+                                </button>
+                                <span className="text-[9px] font-bold px-1 text-gray-500 dark:text-gray-400 min-w-[28px] text-center">
+                                    {page + 1} / {totalPages}
+                                </span>
+                                <button
+                                    onClick={() => setPage(Math.min(page + 1, totalPages - 1))}
+                                    disabled={page === totalPages - 1}
+                                    className="p-1 rounded text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-white/10 disabled:opacity-30 disabled:hover:bg-transparent cursor-pointer transition-colors"
+                                    aria-label="Next page"
+                                >
+                                    <ChevronRight size={14} />
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                </div>
+                
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                    {visibleItems.map(note => {
+                        // Strip HTML tags for clean description preview
+                        const rawText = note.content ? note.content.replace(/<[^>]*>/g, '') : '';
+                        const previewText = rawText.length > 80 ? rawText.substring(0, 80) + '...' : rawText;
+                        
+                        return (
+                            <div
+                                key={note._id}
+                                onClick={() => navigate("/user/dashboard/miscellaneous", { state: { sectionId: note.sectionId, noteId: note._id } })}
+                                className="group relative flex flex-col rounded-2xl overflow-hidden cursor-pointer bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 backdrop-blur shadow-md hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1"
+                            >
+                                <div className="relative h-32 overflow-hidden bg-gray-100 dark:bg-white/10">
+                                    <img
+                                        src={note.imageUrl || 'https://placehold.co/400x224/7c3aed/ffffff?text=Miscellaneous'}
+                                        alt={note.title}
+                                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                                    />
+                                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+                                    <div className="absolute bottom-3 left-3 right-3">
+                                        <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-semibold bg-pink-500/80 text-white backdrop-blur-sm mb-1">
+                                            {note.subject || 'Miscellaneous'}
+                                        </span>
+                                        <h4 className="text-sm font-bold text-white leading-tight line-clamp-2">{note.title}</h4>
+                                    </div>
+                                </div>
+                                <div className="p-4 flex-1 flex flex-col justify-between">
+                                    <p className="text-gray-655 dark:text-gray-300 text-xs mb-3 line-clamp-2">
+                                        {previewText || 'Access general knowledge, coding tips, and CS topics.'}
+                                    </p>
+                                    <span className="text-[11px] font-semibold text-teal-600 dark:text-teal-400 group-hover:underline flex items-center gap-1 mt-auto">
+                                        Read Topic <ArrowRight size={10} className="inline ml-1" />
+                                    </span>
+                                </div>
+                            </div>
+                        );
+                    })}
+                </div>
+            </div>
+        );
+    };
 
     if (isLoading) {
         return (
@@ -578,16 +804,34 @@ const HomePage = () => {
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
                 <Features />
 
-                <SectionTitle>Enhance Your Skills</SectionTitle>
+                {/* Skills Section */}
+                <div className="flex items-center justify-between border-b border-gray-200 dark:border-white/10 pb-3 mb-6 mt-16">
+                    <div className="flex items-center gap-2">
+                        <Sparkles size={20} className="text-orange-550 dark:text-orange-400" />
+                        <h3 className="text-lg sm:text-xl font-extrabold text-gray-800 dark:text-white">Enhance Your Skills</h3>
+                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-gray-100 dark:bg-white/10 text-gray-500 dark:text-gray-400 font-bold">
+                            {skills.length} total
+                        </span>
+                    </div>
+                    <button 
+                        onClick={() => navigate("/user/dashboard/courses")}
+                        className="text-xs font-bold text-teal-600 dark:text-teal-400 hover:underline flex items-center gap-0.5 bg-transparent border-none cursor-pointer"
+                    >
+                        View All <ChevronRight size={14} />
+                    </button>
+                </div>
+                
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-16">
                     {skills.length > 0 ? (
                         skills.map(skill => (
                             <SkillCard
                                 key={skill._id}
+                                imageUrl={
+                                    skill.icon && (skill.icon.startsWith('http') || skill.icon.startsWith('data:image/')) ? skill.icon : null
+                                }
                                 icon={
-                                    skill.icon.startsWith('http') || skill.icon.startsWith('data:image/') ?
-                                    <img src={skill.icon} alt={skill.title} className="w-10 h-10 object-contain" onError={(e) => {e.target.onerror = null; e.target.src='https://placehold.co/40x40/ccc/000?text=Err'}}/> :
-                                    <i className={`${skill.icon} text-3xl text-orange-500`}></i>
+                                    skill.icon && !(skill.icon.startsWith('http') || skill.icon.startsWith('data:image/')) ?
+                                    <i className={`${skill.icon} text-3xl text-orange-500`}></i> : null
                                 }
                                 title={skill.title}
                                 onLearn={() => handleAction(`learning module for ${skill.title}`, 'Free', false, skill._id)}
@@ -599,17 +843,35 @@ const HomePage = () => {
                     )}
                 </div>
 
-                <SectionTitle>Web Development Tracks</SectionTitle>
+                {/* Tracks Section */}
+                <div className="flex items-center justify-between border-b border-gray-200 dark:border-white/10 pb-3 mb-6">
+                    <div className="flex items-center gap-2">
+                        <Compass size={20} className="text-teal-550 dark:text-teal-400" />
+                        <h3 className="text-lg sm:text-xl font-extrabold text-gray-800 dark:text-white">Web Development Tracks</h3>
+                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-gray-100 dark:bg-white/10 text-gray-500 dark:text-gray-400 font-bold">
+                            {tracks.length} total
+                        </span>
+                    </div>
+                    <button 
+                        onClick={() => navigate("/user/dashboard/courses")}
+                        className="text-xs font-bold text-teal-600 dark:text-teal-400 hover:underline flex items-center gap-0.5 bg-transparent border-none cursor-pointer"
+                    >
+                        View All <ChevronRight size={14} />
+                    </button>
+                </div>
+
                 <div className="mb-16">
                     <div className="flex gap-6 overflow-x-auto pb-4 scrollbar-hide">
                         {tracks.length > 0 ? (
                             tracks.map(track => (
                                 <TrackCard
                                     key={track._id}
+                                    imageUrl={
+                                        track.icon && (track.icon.startsWith('http') || track.icon.startsWith('data:image/')) ? track.icon : null
+                                    }
                                     icon={
-                                        track.icon.startsWith('http') || track.icon.startsWith('data:image/') ?
-                                        <img src={track.icon} alt={track.title} className="w-10 h-10 object-contain" onError={(e) => {e.target.onerror = null; e.target.src='https://placehold.co/40x40/ccc/000?text=Err'}}/> :
-                                        <i className={`${track.icon} text-3xl text-blue-500`}></i>
+                                        track.icon && !(track.icon.startsWith('http') || track.icon.startsWith('data:image/')) ?
+                                        <i className={`${track.icon} text-3xl text-blue-500`}></i> : null
                                     }
                                     title={track.title}
                                     onExplore={() => handleAction(`exploring ${track.title} track`, 'Free', false, track._id)}
@@ -621,9 +883,23 @@ const HomePage = () => {
                     </div>
                 </div>
 
-                <div id="courses" className="scroll-mt-28">
-                    <SectionTitle>Explore More Courses</SectionTitle>
+                {/* Courses Section */}
+                <div id="courses" className="flex items-center justify-between border-b border-gray-200 dark:border-white/10 pb-3 mb-6 scroll-mt-28">
+                    <div className="flex items-center gap-2">
+                        <BookOpen size={20} className="text-purple-550 dark:text-purple-400" />
+                        <h3 className="text-lg sm:text-xl font-extrabold text-gray-800 dark:text-white">Explore More Courses</h3>
+                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-gray-100 dark:bg-white/10 text-gray-500 dark:text-gray-400 font-bold">
+                            {courses.length} total
+                        </span>
+                    </div>
+                    <button 
+                        onClick={() => navigate("/user/dashboard/courses")}
+                        className="text-xs font-bold text-teal-600 dark:text-teal-400 hover:underline flex items-center gap-0.5 bg-transparent border-none cursor-pointer"
+                    >
+                        View All <ChevronRight size={14} />
+                    </button>
                 </div>
+
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                     {courses.length > 0 ? (
                         courses.map(course => (
@@ -642,6 +918,21 @@ const HomePage = () => {
                         <p className="col-span-full text-center text-muted-foreground">No courses available.</p>
                     )}
                 </div>
+
+                <div className="mt-24 scroll-mt-28 border-t border-gray-200 dark:border-white/10 pt-12">
+                    <SectionTitle>Trending Learning Resources</SectionTitle>
+                    <p className="text-center text-gray-500 dark:text-gray-400 text-sm -mt-6 mb-4 max-w-lg mx-auto">
+                        Quick access to our latest professional roadmaps, interview prep Q&As, placement blueprints, and utility software lists.
+                    </p>
+                </div>
+
+                {renderDashboardSection("Developer Roadmaps", roadmaps, roadmapPage, setRoadmapPage, "/user/dashboard/roadmaps", "bg-sky-500/80", "Roadmap", Compass)}
+                {renderDashboardSection("Interview Q&A Sets", interviews, interviewPage, setInterviewPage, "/user/dashboard/interviews", "bg-purple-500/80", "Interview Prep", Terminal)}
+                {renderDashboardSection("Placement & Career Blueprints", placements, placementPage, setPlacementPage, "/user/dashboard/placement", "bg-emerald-500/80", "Placement", Briefcase)}
+                {renderDashboardSection("Essential Software & Tools", softwareTools, toolPage, setToolPage, "/user/dashboard/software-tools", "bg-indigo-500/80", "Software & Tools", Cpu)}
+                {renderMiscNotesSection("Miscellaneous Learning Topics", miscellaneousNotes, miscPage, setMiscPage, Layers)}
+
+                <div className="mb-16"></div>
 
                 {/* Subscription Plans moved below courses */}
                 <div className="mt-12">

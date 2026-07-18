@@ -41,7 +41,8 @@ const UserProgress = require('./models/UserProgress');
 const SubscriptionPlan = require('./models/SubscriptionPlan');
 const Order = require('./models/Order');
 const LiveClass = require('./models/LiveClass');
-const { seedSubscriptionPlans } = require('./utils/seeder');
+const ResourceSection = require('./models/ResourceSection');
+const { seedSubscriptionPlans, seedResourceSections } = require('./utils/seeder');
 
 
 const authRoutes = require('./routes/authRoutes');
@@ -159,6 +160,8 @@ mongoose.connect(process.env.MONGO_URI)
             console.error('Migration failed:', migrationErr);
         }
     });
+    // Seed Roadmaps, Interviews, Placement, and SoftwareTools sections
+    seedResourceSections();
 })
 .catch(err => console.error('MongoDB connection error:', err));
 
@@ -332,6 +335,10 @@ app.use('/api/auth/logout', authRoutes);
 
 // Course Population Fix: Deep population of Modules and Topics
 const adminRouteFactory = require('./routes/adminRoutes');
+app.use('/api/admin/sections', authMiddleware, adminMiddleware, adminRouteFactory.createCrudRoutes(ResourceSection, 'sections'));
+const publicResourceRoutes = require('./routes/publicResourceRoutes');
+app.use('/api/public', publicResourceRoutes);
+
 app.use('/api/admin/courses', authMiddleware, adminMiddleware, adminRouteFactory.createCrudRoutes(Course, 'courses', [{ path: 'modules', populate: { path: 'topics' } }]));
 app.use('/api/admin/tutorials', authMiddleware, adminMiddleware, adminRouteFactory.createCrudRoutes(Tutorial, 'tutorials', [{ path: 'modules', populate: { path: 'topics' } }]));
 // Module Population Fix: Populate Topics on Module requests
@@ -355,8 +362,8 @@ require('./routes/newsletterRoutes')(app, authMiddleware, adminMiddleware);
 
 // Forum premium admin endpoints moved to backend/routes/forummanagement.js
 app.use('/api/admin/quizzes', authMiddleware, adminMiddleware, adminRouteFactory.createCrudRoutes(Quiz, 'quizzes'));
-app.use('/api/admin/skills', authMiddleware, adminMiddleware, adminRouteFactory.createCrudRoutes(Skill, 'skills'));
-app.use('/api/admin/tracks', authMiddleware, adminMiddleware, adminRouteFactory.createCrudRoutes(Track, 'tracks'));
+app.use('/api/admin/skills', authMiddleware, adminMiddleware, adminRouteFactory.createCrudRoutes(Skill, 'skills', [{ path: 'modules', populate: { path: 'topics' } }]));
+app.use('/api/admin/tracks', authMiddleware, adminMiddleware, adminRouteFactory.createCrudRoutes(Track, 'tracks', [{ path: 'modules', populate: { path: 'topics' } }]));
 app.use('/api/admin/notes', authMiddleware, adminMiddleware, adminRouteFactory.createCrudRoutes(Note, 'notes'));
 // Admin CRUD for Users
 app.use('/api/admin/users', authMiddleware, adminMiddleware, adminRouteFactory.createCrudRoutes(User, 'users'));
@@ -383,8 +390,8 @@ app.use('/api/admin/contests', authMiddleware, adminMiddleware, adminRoutesFacto
 app.use('/api/admin/forum-posts', authMiddleware, adminMiddleware, adminRoutesFactory.createCrudRoutes(ForumPost, 'forum-posts'));
 // Forum premium admin endpoints are handled separately in routes/forummanagement
 app.use('/api/admin/quizzes', authMiddleware, adminMiddleware, adminRoutesFactory.createCrudRoutes(Quiz, 'quizzes'));
-app.use('/api/admin/skills', authMiddleware, adminMiddleware, adminRoutesFactory.createCrudRoutes(Skill, 'skills'));
-app.use('/api/admin/tracks', authMiddleware, adminMiddleware, adminRoutesFactory.createCrudRoutes(Track, 'tracks'));
+app.use('/api/admin/skills', authMiddleware, adminMiddleware, adminRoutesFactory.createCrudRoutes(Skill, 'skills', [{ path: 'modules', populate: { path: 'topics' } }]));
+app.use('/api/admin/tracks', authMiddleware, adminMiddleware, adminRoutesFactory.createCrudRoutes(Track, 'tracks', [{ path: 'modules', populate: { path: 'topics' } }]));
 app.use('/api/admin/notes', authMiddleware, adminMiddleware, adminRoutesFactory.createCrudRoutes(Note, 'notes'));
 app.use('/api/admin/users', authMiddleware, adminMiddleware, adminRoutesFactory.createCrudRoutes(User, 'users'));
 app.use('/api/admin/subscription-plans', authMiddleware, adminMiddleware, adminRoutesFactory.createCrudRoutes(SubscriptionPlan, 'subscription-plans', ['freeFor.users']));

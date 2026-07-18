@@ -9,7 +9,7 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import {
   Sun, Moon, Search, User, LogIn, LogOut,
   Menu, X, Home, BookOpen, Award, Code, Settings, ChevronDown, GraduationCap,
-  Bell, Users, Compass
+  Bell, Users, Compass, Layers
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
@@ -247,54 +247,70 @@ const Header = () => {
                             </div>
                           </Link>
 
-                          <div className="flex items-start justify-between w-full py-2 px-2.5 rounded-lg text-sm font-medium text-gray-400 dark:text-gray-500 cursor-not-allowed opacity-75">
-                            <div className="flex items-start gap-3">
-                              <Award size={16} className="text-gray-400 dark:text-gray-500 mt-0.5 shrink-0" />
-                              <div className="flex flex-col text-left">
-                                <span className="font-semibold">Interview</span>
-                                <span className="text-[10px]">Mock tests & QAs</span>
-                              </div>
+                          <Link
+                            to="/user/dashboard/interviews"
+                            onClick={() => setIsExploreMenuOpen(false)}
+                            className="flex items-start gap-3 w-full py-2 px-2.5 rounded-lg text-sm font-medium text-gray-750 dark:text-gray-200 hover:bg-gray-105 dark:hover:bg-white/10 transition duration-150"
+                          >
+                            <Award size={16} className="text-[#167468] dark:text-teal-400 mt-0.5 shrink-0" />
+                            <div className="flex flex-col text-left">
+                              <span className="font-semibold text-gray-900 dark:text-white">Interview</span>
+                              <span className="text-[10px] text-gray-500 dark:text-gray-400">Mock tests & QAs</span>
                             </div>
-                            <span className="text-[8px] font-bold bg-[#167468]/15 text-[#167468] dark:text-teal-300 border border-[#167468]/20 px-1 py-0.5 rounded-full uppercase tracking-wider shrink-0 mt-0.5">Soon</span>
-                          </div>
+                          </Link>
 
-                          <div className="flex items-start justify-between w-full py-2 px-2.5 rounded-lg text-sm font-medium text-gray-400 dark:text-gray-500 cursor-not-allowed opacity-75">
-                            <div className="flex items-start gap-3">
-                              <Compass size={16} className="text-gray-400 dark:text-gray-500 mt-0.5 shrink-0" />
-                              <div className="flex flex-col text-left">
-                                <span className="font-semibold">Roadmaps</span>
-                                <span className="text-[10px]">Guided learning paths</span>
-                              </div>
+                          <Link
+                            to="/user/dashboard/roadmaps"
+                            onClick={() => setIsExploreMenuOpen(false)}
+                            className="flex items-start gap-3 w-full py-2 px-2.5 rounded-lg text-sm font-medium text-gray-750 dark:text-gray-200 hover:bg-gray-105 dark:hover:bg-white/10 transition duration-150"
+                          >
+                            <Compass size={16} className="text-[#167468] dark:text-teal-400 mt-0.5 shrink-0" />
+                            <div className="flex flex-col text-left">
+                              <span className="font-semibold text-gray-900 dark:text-white">Roadmaps</span>
+                              <span className="text-[10px] text-gray-500 dark:text-gray-400">Guided learning paths</span>
                             </div>
-                            <span className="text-[8px] font-bold bg-[#167468]/15 text-[#167468] dark:text-teal-300 border border-[#167468]/20 px-1 py-0.5 rounded-full uppercase tracking-wider shrink-0 mt-0.5">Soon</span>
-                          </div>
+                          </Link>
                         </div>
 
                         {/* Group 2: Resources & Tools */}
                         <div className="space-y-1">
                           <h4 className="text-[10px] font-bold text-purple-650 dark:text-purple-400 uppercase tracking-wider pl-2.5 mb-2">Resources</h4>
                           
-                          <div className="flex items-start justify-between w-full py-2 px-2.5 rounded-lg text-sm font-medium text-gray-400 dark:text-gray-500 cursor-not-allowed opacity-75">
-                            <div className="flex items-start gap-3">
-                              <GraduationCap size={16} className="text-gray-400 dark:text-gray-500 mt-0.5 shrink-0" />
-                              <div className="flex flex-col text-left">
-                                <span className="font-semibold">Placement</span>
-                                <span className="text-[10px]">Job prep & referrals</span>
-                              </div>
+                          <Link
+                            to="/user/dashboard/placement"
+                            onClick={() => setIsExploreMenuOpen(false)}
+                            className="flex items-start gap-3 w-full py-2 px-2.5 rounded-lg text-sm font-medium text-gray-750 dark:text-gray-200 hover:bg-gray-105 dark:hover:bg-white/10 transition duration-150"
+                          >
+                            <GraduationCap size={16} className="text-[#167468] dark:text-teal-400 mt-0.5 shrink-0" />
+                            <div className="flex flex-col text-left">
+                              <span className="font-semibold text-gray-900 dark:text-white">Placement</span>
+                              <span className="text-[10px] text-gray-500 dark:text-gray-400">Job prep & referrals</span>
                             </div>
-                            <span className="text-[8px] font-bold bg-[#167468]/15 text-[#167468] dark:text-teal-300 border border-[#167468]/20 px-1 py-0.5 rounded-full uppercase tracking-wider shrink-0 mt-0.5">Soon</span>
-                          </div>
+                          </Link>
 
-                          <div className="flex items-start justify-between w-full py-2 px-2.5 rounded-lg text-sm font-medium text-gray-400 dark:text-gray-500 cursor-not-allowed opacity-75">
-                            <div className="flex items-start gap-3">
-                              <Settings size={16} className="text-gray-400 dark:text-gray-500 mt-0.5 shrink-0" />
-                              <div className="flex flex-col text-left">
-                                <span className="font-semibold">Software/Tools</span>
-                                <span className="text-[10px]">Essential tools list</span>
-                              </div>
+                          <Link
+                            to="/user/dashboard/software-tools"
+                            onClick={() => setIsExploreMenuOpen(false)}
+                            className="flex items-start gap-3 w-full py-2 px-2.5 rounded-lg text-sm font-medium text-gray-750 dark:text-gray-200 hover:bg-gray-105 dark:hover:bg-white/10 transition duration-150"
+                          >
+                            <Settings size={16} className="text-[#167468] dark:text-teal-400 mt-0.5 shrink-0" />
+                            <div className="flex flex-col text-left">
+                              <span className="font-semibold text-gray-900 dark:text-white">Software/Tools</span>
+                              <span className="text-[10px] text-gray-500 dark:text-gray-400">Essential tools list</span>
                             </div>
-                            <span className="text-[8px] font-bold bg-[#167468]/15 text-[#167468] dark:text-teal-300 border border-[#167468]/20 px-1 py-0.5 rounded-full uppercase tracking-wider shrink-0 mt-0.5">Soon</span>
-                          </div>
+                          </Link>
+
+                          <Link
+                            to="/user/dashboard/miscellaneous"
+                            onClick={() => setIsExploreMenuOpen(false)}
+                            className="flex items-start gap-3 w-full py-2 px-2.5 rounded-lg text-sm font-medium text-gray-750 dark:text-gray-200 hover:bg-gray-105 dark:hover:bg-white/10 transition duration-150"
+                          >
+                            <Layers size={16} className="text-[#167468] dark:text-teal-400 mt-0.5 shrink-0" />
+                            <div className="flex flex-col text-left">
+                              <span className="font-semibold text-gray-900 dark:text-white">Miscellaneous</span>
+                              <span className="text-[10px] text-gray-500 dark:text-gray-400">Pool of topics</span>
+                            </div>
+                          </Link>
                         </div>
                       </div>
                     </motion.div>
@@ -508,33 +524,25 @@ const Header = () => {
                         <Code size={16} className="text-[#167468] dark:text-teal-400" /> Contests
                       </MobileNavLink>
 
-                      <div className="flex items-center justify-between w-full py-2 px-4 text-base font-medium text-gray-405 dark:text-gray-500 cursor-not-allowed opacity-80">
-                        <span className="flex items-center gap-3">
-                          <Award size={16} /> Interview
-                        </span>
-                        <span className="text-[8px] font-bold bg-[#167468]/15 text-[#167468] dark:text-teal-300 border border-[#167468]/20 px-1.5 py-0.5 rounded-full uppercase tracking-wider shrink-0">Soon</span>
-                      </div>
+                      <MobileNavLink to="/user/dashboard/interviews">
+                        <Award size={16} /> Interview
+                      </MobileNavLink>
 
-                      <div className="flex items-center justify-between w-full py-2 px-4 text-base font-medium text-gray-405 dark:text-gray-500 cursor-not-allowed opacity-80">
-                        <span className="flex items-center gap-3">
-                          <Compass size={16} /> Roadmaps
-                        </span>
-                        <span className="text-[8px] font-bold bg-[#167468]/15 text-[#167468] dark:text-teal-300 border border-[#167468]/20 px-1.5 py-0.5 rounded-full uppercase tracking-wider shrink-0">Soon</span>
-                      </div>
+                      <MobileNavLink to="/user/dashboard/roadmaps">
+                        <Compass size={16} /> Roadmaps
+                      </MobileNavLink>
 
-                      <div className="flex items-center justify-between w-full py-2 px-4 text-base font-medium text-gray-405 dark:text-gray-500 cursor-not-allowed opacity-80">
-                        <span className="flex items-center gap-3">
-                          <GraduationCap size={16} /> Placement
-                        </span>
-                        <span className="text-[8px] font-bold bg-[#167468]/15 text-[#167468] dark:text-teal-300 border border-[#167468]/20 px-1.5 py-0.5 rounded-full uppercase tracking-wider shrink-0">Soon</span>
-                      </div>
+                      <MobileNavLink to="/user/dashboard/placement">
+                        <GraduationCap size={16} /> Placement
+                      </MobileNavLink>
 
-                      <div className="flex items-center justify-between w-full py-2 px-4 text-base font-medium text-gray-405 dark:text-gray-500 cursor-not-allowed opacity-80">
-                        <span className="flex items-center gap-3">
-                          <Settings size={16} /> Software/Tools
-                        </span>
-                        <span className="text-[8px] font-bold bg-[#167468]/15 text-[#167468] dark:text-teal-300 border border-[#167468]/20 px-1.5 py-0.5 rounded-full uppercase tracking-wider shrink-0">Soon</span>
-                      </div>
+                      <MobileNavLink to="/user/dashboard/software-tools">
+                        <Settings size={16} /> Software/Tools
+                      </MobileNavLink>
+
+                      <MobileNavLink to="/user/dashboard/miscellaneous">
+                        <Layers size={16} /> Miscellaneous
+                      </MobileNavLink>
                     </motion.div>
                   )}
                 </AnimatePresence>

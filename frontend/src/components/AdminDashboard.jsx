@@ -25,6 +25,7 @@ import SettingsPage from './SettingsPage';
 import TutorialManagement from './TutorialManagement';
 import LiveClassManagement from './LiveClassManagement';
 import QuizAssignmentManagement from './QuizAssignmentManagement';
+import ResourceSectionManagement from './ResourceSectionManagement';
 import './AdminDashboard.css';
 
 const SidebarLink = ({ icon, label, active, onClick }) => (
@@ -79,6 +80,7 @@ const AdminDashboard = () => {
                         <SidebarLink icon={<Briefcase size={18} />} label="Skills" active={activePath === 'skills'} onClick={() => navigate('/admin/skills')} />
                         <SidebarLink icon={<GitBranch size={18} />} label="Tracks" active={activePath === 'tracks'} onClick={() => navigate('/admin/tracks')} />
                         <SidebarLink icon={<NotebookText size={18} />} label="Notes" active={activePath === 'notes'} onClick={() => navigate('/admin/notes')} />
+                        <SidebarLink icon={<GitBranch size={18} />} label="Resources" active={activePath === 'resources'} onClick={() => navigate('/admin/resources')} />
                         <SidebarLink icon={<Settings size={18} />} label="Subscriptions" active={activePath === 'subscriptions'} onClick={() => navigate('/admin/subscriptions')} />
                         <SidebarLink icon={<HelpCircle size={18} />} label="Support Tickets" active={activePath === 'support-tickets'} onClick={() => navigate('/admin/support-tickets')} />
                         <SidebarLink icon={<Settings size={18} />} label="Settings" active={activePath === 'settings'} onClick={() => navigate('/admin/settings')} />
@@ -125,6 +127,7 @@ const AdminDashboard = () => {
                         <Route path="staff" element={<StaffManagement />} />
                         <Route path="tracks" element={<TrackManagement />} />
                         <Route path="notes" element={<NoteManagement />} />
+                        <Route path="resources" element={<ResourceSectionManagement />} />
                         <Route path="subscriptions" element={<SubscriptionManagement />} />
                         <Route path="support-tickets" element={<SupportTicketManagement />} />
                         <Route path="settings" element={<SettingsPage />} />

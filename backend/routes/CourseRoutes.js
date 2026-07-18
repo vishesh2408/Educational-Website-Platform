@@ -301,15 +301,29 @@ router.get('/public/courses', async (req, res) => {
 router.get('/public/courses/:id', async (req, res) => {
     console.log('Received request: GET /api/public/courses/:id ->', req.params.id);
     try {
-        const course = await Course.findById(req.params.id).populate({
+        let course = await Course.findById(req.params.id).populate({
             path: 'modules',
             populate: { path: 'topics', model: 'Topic' }
         });
-        if (!course) return res.status(404).json({ msg: 'Course not found' });
+        if (!course) {
+            const Skill = require('../models/Skill');
+            course = await Skill.findById(req.params.id).populate({
+                path: 'modules',
+                populate: { path: 'topics', model: 'Topic' }
+            });
+        }
+        if (!course) {
+            const Track = require('../models/Track');
+            course = await Track.findById(req.params.id).populate({
+                path: 'modules',
+                populate: { path: 'topics', model: 'Topic' }
+            });
+        }
+        if (!course) return res.status(404).json({ msg: 'Course, Skill, or Track not found' });
         res.json(course);
     } catch (err) {
         console.error(err.message);
-        if (err.kind === 'ObjectId') return res.status(400).json({ msg: 'Invalid course id' });
+        if (err.kind === 'ObjectId') return res.status(400).json({ msg: 'Invalid id' });
         res.status(500).send('Server Error');
     }
 });

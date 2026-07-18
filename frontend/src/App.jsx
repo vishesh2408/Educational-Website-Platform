@@ -30,6 +30,11 @@ const ResetPassword = lazy(() => import('./components/ResetPassword'));
 const SubscriptionsPage = lazy(() => import('./components/SubscriptionsPage'));
 const ForumPremiumPage = lazy(() => import('./components/ForumPremiumPage'));
 const SettingsPage = lazy(() => import('./components/SettingsPage'));
+const RoadmapsPage = lazy(() => import('./components/RoadmapsPage'));
+const InterviewsPage = lazy(() => import('./components/InterviewsPage'));
+const PlacementPage = lazy(() => import('./components/PlacementPage'));
+const SoftwareToolsPage = lazy(() => import('./components/SoftwareToolsPage'));
+const MiscellaneousPage = lazy(() => import('./components/MiscellaneousPage'));
 
 function FullScreenLoader() {
   return (
@@ -116,6 +121,11 @@ export default function App() {
             <Route path="payment" element={<ProtectedRoute><PaymentPage /></ProtectedRoute>} />
             <Route path="forum-premium" element={<ForumPremiumPage />} />
             <Route path="settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
+            <Route path="roadmaps" element={<RoadmapsPage />} />
+            <Route path="interviews" element={<InterviewsPage />} />
+            <Route path="placement" element={<PlacementPage />} />
+            <Route path="software-tools" element={<SoftwareToolsPage />} />
+            <Route path="miscellaneous" element={<MiscellaneousPage />} />
           </Route>
 
           {/* User account subscriptions (outside dashboard path for direct link) */}

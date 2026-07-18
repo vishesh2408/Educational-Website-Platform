@@ -315,7 +315,6 @@ const ParagraphBorder = Extension.create({
 const CustomBulletList = BulletList.extend({
   addAttributes() {
     return {
-      ...this.parent?.(),
       listType: {
         default: 'disc',
         parseHTML: element => element.getAttribute('data-list-type') || 'disc',
@@ -435,22 +434,23 @@ const CardTemplate = Node.create({
     return [{ tag: 'div[data-card-template]' }];
   },
   renderHTML({ node, HTMLAttributes }) {
+    const type = node?.attrs?.type || 'info';
     let border = 'rgba(20, 184, 166, 0.4)';
     let bg = 'rgba(20, 184, 166, 0.05)';
-    if (node.attrs.type === 'warning') {
+    if (type === 'warning') {
       border = 'rgba(239, 68, 68, 0.4)';
       bg = 'rgba(239, 68, 68, 0.05)';
-    } else if (node.attrs.type === 'tip') {
+    } else if (type === 'tip') {
       border = 'rgba(139, 92, 246, 0.4)';
       bg = 'rgba(139, 92, 246, 0.05)';
-    } else if (node.attrs.type === 'success') {
+    } else if (type === 'success') {
       border = 'rgba(34, 197, 94, 0.4)';
       bg = 'rgba(34, 197, 94, 0.05)';
     }
     return [
       'div',
       mergeAttributes(HTMLAttributes, {
-        'data-card-template': node.attrs.type,
+        'data-card-template': type,
         style: `border-left: 6px solid ${border}; background-color: ${bg}; padding: 16px; border-radius: 8px; margin: 16px 0;`,
       }),
       0,
@@ -551,7 +551,6 @@ const MathComponent = ({ node, updateAttributes, selected }) => {
 const MathNode = Node.create({
   name: 'mathNode',
   group: 'block',
-  content: '',
   atom: true,
   addAttributes() {
     return {
@@ -561,10 +560,10 @@ const MathNode = Node.create({
     };
   },
   parseHTML() {
-    return [{ tag: 'math-block' }];
+    return [{ tag: 'div[data-math-block]' }];
   },
   renderHTML({ HTMLAttributes }) {
-    return ['math-block', mergeAttributes(HTMLAttributes)];
+    return ['div', mergeAttributes(HTMLAttributes, { 'data-math-block': true })];
   },
   addNodeView() {
     return ReactNodeViewRenderer(MathComponent);
@@ -683,7 +682,7 @@ const ChartNode = Node.create({
   parseHTML() {
     return [{ tag: 'div[data-chart-node]' }];
   },
-  renderHTML({ node, HTMLAttributes }) {
+  renderHTML({ HTMLAttributes }) {
     return ['div', mergeAttributes(HTMLAttributes, { 'data-chart-node': true })];
   },
   addNodeView() {
@@ -839,6 +838,7 @@ export default function RichTextEditor({ value, onChange, placeholder = 'Start w
 
   // Popover states for custom toolbar dropdown widgets
   const [activePopover, setActivePopover] = useState(null); // 'table', 'icon', 'emoji', 'listStyle', 'cardTemplate', 'wordArt', 'border'
+  const [aiLoading, setAiLoading] = useState(false);
   
   const editor = useEditor({
     extensions: [
@@ -910,7 +910,7 @@ export default function RichTextEditor({ value, onChange, placeholder = 'Start w
 
   // Sync value from props to editor state (only if they differ)
   useEffect(() => {
-    if (!editor) return;
+    if (!editor || editor.isDestroyed) return;
     const currentHTML = editor.getHTML();
     const targetHTML = value || '';
     if (currentHTML !== targetHTML && targetHTML !== '<p></p>') {
@@ -931,7 +931,7 @@ export default function RichTextEditor({ value, onChange, placeholder = 'Start w
   };
 
   const addLink = useCallback(() => {
-    if (!editor) return;
+    if (!editor || editor.isDestroyed) return;
     const previousUrl = editor.getAttributes('link').href;
     const url = window.prompt('Enter link URL:', previousUrl || 'https://');
 
@@ -945,7 +945,7 @@ export default function RichTextEditor({ value, onChange, placeholder = 'Start w
   }, [editor]);
 
   const addImageFromUrl = useCallback(() => {
-    if (!editor) return;
+    if (!editor || editor.isDestroyed) return;
     const url = window.prompt('Enter image URL:');
     if (url) {
       editor.chain().focus().setImage({ src: url }).run();
@@ -953,7 +953,7 @@ export default function RichTextEditor({ value, onChange, placeholder = 'Start w
   }, [editor]);
 
   const handleImageUpload = useCallback(async (e) => {
-    if (!editor) return;
+    if (!editor || editor.isDestroyed) return;
     const file = e.target.files && e.target.files[0];
     e.target.value = '';
     if (!file) return;
@@ -967,13 +967,13 @@ export default function RichTextEditor({ value, onChange, placeholder = 'Start w
   }, [editor]);
 
   const insertCustomTable = useCallback((rows, cols) => {
-    if (!editor) return;
+    if (!editor || editor.isDestroyed) return;
     editor.chain().focus().insertTable({ rows, cols, withHeaderRow: true }).run();
     setActivePopover(null);
   }, [editor]);
 
   const insertComment = useCallback(() => {
-    if (!editor) return;
+    if (!editor || editor.isDestroyed) return;
     const text = window.prompt('Enter comment:');
     if (text) {
       editor.chain().focus().setComment(text).run();
@@ -981,17 +981,17 @@ export default function RichTextEditor({ value, onChange, placeholder = 'Start w
   }, [editor]);
 
   const insertChart = useCallback(() => {
-    if (!editor) return;
+    if (!editor || editor.isDestroyed) return;
     editor.chain().focus().insertContent({ type: 'chartNode' }).run();
   }, [editor]);
 
   const insertVideo = useCallback(() => {
-    if (!editor) return;
+    if (!editor || editor.isDestroyed) return;
     editor.chain().focus().insertContent({ type: 'videoNode' }).run();
   }, [editor]);
 
   const insertSmartCard = useCallback((type) => {
-    if (!editor) return;
+    if (!editor || editor.isDestroyed) return;
     editor.chain().focus().insertContent({
       type: 'cardTemplate',
       attrs: { type },
@@ -1000,26 +1000,208 @@ export default function RichTextEditor({ value, onChange, placeholder = 'Start w
     setActivePopover(null);
   }, [editor]);
 
+  const insertCustomTemplate = useCallback((html) => {
+    if (!editor || editor.isDestroyed) return;
+    editor.chain().focus().insertContent(html).run();
+    setActivePopover(null);
+  }, [editor]);
+
+  const presetTemplates = [
+    {
+      name: '📚 Course Outline',
+      html: `<div style="background-color: var(--color-bg); border: 1px solid var(--color-border); border-radius: 8px; padding: 20px; margin: 15px 0;">
+        <h3 style="color: var(--color-primary); margin-top: 0;">📚 Course Outline & Syllabus</h3>
+        <p style="color: var(--color-text-muted); font-size: 13px;">Use this structure to organize your course modules and topics.</p>
+        <hr style="border: 0; border-top: 1px solid var(--color-border); margin: 12px 0;" />
+        <h4 style="margin: 10px 0;">🔴 Section 1: Introduction</h4>
+        <p>Brief description of the section topic, key learning outcomes, and foundational concepts.</p>
+        <h4 style="margin: 10px 0;">🔵 Section 2: Core Concepts</h4>
+        <p>Detailed discussion, definitions, and mathematical equations.</p>
+      </div>`
+    },
+    {
+      name: '💡 Concept Card',
+      html: `<div style="border-left: 6px solid var(--color-primary); background-color: rgba(20, 184, 166, 0.05); padding: 15px; border-radius: 8px; margin: 15px 0;">
+        <strong style="color: var(--color-primary); font-size: 1.1em; display: block; margin-bottom: 6px;">💡 KEY TERM: Definition</strong>
+        <p style="margin: 0; font-style: italic;">Enter the concept definition, meaning, or explanation here. You can also add examples or derivations below.</p>
+      </div>`
+    },
+    {
+      name: '🗓️ Weekly Planner',
+      html: `<div style="border: 1px solid var(--color-border); border-radius: 12px; overflow: hidden; margin: 15px 0;">
+        <div style="background-color: var(--color-primary); color: white; padding: 12px 16px; font-weight: bold;">🗓️ Weekly Study Schedule</div>
+        <table style="width: 100%; border-collapse: collapse; margin: 0;">
+          <thead>
+            <tr style="background-color: var(--color-gray-100);">
+              <th style="padding: 10px; border: 1px solid var(--color-border);">Day</th>
+              <th style="padding: 10px; border: 1px solid var(--color-border);">Focus Subject</th>
+              <th style="padding: 10px; border: 1px solid var(--color-border);">Study Goals</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style="padding: 10px; border: 1px solid var(--color-border); font-weight: 600;">Monday</td>
+              <td style="padding: 10px; border: 1px solid var(--color-border);">Subject A</td>
+              <td style="padding: 10px; border: 1px solid var(--color-border);">Chapters 1-3 overview</td>
+            </tr>
+            <tr>
+              <td style="padding: 10px; border: 1px solid var(--color-border); font-weight: 600;">Wednesday</td>
+              <td style="padding: 10px; border: 1px solid var(--color-border);">Subject B</td>
+              <td style="padding: 10px; border: 1px solid var(--color-border);">Practice test and formula review</td>
+            </tr>
+            <tr>
+              <td style="padding: 10px; border: 1px solid var(--color-border); font-weight: 600;">Friday</td>
+              <td style="padding: 10px; border: 1px solid var(--color-border);">Revision</td>
+              <td style="padding: 10px; border: 1px solid var(--color-border);">Solve past year papers</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>`
+    },
+    {
+      name: '💻 Code Snippet Notes',
+      html: `<div style="background-color: #1e1e2e; border-radius: 10px; padding: 16px; margin: 15px 0; color: #cdd6f4; font-family: monospace; border: 1px solid rgba(255,255,255,0.1);">
+        <div style="display: flex; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.15); padding-bottom: 6px; margin-bottom: 12px; font-size: 12px; color: #a6adc8;">
+          <span>💻 js_example.js</span>
+          <span>JavaScript</span>
+        </div>
+        <pre style="margin: 0; font-size: 13px; line-height: 1.5; color: #f5c2e7;">// Example Javascript snippet\nfunction computeGains(revenue, cost) {\n  return revenue - cost;\n}</pre>
+        <div style="background-color: rgba(255,255,255,0.05); padding: 8px 12px; border-radius: 6px; margin-top: 12px; font-family: sans-serif; font-size: 12px; color: #bac2de;">
+          <strong>Note:</strong> This function computes the net gains on courses sales.
+        </div>
+      </div>`
+    },
+    {
+      name: '⚖️ Pros & Cons Table',
+      html: `<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 15px 0;">
+        <div style="background-color: rgba(34, 197, 94, 0.05); border: 1px solid rgba(34, 197, 94, 0.2); border-radius: 8px; padding: 16px;">
+          <strong style="color: #15803d; font-size: 1.1em; display: block; margin-bottom: 8px;">✅ Pros / Advantages</strong>
+          <ul style="margin: 0; padding-left: 20px;">
+            <li>Highly efficient and scalable.</li>
+            <li>Seamless API integrations.</li>
+          </ul>
+        </div>
+        <div style="background-color: rgba(239, 68, 68, 0.05); border: 1px solid rgba(239, 68, 68, 0.2); border-radius: 8px; padding: 16px;">
+          <strong style="color: #b91c1c; font-size: 1.1em; display: block; margin-bottom: 8px;">❌ Cons / Disadvantages</strong>
+          <ul style="margin: 0; padding-left: 20px;">
+            <li>Requires high memory overhead.</li>
+            <li>Steep initial learning curve.</li>
+          </ul>
+        </div>
+      </div>`
+    },
+    {
+      name: '💬 Gandhiji Quote',
+      html: `<div style="background-color: var(--color-bg); border-top: 3px solid var(--color-primary); border-bottom: 3px solid var(--color-primary); padding: 20px; text-align: center; font-style: italic; margin: 15px 0; border-radius: 4px;">
+        <p style="font-size: 1.25em; margin-bottom: 8px; color: var(--color-text);">"Live as if you were to die tomorrow. Learn as if you were to live forever."</p>
+        <strong style="font-size: 0.9em; color: var(--color-primary-dark); font-style: normal;">— Mahatma Gandhi</strong>
+      </div>`
+    },
+    {
+      name: '📐 Math Theorem Box',
+      html: `<div style="background-color: rgba(139, 92, 246, 0.03); border: 1px solid rgba(139, 92, 246, 0.2); border-radius: 8px; padding: 16px; margin: 15px 0;">
+        <strong style="color: #6d28d9; display: block; margin-bottom: 8px;">📐 Mathematical Theorem</strong>
+        <p>For any right-angled triangle, the square of the length of the hypotenuse is equal to the sum of the squares of the lengths of the other two sides:</p>
+        <div style="text-align: center; padding: 8px; font-size: 1.25em; font-weight: bold; color: var(--color-text);">a² + b² = c²</div>
+      </div>`
+    },
+    {
+      name: '❓ Q&A Section',
+      html: `<div style="background-color: var(--color-card-bg); border: 1px solid var(--color-border); border-radius: 8px; margin: 15px 0; overflow: hidden;">
+        <div style="background-color: var(--color-gray-50); padding: 12px 16px; font-weight: 600; border-bottom: 1px solid var(--color-border);">❓ Question: What is photosynthesis?</div>
+        <div style="padding: 16px; font-size: 14px; line-height: 1.6;">
+          <strong>Answer:</strong> The process by which green plants and some other organisms use sunlight to synthesize nutrients from carbon dioxide and water.
+        </div>
+      </div>`
+    },
+    {
+      name: '🚨 Crimson Alert Banner',
+      html: `<div style="background-color: rgba(239, 68, 68, 0.05); border: 1px solid rgba(239, 68, 68, 0.2); border-radius: 8px; padding: 16px; margin: 15px 0; display: flex; gap: 12px; align-items: flex-start;">
+        <span style="font-size: 20px;">🚨</span>
+        <div>
+          <strong style="color: #b91c1c; display: block; margin-bottom: 4px;">CRITICAL NOTICE</strong>
+          <p style="margin: 0; font-size: 13px; color: var(--color-text-muted);">Please make sure to review all system configurations before deploying this build to server production.</p>
+        </div>
+      </div>`
+    },
+    {
+      name: '🔗 Recommended Resources',
+      html: `<div style="background-color: rgba(59, 130, 246, 0.05); border: 2px dashed rgba(59, 130, 246, 0.3); border-radius: 8px; padding: 15px; margin: 15px 0;">
+        <strong style="color: #1d4ed8; display: block; margin-bottom: 6px;">🔗 RECOMMENDED RESOURCES</strong>
+        <p style="margin: 0 0 8px 0; font-size: 13px;">Follow these links to learn more about advanced React hooks and state management:</p>
+        <a href="https://react.dev" style="color: #2563eb; text-decoration: underline; font-weight: 600;">Official React Documentation</a>
+      </div>`
+    },
+    {
+      name: '🏷️ Vocabulary Flashcard',
+      html: `<div style="background-color: var(--color-bg); border: 1px solid var(--color-border); border-radius: 12px; padding: 16px; max-width: 320px; margin: 15px 0; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+        <h3 style="margin: 0 0 4px 0; color: var(--color-primary);">Ephemeral</h3>
+        <span style="font-size: 12px; color: var(--color-text-muted); font-style: italic;">/ɪˈfemərəl/ • Adjective</span>
+        <p style="margin: 10px 0 0 0; font-size: 13px;">Lasting for a very short time. e.g., "fashions are ephemeral."</p>
+      </div>`
+    },
+    {
+      name: '➕ Section Divider Line',
+      html: `<div style="display: flex; align-items: center; margin: 24px 0 16px 0;">
+        <span style="font-weight: 800; font-size: 1.1em; color: var(--color-primary); padding-right: 12px; text-transform: uppercase; letter-spacing: 0.05em;">New Section Title</span>
+        <div style="flex: 1; border-bottom: 2px solid var(--color-primary); opacity: 0.3;"></div>
+      </div>`
+    }
+  ];
+
   const insertIcon = useCallback((iconSvg) => {
-    if (!editor) return;
+    if (!editor || editor.isDestroyed) return;
     editor.chain().focus().insertContent(iconSvg).run();
     setActivePopover(null);
   }, [editor]);
 
   const insertEmoji = useCallback((emoji) => {
-    if (!editor) return;
+    if (!editor || editor.isDestroyed) return;
     editor.chain().focus().insertContent(emoji).run();
     setActivePopover(null);
   }, [editor]);
 
   const addMathBlock = useCallback(() => {
-    if (!editor) return;
+    if (!editor || editor.isDestroyed) return;
     editor.chain().focus().insertContent({ type: 'mathNode', attrs: { latex: 'E = mc^2' } }).run();
+  }, [editor]);
+
+  const handleAIFormat = useCallback(async () => {
+    if (!editor || editor.isDestroyed) return;
+    
+    const rawContent = editor.getHTML();
+    if (!rawContent || rawContent === '<p></p>' || rawContent === '') {
+      alert('Please type or insert some content first.');
+      return;
+    }
+
+    setAiLoading(true);
+    try {
+      const response = await fetch(`${API_BASE_URL}/admin/util/ai-format`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ content: rawContent }),
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.msg || 'AI request failed');
+      }
+      
+      // Update TipTap Editor with the beautifully formatted AI HTML
+      editor.commands.setContent(data.formattedHtml);
+    } catch (err) {
+      console.error(err);
+      alert(`AI Formatting failed: ${err.message}`);
+    } finally {
+      setAiLoading(false);
+    }
   }, [editor]);
 
   // CodeBlock formatting logic
   const formatCodeBlock = useCallback(() => {
-    if (!editor) return;
+    if (!editor || editor.isDestroyed) return;
     const { state } = editor;
     const { selection } = state;
     
@@ -1062,7 +1244,7 @@ export default function RichTextEditor({ value, onChange, placeholder = 'Start w
     }
   }, [editor]);
 
-  if (!editor) {
+  if (!editor || editor.isDestroyed) {
     return <div className="text-sm p-4 border rounded animate-pulse">Loading editor...</div>;
   }
 
@@ -1183,6 +1365,20 @@ export default function RichTextEditor({ value, onChange, placeholder = 'Start w
             title="Redo"
           >
             <Redo2 />
+          </button>
+        </div>
+
+        {/* AI Formatting */}
+        <div className="rich-text-editor__group">
+          <button
+            type="button"
+            className={`rich-text-editor__btn rich-text-editor__btn--ai ${aiLoading ? 'is-loading' : ''}`}
+            onClick={handleAIFormat}
+            disabled={aiLoading}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: 'rgba(20, 184, 166, 0.08)', border: '1px solid rgba(20, 184, 166, 0.25)', borderRadius: '6px', color: 'var(--color-primary-dark)', fontWeight: '600', padding: '0 8px', height: '32px', cursor: 'pointer', transition: 'all 0.2s ease-in-out' }}
+            title="Auto-format content using Google Gemini AI"
+          >
+            {aiLoading ? '🤖 Formatting...' : <><Sparkles size={14} style={{ color: 'var(--color-primary)' }} /> AI Format</>}
           </button>
         </div>
 
@@ -1365,23 +1561,25 @@ export default function RichTextEditor({ value, onChange, placeholder = 'Start w
             />
           </div>
           
-          {/* Paragraph Border Dropdown */}
-          <button
-            type="button"
-            className="rich-text-editor__btn"
-            onClick={(e) => togglePopover(e, 'border')}
-            title="Paragraph Borders"
-          >
-            <span style={{ fontSize: '11px', fontWeight: 'bold' }}>Border</span>
+          {/* Paragraph Border Dropdown (Wrapped in relative div, rendering popover as sibling) */}
+          <div style={{ position: 'relative', display: 'inline-flex' }}>
+            <button
+              type="button"
+              className="rich-text-editor__btn"
+              onClick={(e) => togglePopover(e, 'border')}
+              title="Paragraph Borders"
+            >
+              <span style={{ fontSize: '11px', fontWeight: 'bold' }}>Border</span>
+            </button>
             {activePopover === 'border' && (
-              <div className="rich-text-editor__popover" style={{ width: '130px' }}>
-                <button type="button" onClick={() => editor.chain().focus().setParagraphBorder('1px solid var(--color-border)').run()} style={{ padding: '4px', fontSize: '12px', textAlign: 'left', background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--color-text)' }}>Light Border</button>
-                <button type="button" onClick={() => editor.chain().focus().setParagraphBorder('2px solid var(--color-primary)').run()} style={{ padding: '4px', fontSize: '12px', textAlign: 'left', background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--color-text)' }}>Primary Border</button>
-                <button type="button" onClick={() => editor.chain().focus().setParagraphBorder('2px dashed #f59e0b').run()} style={{ padding: '4px', fontSize: '12px', textAlign: 'left', background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--color-text)' }}>Dashed Warning</button>
-                <button type="button" onClick={() => editor.chain().focus().unsetParagraphBorder().run()} style={{ padding: '4px', fontSize: '12px', textAlign: 'left', background: 'transparent', border: 'none', cursor: 'pointer', color: 'red' }}>Remove Border</button>
+              <div className="rich-text-editor__popover" style={{ width: '130px' }} onClick={e => e.stopPropagation()}>
+                <button type="button" onClick={() => { editor.chain().focus().setParagraphBorder('1px solid var(--color-border)').run(); setActivePopover(null); }} style={{ padding: '4px', fontSize: '12px', textAlign: 'left', background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--color-text)' }}>Light Border</button>
+                <button type="button" onClick={() => { editor.chain().focus().setParagraphBorder('2px solid var(--color-primary)').run(); setActivePopover(null); }} style={{ padding: '4px', fontSize: '12px', textAlign: 'left', background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--color-text)' }}>Primary Border</button>
+                <button type="button" onClick={() => { editor.chain().focus().setParagraphBorder('2px dashed #f59e0b').run(); setActivePopover(null); }} style={{ padding: '4px', fontSize: '12px', textAlign: 'left', background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--color-text)' }}>Dashed Warning</button>
+                <button type="button" onClick={() => { editor.chain().focus().unsetParagraphBorder().run(); setActivePopover(null); }} style={{ padding: '4px', fontSize: '12px', textAlign: 'left', background: 'transparent', border: 'none', cursor: 'pointer', color: 'red' }}>Remove Border</button>
               </div>
             )}
-          </button>
+          </div>
 
           <button
             type="button"
@@ -1396,27 +1594,29 @@ export default function RichTextEditor({ value, onChange, placeholder = 'Start w
           </button>
         </div>
 
-        {/* Word Art Selector */}
+        {/* Word Art Selector (Popover as sibling to trigger) */}
         <div className="rich-text-editor__group">
-          <button
-            type="button"
-            className="rich-text-editor__btn"
-            onClick={(e) => togglePopover(e, 'wordArt')}
-            title="Word Art Creative Text"
-            style={{ width: '85px' }}
-          >
-            <Sparkles size={14} style={{ marginRight: '3px' }} />
-            <span style={{ fontSize: '12px', fontWeight: 'bold' }}>Word Art</span>
+          <div style={{ position: 'relative', display: 'inline-flex' }}>
+            <button
+              type="button"
+              className="rich-text-editor__btn"
+              onClick={(e) => togglePopover(e, 'wordArt')}
+              title="Word Art Creative Text"
+              style={{ width: '85px' }}
+            >
+              <Sparkles size={14} style={{ marginRight: '3px' }} />
+              <span style={{ fontSize: '12px', fontWeight: 'bold' }}>Word Art</span>
+            </button>
             {activePopover === 'wordArt' && (
-              <div className="rich-text-editor__popover" style={{ width: '150px' }}>
-                <button type="button" onClick={() => editor.chain().focus().setWordArt('rainbow').run()} style={{ padding: '4px', fontSize: '12px', textAlign: 'left', background: 'transparent', border: 'none', cursor: 'pointer', fontWeight: 'bold', color: 'var(--color-text)' }}>🌈 Rainbow</button>
-                <button type="button" onClick={() => editor.chain().focus().setWordArt('neon').run()} style={{ padding: '4px', fontSize: '12px', textAlign: 'left', background: 'transparent', border: 'none', cursor: 'pointer', fontWeight: 'bold', color: 'var(--color-text)' }}>⚡ Neon Glow</button>
-                <button type="button" onClick={() => editor.chain().focus().setWordArt('outline').run()} style={{ padding: '4px', fontSize: '12px', textAlign: 'left', background: 'transparent', border: 'none', cursor: 'pointer', fontWeight: 'bold', color: 'var(--color-text)' }}>🔲 Outline</button>
-                <button type="button" onClick={() => editor.chain().focus().setWordArt('retro').run()} style={{ padding: '4px', fontSize: '12px', textAlign: 'left', background: 'transparent', border: 'none', cursor: 'pointer', fontWeight: 'bold', color: 'var(--color-text)' }}>📻 Retro Shadow</button>
-                <button type="button" onClick={() => editor.chain().focus().unsetWordArt().run()} style={{ padding: '4px', fontSize: '12px', textAlign: 'left', background: 'transparent', border: 'none', cursor: 'pointer', color: 'red' }}>Remove Word Art</button>
+              <div className="rich-text-editor__popover" style={{ width: '150px' }} onClick={e => e.stopPropagation()}>
+                <button type="button" onClick={() => { editor.chain().focus().setWordArt('rainbow').run(); setActivePopover(null); }} style={{ padding: '4px', fontSize: '12px', textAlign: 'left', background: 'transparent', border: 'none', cursor: 'pointer', fontWeight: 'bold', color: 'var(--color-text)' }}>🌈 Rainbow</button>
+                <button type="button" onClick={() => { editor.chain().focus().setWordArt('neon').run(); setActivePopover(null); }} style={{ padding: '4px', fontSize: '12px', textAlign: 'left', background: 'transparent', border: 'none', cursor: 'pointer', fontWeight: 'bold', color: 'var(--color-text)' }}>⚡ Neon Glow</button>
+                <button type="button" onClick={() => { editor.chain().focus().setWordArt('outline').run(); setActivePopover(null); }} style={{ padding: '4px', fontSize: '12px', textAlign: 'left', background: 'transparent', border: 'none', cursor: 'pointer', fontWeight: 'bold', color: 'var(--color-text)' }}>🔲 Outline</button>
+                <button type="button" onClick={() => { editor.chain().focus().setWordArt('retro').run(); setActivePopover(null); }} style={{ padding: '4px', fontSize: '12px', textAlign: 'left', background: 'transparent', border: 'none', cursor: 'pointer', fontWeight: 'bold', color: 'var(--color-text)' }}>📻 Retro Shadow</button>
+                <button type="button" onClick={() => { editor.chain().focus().unsetWordArt().run(); setActivePopover(null); }} style={{ padding: '4px', fontSize: '12px', textAlign: 'left', background: 'transparent', border: 'none', cursor: 'pointer', color: 'red' }}>Remove Word Art</button>
               </div>
             )}
-          </button>
+          </div>
         </div>
 
         {/* Alignment */}
@@ -1455,24 +1655,26 @@ export default function RichTextEditor({ value, onChange, placeholder = 'Start w
           </button>
         </div>
 
-        {/* Lists & Custom Bullet shapes */}
+        {/* Lists & Custom Bullet shapes (Popover as sibling) */}
         <div className="rich-text-editor__group">
-          <button
-            type="button"
-            className={`rich-text-editor__btn ${editor.isActive('bulletList') ? 'is-active' : ''}`}
-            onClick={(e) => togglePopover(e, 'listStyle')}
-            title="Bullet Point Custom Symbols"
-          >
-            <List />
+          <div style={{ position: 'relative', display: 'inline-flex' }}>
+            <button
+              type="button"
+              className={`rich-text-editor__btn ${editor.isActive('bulletList') ? 'is-active' : ''}`}
+              onClick={(e) => togglePopover(e, 'listStyle')}
+              title="Bullet Point Custom Symbols"
+            >
+              <List />
+            </button>
             {activePopover === 'listStyle' && (
-              <div className="rich-text-editor__popover" style={{ width: '150px' }}>
-                <button type="button" onClick={() => editor.chain().focus().toggleBulletList().updateAttributes('bulletList', { listType: 'disc' }).run()} style={{ padding: '4px', fontSize: '12px', textAlign: 'left', background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--color-text)' }}>⬤ Default Circle</button>
-                <button type="button" onClick={() => editor.chain().focus().toggleBulletList().updateAttributes('bulletList', { listType: 'square' }).run()} style={{ padding: '4px', fontSize: '12px', textAlign: 'left', background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--color-text)' }}>◼️ Square Points</button>
-                <button type="button" onClick={() => editor.chain().focus().toggleBulletList().updateAttributes('bulletList', { listType: 'star' }).run()} style={{ padding: '4px', fontSize: '12px', textAlign: 'left', background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--color-text)' }}>★ Star Points</button>
-                <button type="button" onClick={() => editor.chain().focus().toggleBulletList().updateAttributes('bulletList', { listType: 'arrow' }).run()} style={{ padding: '4px', fontSize: '12px', textAlign: 'left', background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--color-text)' }}>➔ Arrow Points</button>
+              <div className="rich-text-editor__popover" style={{ width: '150px' }} onClick={e => e.stopPropagation()}>
+                <button type="button" onClick={() => { editor.chain().focus().toggleBulletList().updateAttributes('bulletList', { listType: 'disc' }).run(); setActivePopover(null); }} style={{ padding: '4px', fontSize: '12px', textAlign: 'left', background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--color-text)' }}>⬤ Default Circle</button>
+                <button type="button" onClick={() => { editor.chain().focus().toggleBulletList().updateAttributes('bulletList', { listType: 'square' }).run(); setActivePopover(null); }} style={{ padding: '4px', fontSize: '12px', textAlign: 'left', background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--color-text)' }}>◼️ Square Points</button>
+                <button type="button" onClick={() => { editor.chain().focus().toggleBulletList().updateAttributes('bulletList', { listType: 'star' }).run(); setActivePopover(null); }} style={{ padding: '4px', fontSize: '12px', textAlign: 'left', background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--color-text)' }}>★ Star Points</button>
+                <button type="button" onClick={() => { editor.chain().focus().toggleBulletList().updateAttributes('bulletList', { listType: 'arrow' }).run(); setActivePopover(null); }} style={{ padding: '4px', fontSize: '12px', textAlign: 'left', background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--color-text)' }}>➔ Arrow Points</button>
               </div>
             )}
-          </button>
+          </div>
           <button
             type="button"
             className={`rich-text-editor__btn ${editor.isActive('orderedList') ? 'is-active' : ''}`}
@@ -1538,14 +1740,16 @@ export default function RichTextEditor({ value, onChange, placeholder = 'Start w
         {/* Popover Table selector, Emojis, Icons & Media */}
         <div className="rich-text-editor__group">
           
-          {/* Interactive Table Picker */}
-          <button
-            type="button"
-            className="rich-text-editor__btn"
-            onClick={(e) => togglePopover(e, 'table')}
-            title="Select Table rows and columns"
-          >
-            <TableIcon />
+          {/* Interactive Table Picker (Popover as sibling) */}
+          <div style={{ position: 'relative', display: 'inline-flex' }}>
+            <button
+              type="button"
+              className="rich-text-editor__btn"
+              onClick={(e) => togglePopover(e, 'table')}
+              title="Select Table rows and columns"
+            >
+              <TableIcon />
+            </button>
             {activePopover === 'table' && (
               <div className="rich-text-editor__popover" onClick={e => e.stopPropagation()}>
                 <div style={{ fontSize: '11px', fontWeight: 'bold', marginBottom: '6px', textAlign: 'center' }}>Insert Table Grid</div>
@@ -1589,16 +1793,18 @@ export default function RichTextEditor({ value, onChange, placeholder = 'Start w
                 </div>
               </div>
             )}
-          </button>
+          </div>
 
-          {/* Emojis Picker */}
-          <button
-            type="button"
-            className="rich-text-editor__btn"
-            onClick={(e) => togglePopover(e, 'emoji')}
-            title="Insert Emojis"
-          >
-            <Smile />
+          {/* Emojis Picker (Popover as sibling) */}
+          <div style={{ position: 'relative', display: 'inline-flex' }}>
+            <button
+              type="button"
+              className="rich-text-editor__btn"
+              onClick={(e) => togglePopover(e, 'emoji')}
+              title="Insert Emojis"
+            >
+              <Smile />
+            </button>
             {activePopover === 'emoji' && (
               <div className="rich-text-editor__popover" onClick={e => e.stopPropagation()}>
                 <div className="emoji-picker-grid">
@@ -1614,16 +1820,18 @@ export default function RichTextEditor({ value, onChange, placeholder = 'Start w
                 </div>
               </div>
             )}
-          </button>
+          </div>
 
-          {/* Icons Library Picker */}
-          <button
-            type="button"
-            className="rich-text-editor__btn"
-            onClick={(e) => togglePopover(e, 'icon')}
-            title="Insert Custom Symbols / Icons"
-          >
-            <Maximize2 />
+          {/* Icons Library Picker (Popover as sibling) */}
+          <div style={{ position: 'relative', display: 'inline-flex' }}>
+            <button
+              type="button"
+              className="rich-text-editor__btn"
+              onClick={(e) => togglePopover(e, 'icon')}
+              title="Insert Custom Symbols / Icons"
+            >
+              <Maximize2 />
+            </button>
             {activePopover === 'icon' && (
               <div className="rich-text-editor__popover" onClick={e => e.stopPropagation()}>
                 <div className="icon-picker-grid">
@@ -1641,26 +1849,41 @@ export default function RichTextEditor({ value, onChange, placeholder = 'Start w
                 </div>
               </div>
             )}
-          </button>
+          </div>
 
-          {/* Smart UI Card templates */}
-          <button
-            type="button"
-            className="rich-text-editor__btn"
-            onClick={(e) => togglePopover(e, 'cardTemplate')}
-            title="Insert Pre-styled Smart Card template"
-            style={{ width: '80px' }}
-          >
-            <span style={{ fontSize: '12px', fontWeight: 'bold' }}>Templates</span>
+          {/* Smart UI Card & Custom templates (Popover as sibling) */}
+          <div style={{ position: 'relative', display: 'inline-flex' }}>
+            <button
+              type="button"
+              className="rich-text-editor__btn"
+              onClick={(e) => togglePopover(e, 'cardTemplate')}
+              title="Insert Pre-styled Smart Card template"
+              style={{ width: '85px' }}
+            >
+              <span style={{ fontSize: '12px', fontWeight: 'bold' }}>Templates</span>
+            </button>
             {activePopover === 'cardTemplate' && (
-              <div className="rich-text-editor__popover" style={{ width: '130px' }}>
-                <button type="button" onClick={() => insertSmartCard('info')} style={{ padding: '4px', fontSize: '12px', textAlign: 'left', background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--color-text)' }}>ℹ️ Info Card</button>
-                <button type="button" onClick={() => insertSmartCard('warning')} style={{ padding: '4px', fontSize: '12px', textAlign: 'left', background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--color-text)' }}>⚠️ Warning Alert</button>
-                <button type="button" onClick={() => insertSmartCard('tip')} style={{ padding: '4px', fontSize: '12px', textAlign: 'left', background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--color-text)' }}>💡 Useful Tip</button>
-                <button type="button" onClick={() => insertSmartCard('success')} style={{ padding: '4px', fontSize: '12px', textAlign: 'left', background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--color-text)' }}>✅ Success Card</button>
+              <div className="rich-text-editor__popover" style={{ width: '220px', maxHeight: '350px', overflowY: 'auto' }} onClick={e => e.stopPropagation()}>
+                <div style={{ fontSize: '11px', fontWeight: 'bold', borderBottom: '1px solid var(--color-border)', paddingBottom: '4px', marginBottom: '4px', color: 'var(--color-primary-dark)' }}>Interactive Blocks</div>
+                <button type="button" onClick={() => insertSmartCard('info')} style={{ padding: '4px 8px', fontSize: '12px', textAlign: 'left', background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--color-text)', display: 'block', width: '100%' }}>ℹ️ Info Card Box</button>
+                <button type="button" onClick={() => insertSmartCard('warning')} style={{ padding: '4px 8px', fontSize: '12px', textAlign: 'left', background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--color-text)', display: 'block', width: '100%' }}>⚠️ Warning Alert Box</button>
+                <button type="button" onClick={() => insertSmartCard('tip')} style={{ padding: '4px 8px', fontSize: '12px', textAlign: 'left', background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--color-text)', display: 'block', width: '100%' }}>💡 Useful Tip Box</button>
+                <button type="button" onClick={() => insertSmartCard('success')} style={{ padding: '4px 8px', fontSize: '12px', textAlign: 'left', background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--color-text)', display: 'block', width: '100%' }}>✅ Success Card Box</button>
+                
+                <div style={{ fontSize: '11px', fontWeight: 'bold', borderBottom: '1px solid var(--color-border)', paddingBottom: '4px', marginTop: '8px', marginBottom: '4px', color: 'var(--color-primary-dark)' }}>Note Templates</div>
+                {presetTemplates.map((t, idx) => (
+                  <button 
+                    key={idx} 
+                    type="button" 
+                    onClick={() => insertCustomTemplate(t.html)} 
+                    style={{ padding: '4px 8px', fontSize: '12px', textAlign: 'left', background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--color-text)', display: 'block', width: '100%' }}
+                  >
+                    {t.name}
+                  </button>
+                ))}
               </div>
             )}
-          </button>
+          </div>
 
           {/* Interactive Chart */}
           <button

@@ -21,6 +21,7 @@ const noteSchema = new mongoose.Schema({
     content: { type: String },
     format: { type: String, enum: ['html', 'markdown'], default: 'html' },
     topicId: { type: mongoose.Schema.Types.ObjectId, ref: 'Topic', default: null },
+    sectionId: { type: mongoose.Schema.Types.ObjectId, ref: 'ResourceSection', default: null },
     imageUrl: { type: String },
     isDraft: { type: Boolean, default: false },
     versions: { type: [versionSchema], default: [] },

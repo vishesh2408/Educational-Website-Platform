@@ -2,26 +2,41 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { Star, BookOpen, Award } from 'lucide-react';
 
-const SkillCard = ({ icon, title, onLearn, onQuiz }) => (
+const SkillCard = ({ imageUrl, icon, title, onLearn, onQuiz }) => (
     <motion.div
+        onClick={onLearn}
         whileHover={{ y: -4 }}
         transition={{ type: 'spring', stiffness: 260, damping: 20 }}
         className="group cursor-pointer rounded-2xl border border-gray-200 dark:border-white/10 bg-white dark:bg-white/5 backdrop-blur overflow-hidden shadow-sm dark:shadow-none transition-colors duration-300 flex flex-col justify-between"
     >
-        {/* Media Header (Gradient with Icon centered) */}
-        <div className="relative aspect-video flex items-center justify-center bg-gradient-to-br from-orange-500/20 to-purple-500/20 overflow-hidden border-b border-gray-150 dark:border-white/5">
-            {/* Central floating glow */}
-            <div className="absolute w-20 h-20 bg-orange-500/10 rounded-full blur-xl animate-pulse"></div>
-            
-            <div className="relative z-10 w-16 h-16 rounded-full bg-white/10 dark:bg-white/5 border border-white/10 flex items-center justify-center transition-transform duration-500 group-hover:scale-110">
-                {icon}
+        {/* Media Header */}
+        {imageUrl ? (
+            <div className="relative aspect-video overflow-hidden border-b border-gray-150 dark:border-white/5">
+                <img
+                    src={imageUrl}
+                    alt={title}
+                    className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    onError={(e) => {
+                        e.currentTarget.onerror = null;
+                        e.currentTarget.src = 'https://placehold.co/600x400/7c3aed/ffffff?text=Skill';
+                    }}
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-slate-950/10 to-transparent" />
+                <div className="absolute top-4 left-4 inline-block bg-orange-500/10 border border-orange-500/20 rounded-full px-3 py-0.5 backdrop-blur-sm">
+                    <span className="text-orange-500 text-[10px] font-bold tracking-wider uppercase">SKILL</span>
+                </div>
             </div>
-
-            {/* Badge */}
-            <div className="absolute top-4 left-4 inline-block bg-orange-500/10 border border-orange-500/20 rounded-full px-3 py-0.5">
-                <span className="text-orange-500 text-[10px] font-bold tracking-wider uppercase">SKILL</span>
+        ) : (
+            <div className="relative aspect-video flex items-center justify-center bg-gradient-to-br from-orange-500/20 to-purple-500/20 overflow-hidden border-b border-gray-150 dark:border-white/5">
+                <div className="absolute w-20 h-20 bg-orange-500/10 rounded-full blur-xl animate-pulse"></div>
+                <div className="relative z-10 w-16 h-16 rounded-full bg-white/10 dark:bg-white/5 border border-white/10 flex items-center justify-center transition-transform duration-500 group-hover:scale-110">
+                    {icon}
+                </div>
+                <div className="absolute top-4 left-4 inline-block bg-orange-500/10 border border-orange-500/20 rounded-full px-3 py-0.5 backdrop-blur-sm">
+                    <span className="text-orange-500 text-[10px] font-bold tracking-wider uppercase">SKILL</span>
+                </div>
             </div>
-        </div>
+        )}
 
         {/* Content */}
         <div className="p-6 flex flex-col justify-between flex-grow">

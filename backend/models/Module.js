@@ -6,7 +6,9 @@ const Course = require('./Course');
 
 
 const moduleSchema = new mongoose.Schema({
-    courseId: { type: mongoose.Schema.Types.ObjectId, ref: 'Course', required: true },
+    courseId: { type: mongoose.Schema.Types.ObjectId, ref: 'Course', default: null },
+    skillId: { type: mongoose.Schema.Types.ObjectId, ref: 'Skill', default: null },
+    trackId: { type: mongoose.Schema.Types.ObjectId, ref: 'Track', default: null },
     title: { type: String, required: true },
     order: { type: Number, required: true },
     topics: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Topic' }], // Array of topics
